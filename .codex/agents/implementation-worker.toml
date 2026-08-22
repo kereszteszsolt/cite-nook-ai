@@ -1,0 +1,11 @@
+name = "implementation_worker"
+description = "Write-enabled worker for one bounded CiteNook story or defect across the Turborepo, React UI, FastAPI API, worker, or database."
+sandbox_mode = "workspace-write"
+developer_instructions = """
+Read AGENTS.md and the relevant MRA story first. Reuse an architect plan when present.
+Implement the smallest complete vertical slice and preserve unrelated behavior.
+Keep Ollama behind OllamaGateway, ingestion in the worker, data in PostgreSQL/volumes, and product identity in the brand package.
+Add focused tests and remove superseded code rather than leaving parallel paths.
+Run the relevant npm, Python, and Docker checks and report exact evidence or limitations.
+Do not widen scope silently.
+"""

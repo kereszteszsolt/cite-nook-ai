@@ -1,0 +1,36 @@
+# Testing
+
+## MRA-001 automated checks
+
+```bash
+python3 .agents/skills/release-evidence/scripts/verify_repository.py
+npm run lint
+npm run test
+npm run build
+docker compose config
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
+```
+
+The first Compose command must contain no `ollama` service and must resolve `OLLAMA_HOST` to an external endpoint. The override configuration must add the `ollama` service, its named volume, `http://ollama:11434` for the API and worker, and host port `11435` by default.
+
+## Runtime smoke checks
+
+External Ollama mode:
+
+```bash
+docker compose up --build --detach
+curl --fail http://localhost:8000/api/health
+curl --fail http://localhost:5173
+docker compose down
+```
+
+Separate Ollama container mode:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml up --build --detach
+curl --fail http://localhost:8000/api/health
+curl --fail http://localhost:5173
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml down
+```
+
+These commands remove containers and networks only. Named volumes remain persistent.
