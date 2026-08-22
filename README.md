@@ -6,17 +6,29 @@ Local document Q&A with citations.
 
 This repository is being built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. Document ingestion, persistent messages, and grounded answers are introduced by the following stories.
 
-## Start with an existing Ollama instance (default)
+## Quick start
 
-Ollama is not installed in the API, worker, or web containers. By default the application connects to `http://host.docker.internal:11434`; set `OLLAMA_HOST` to use another reachable URL.
+Create the local configuration file before the first start:
+
+```bash
+cp .env.example .env
+```
+
+Docker Compose automatically reads the repository-root `.env`. Edit that file to configure the Ollama endpoint, the available model names, and local ports. The file is ignored by Git and must not be committed. `.env.local` and `.env.dev` are not used by the supported Compose commands.
+
+Choose one of the following Ollama modes.
+
+### Option A: use an existing Ollama instance (default)
+
+Ollama is not installed in the API, worker, or web containers. By default the application connects to `http://host.docker.internal:11434`. Set `OLLAMA_HOST` in `.env` to use another URL that is reachable from Docker.
 
 ```bash
 docker compose up --build
 ```
 
-## Start with Ollama in a separate container
+### Option B: run Ollama as a separate container
 
-The optional override adds the official Ollama service and its persistent model volume:
+This is optional and is not the default. The override adds the official Ollama image as an independent service with its own persistent model volume:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml up --build
@@ -37,7 +49,14 @@ ollama pull llama3.1:8b
 ollama pull qwen3-embedding:0.6b
 ```
 
-When using the optional Compose service, run the equivalent commands through `docker compose exec ollama ollama pull ...`.
+When using the optional Compose service, include the override file when installing the models in another terminal:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml exec ollama ollama pull llama3.1:8b
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml exec ollama ollama pull qwen3-embedding:0.6b
+```
+
+Reload CiteNook after installing a model so the selectors refresh their installed status.
 
 ## Project identity
 
