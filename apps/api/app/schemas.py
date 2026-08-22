@@ -51,3 +51,12 @@ class ConversationRead(ApiModel):
     embedding_model: str
     created_at: datetime
     updated_at: datetime
+
+
+class DocumentUploadRead(ApiModel):
+    id: UUID
+    file_name: str
+    content_type: str
+    size_bytes: int
+    sha256: str
+    embedding_model: str

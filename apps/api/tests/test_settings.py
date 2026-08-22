@@ -41,3 +41,26 @@ def test_default_model_must_be_in_the_configured_catalog(monkeypatch) -> None:
         get_settings()
 
     get_settings.cache_clear()
+
+
+def test_upload_directory_and_size_limit_are_configurable(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("UPLOAD_DIR", str(tmp_path))
+    monkeypatch.setenv("MAX_UPLOAD_MB", "7")
+    get_settings.cache_clear()
+
+    settings = get_settings()
+
+    assert settings.upload_dir == tmp_path.resolve()
+    assert settings.max_upload_bytes == 7 * 1024 * 1024
+
+    get_settings.cache_clear()
+
+
+def test_upload_size_limit_must_be_positive(monkeypatch) -> None:
+    monkeypatch.setenv("MAX_UPLOAD_MB", "0")
+    get_settings.cache_clear()
+
+    with pytest.raises(RuntimeError, match="positive integer"):
+        get_settings()
+
+    get_settings.cache_clear()

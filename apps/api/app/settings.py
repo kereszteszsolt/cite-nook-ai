@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
@@ -23,6 +23,8 @@ class Settings:
     default_embedding_model: str
     brand_config_path: Path
     cors_origins: tuple[str, ...]
+    upload_dir: Path = field(default_factory=lambda: Path("./uploads").resolve())
+    max_upload_bytes: int = 20 * 1024 * 1024
 
 
 @lru_cache(maxsize=1)
@@ -41,6 +43,13 @@ def get_settings() -> Settings:
     if default_embedding_model not in embedding_models:
         raise RuntimeError("DEFAULT_EMBEDDING_MODEL must be included in EMBEDDING_MODELS.")
 
+    try:
+        max_upload_mb = int(os.getenv("MAX_UPLOAD_MB", "20"))
+    except ValueError as error:
+        raise RuntimeError("MAX_UPLOAD_MB must be a positive integer.") from error
+    if max_upload_mb <= 0:
+        raise RuntimeError("MAX_UPLOAD_MB must be a positive integer.")
+
     return Settings(
         database_url=os.getenv(
             "DATABASE_URL",
@@ -55,4 +64,6 @@ def get_settings() -> Settings:
             os.getenv("BRAND_CONFIG_PATH", "../../packages/brand/brand.json")
         ).resolve(),
         cors_origins=_csv("CORS_ORIGINS", "http://localhost:5173"),
+        upload_dir=Path(os.getenv("UPLOAD_DIR", "./uploads")).resolve(),
+        max_upload_bytes=max_upload_mb * 1024 * 1024,
     )

@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .brand import load_brand
 from .database import init_database
-from .routers import conversations, system
+from .routers import conversations, documents, system
 from .settings import get_settings
 
 
@@ -51,3 +51,4 @@ def get_brand() -> dict[str, Any]:
 
 app.include_router(system.router, prefix="/api")
 app.include_router(conversations.router, prefix="/api")
+app.include_router(documents.router, prefix="/api")

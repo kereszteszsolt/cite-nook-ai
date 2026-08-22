@@ -15,6 +15,8 @@ The first Compose command must contain no `ollama` service and must resolve `OLL
 
 MRA-002's API tests cover model-name normalization, installed/unavailable catalog results, and configured-name validation. Its web tests cover separate selectors, disabled unavailable options, restoration of a stored model pair, and updating the active conversation.
 
+MRA-003's API tests cover all supported suffixes, safe names, UUID directories, chunked writes, size enforcement, SHA-256, cleanup, and the file-before-commit ordering. Its web tests cover multipart requests and uploading with the selected embedding model.
+
 ## Runtime smoke checks
 
 External Ollama mode:
@@ -39,5 +41,15 @@ docker compose -f docker-compose.yml -f docker-compose.ollama.yml down
 ```
 
 For MRA-002, create a conversation through `POST /api/conversations`, update its model pair through `PATCH /api/conversations/{id}`, and confirm that `GET /api/conversations` returns the stored pair after switching between the two Compose modes.
+
+For MRA-003, upload a supported file and its configured embedding model as multipart data:
+
+```bash
+curl --fail -X POST http://localhost:8000/api/documents \
+  -F 'file=@README.md;filename=smoke.md;type=text/markdown' \
+  -F 'embedding_model=qwen3-embedding:0.6b'
+```
+
+Restart the stack without `--volumes`, then verify that the document row, queued job, and `<UUID>/smoke.md` file remain present.
 
 These commands remove containers and networks only. Named volumes remain persistent.

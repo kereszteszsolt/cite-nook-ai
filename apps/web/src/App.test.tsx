@@ -14,6 +14,7 @@ const apiMock = vi.hoisted(() => ({
   conversations: vi.fn(),
   createConversation: vi.fn(),
   updateConversation: vi.fn(),
+  uploadDocument: vi.fn(),
 }));
 
 vi.mock('./api', () => ({ api: apiMock }));
@@ -47,6 +48,14 @@ beforeEach(() => {
     (_id: string, chatModel: string, embeddingModel: string) =>
       Promise.resolve({ ...storedConversation, chatModel, embeddingModel }),
   );
+  apiMock.uploadDocument.mockResolvedValue({
+    id: 'document-1',
+    fileName: 'notes.md',
+    contentType: 'text/markdown',
+    sizeBytes: 7,
+    sha256: 'abc123',
+    embeddingModel: 'qwen3-embedding:0.6b',
+  });
 });
 
 afterEach(() => {
@@ -79,5 +88,23 @@ describe('conversation model selection', () => {
         'qwen3-embedding:0.6b',
       ),
     );
+  });
+
+  it('uploads a supported file with the selected embedding model', async () => {
+    render(<App />);
+
+    const fileInput = (await screen.findByLabelText('Document file')) as HTMLInputElement;
+    await waitFor(() => expect(fileInput.disabled).toBe(false));
+    const file = new File(['content'], 'notes.md', { type: 'text/markdown' });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+
+    await waitFor(() =>
+      expect(apiMock.uploadDocument).toHaveBeenCalledWith(
+        file,
+        'qwen3-embedding:0.6b',
+      ),
+    );
+    expect(await screen.findByText(/was stored successfully/)).toBeDefined();
   });
 });

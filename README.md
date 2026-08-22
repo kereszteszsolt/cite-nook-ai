@@ -4,7 +4,7 @@ Local document Q&A with citations.
 
 **CiteNook AI** — Ask your documents. Verify the sources.
 
-This repository is being built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. Document ingestion, persistent messages, and grounded answers are introduced by the following stories.
+This repository is being built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. Worker indexing, persistent messages, and grounded answers are introduced by the following stories.
 
 ## Quick start
 
@@ -41,6 +41,8 @@ Open CiteNook at `http://localhost:5173` and the API documentation at `http://lo
 ## Configure models
 
 The header lists the chat and embedding models configured through `CHAT_MODELS` and `EMBEDDING_MODELS`. CiteNook checks the selected Ollama instance and disables configured models that are not installed. The initial selections come from `DEFAULT_CHAT_MODEL` and `DEFAULT_EMBEDDING_MODEL`; every created conversation remembers both names.
+
+Uploads use `UPLOAD_DIR` and the `MAX_UPLOAD_MB` size limit from `.env`. Under Compose, uploaded bytes are stored in the persistent `citenook_uploads_data` volume.
 
 For example, install the default models in an external Ollama instance with:
 

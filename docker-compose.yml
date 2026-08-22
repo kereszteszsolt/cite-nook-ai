@@ -7,6 +7,8 @@ x-app-environment: &app-environment
   EMBEDDING_MODELS: ${EMBEDDING_MODELS:-qwen3-embedding:0.6b,embeddinggemma}
   DEFAULT_CHAT_MODEL: ${DEFAULT_CHAT_MODEL:-llama3.1:8b}
   DEFAULT_EMBEDDING_MODEL: ${DEFAULT_EMBEDDING_MODEL:-qwen3-embedding:0.6b}
+  UPLOAD_DIR: ${UPLOAD_DIR:-/data/uploads}
+  MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-20}
   BRAND_CONFIG_PATH: /config/brand.json
   CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
 

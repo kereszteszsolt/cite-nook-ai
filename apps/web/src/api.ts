@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Conversation, ModelCatalog } from './types';
+import type { Conversation, ModelCatalog, StoredUpload } from './types';
 
 export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api';
 
@@ -22,7 +22,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ? {
         ...init,
         headers: {
-          ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(init.body && !(init.body instanceof FormData)
+            ? { 'Content-Type': 'application/json' }
+            : {}),
           ...init.headers,
         },
       }
@@ -54,4 +56,10 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ chatModel, embeddingModel }),
     }),
+  uploadDocument: (file: File, embeddingModel: string) => {
+    const body = new FormData();
+    body.append('file', file);
+    body.append('embedding_model', embeddingModel);
+    return request<StoredUpload>('/documents', { method: 'POST', body });
+  },
 };

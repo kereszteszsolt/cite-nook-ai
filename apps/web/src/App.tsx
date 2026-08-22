@@ -6,8 +6,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from './api';
 import { ConversationSidebar } from './components/ConversationSidebar';
+import { DocumentUpload } from './components/DocumentUpload';
 import { Header } from './components/Header';
-import type { Conversation, ModelCatalog, ModelOption } from './types';
+import type { Conversation, ModelCatalog, ModelOption, StoredUpload } from './types';
 
 export default function App() {
   const [catalog, setCatalog] = useState<ModelCatalog | null>(null);
@@ -17,6 +18,8 @@ export default function App() {
   const [embeddingModel, setEmbeddingModel] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploaded, setUploaded] = useState<StoredUpload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const activeConversation = useMemo(
@@ -26,6 +29,7 @@ export default function App() {
   const canCreate =
     isInstalled(catalog?.chatModels ?? [], chatModel) &&
     isInstalled(catalog?.embeddingModels ?? [], embeddingModel);
+  const canUpload = isInstalled(catalog?.embeddingModels ?? [], embeddingModel);
 
   useEffect(() => {
     void loadInitialState();
@@ -106,6 +110,22 @@ export default function App() {
     }
   }
 
+  async function uploadDocument(file: File): Promise<boolean> {
+    if (!canUpload) return false;
+    setUploading(true);
+    setUploaded(null);
+    setError(null);
+    try {
+      setUploaded(await api.uploadDocument(file, embeddingModel));
+      return true;
+    } catch (cause) {
+      setError(errorMessage(cause));
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <div className="app-shell">
       <Header
@@ -136,22 +156,32 @@ export default function App() {
           onSelect={restoreConversation}
         />
 
-        <section className="model-panel">
-          <p className="eyebrow">Model configuration</p>
-          <h1>{activeConversation?.title ?? 'Start a conversation'}</h1>
-          {activeConversation ? (
-            <p>
-              This conversation remembers <strong>{chatModel}</strong> for chat and{' '}
-              <strong>{embeddingModel}</strong> for document embeddings.
-            </p>
-          ) : (
-            <p>
-              Select installed chat and embedding models, then create a conversation. Document
-              upload and messages arrive in the following stories.
-            </p>
-          )}
-          {saving && <p className="saving-note">Saving model selection…</p>}
-        </section>
+        <div className="content-column">
+          <section className="model-panel">
+            <p className="eyebrow">Model configuration</p>
+            <h1>{activeConversation?.title ?? 'Start a conversation'}</h1>
+            {activeConversation ? (
+              <p>
+                This conversation remembers <strong>{chatModel}</strong> for chat and{' '}
+                <strong>{embeddingModel}</strong> for document embeddings.
+              </p>
+            ) : (
+              <p>
+                Select installed chat and embedding models, then create a conversation. Messages
+                arrive in a following story.
+              </p>
+            )}
+            {saving && <p className="saving-note">Saving model selection…</p>}
+          </section>
+
+          <DocumentUpload
+            embeddingModel={embeddingModel}
+            enabled={canUpload}
+            uploading={uploading}
+            uploaded={uploaded}
+            onUpload={uploadDocument}
+          />
+        </div>
       </main>
     </div>
   );

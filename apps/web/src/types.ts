@@ -24,3 +24,12 @@ export interface Conversation {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface StoredUpload {
+  id: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  sha256: string;
+  embeddingModel: string;
+}

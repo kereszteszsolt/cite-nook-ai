@@ -49,6 +49,7 @@ dependencies = [
     { name = "fastapi", extra = ["standard-no-fastapi-cloud-cli"] },
     { name = "ollama" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "python-multipart" },
     { name = "sqlalchemy" },
 ]
 
@@ -63,6 +64,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard-no-fastapi-cloud-cli"], specifier = "==0.141.1" },
     { name = "ollama", specifier = "==0.6.2" },
     { name = "psycopg", extras = ["binary"], specifier = "==3.3.4" },
+    { name = "python-multipart", specifier = "==0.0.32" },
     { name = "sqlalchemy", specifier = "==2.0.52" },
 ]
 
