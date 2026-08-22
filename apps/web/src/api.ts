@@ -72,9 +72,14 @@ export const api = {
       body: JSON.stringify({ chatModel, embeddingModel }),
     }),
   updateConversation: (id: string, chatModel: string, embeddingModel: string) =>
-    request<Conversation>(`/conversations/${id}`, {
+    request<Conversation>(`/conversations/${encodeURIComponent(id)}`, {
       method: 'PATCH',
       body: JSON.stringify({ chatModel, embeddingModel }),
+    }),
+  updateConversationTitle: (id: string, title: string) =>
+    request<Conversation>(`/conversations/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title }),
     }),
   deleteConversation: (id: string) =>
     request<void>(`/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }),

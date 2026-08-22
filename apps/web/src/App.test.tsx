@@ -5,7 +5,15 @@
 
 // @vitest-environment jsdom
 
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 
@@ -17,6 +25,7 @@ const apiMock = vi.hoisted(() => ({
   documents: vi.fn(),
   createConversation: vi.fn(),
   updateConversation: vi.fn(),
+  updateConversationTitle: vi.fn(),
   deleteConversation: vi.fn(),
   uploadDocument: vi.fn(),
   documentFileUrl: vi.fn(),
@@ -109,6 +118,9 @@ beforeEach(() => {
     (_id: string, chatModel: string, embeddingModel: string) =>
       Promise.resolve({ ...storedConversation, chatModel, embeddingModel }),
   );
+  apiMock.updateConversationTitle.mockImplementation((_id: string, title: string) =>
+    Promise.resolve({ ...storedConversation, title }),
+  );
   apiMock.deleteConversation.mockResolvedValue(undefined);
   apiMock.uploadDocument.mockResolvedValue({
     ...readyDocument,
@@ -180,6 +192,91 @@ describe('conversation model selection', () => {
 });
 
 describe('persistent conversation history', () => {
+  it('edits a conversation title and updates the header and sidebar', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit conversation title' }));
+    const titleInput = screen.getByLabelText('Conversation title') as HTMLInputElement;
+    fireEvent.change(titleInput, { target: { value: 'Project sources' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save title' }));
+
+    await waitFor(() =>
+      expect(apiMock.updateConversationTitle).toHaveBeenCalledWith(
+        'conversation-1',
+        'Project sources',
+      ),
+    );
+    expect(await screen.findAllByText('Project sources')).toHaveLength(2);
+  });
+
+  it('cancels title editing without changing the stored title', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit conversation title' }));
+    fireEvent.change(screen.getByLabelText('Conversation title'), {
+      target: { value: 'Discard this title' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(apiMock.updateConversationTitle).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', { name: 'New conversation' })).toBeDefined();
+    expect(
+      within(screen.getByRole('complementary', { name: 'Conversations' })).getByText(
+        'New conversation',
+        { selector: 'strong' },
+      ),
+    ).toBeDefined();
+  });
+
+  it('disables title controls while the update is being saved', async () => {
+    let resolveUpdate: (() => void) | undefined;
+    apiMock.updateConversationTitle.mockImplementation(
+      (_id: string, title: string) =>
+        new Promise((resolve) => {
+          resolveUpdate = () => resolve({ ...storedConversation, title });
+        }),
+    );
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit conversation title' }));
+    const titleInput = screen.getByLabelText('Conversation title') as HTMLInputElement;
+    fireEvent.change(titleInput, { target: { value: 'Saving title' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save title' }));
+
+    expect(await screen.findByRole('button', { name: 'Saving…' })).toBeDefined();
+    expect(titleInput.disabled).toBe(true);
+    expect((screen.getByRole('button', { name: 'Cancel' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+
+    await act(async () => resolveUpdate?.());
+    expect(await screen.findAllByText('Saving title')).toHaveLength(2);
+  });
+
+  it('keeps title editing open and reports a failed update', async () => {
+    apiMock.updateConversationTitle.mockRejectedValue(new Error('Title update failed.'));
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit conversation title' }));
+    fireEvent.change(screen.getByLabelText('Conversation title'), {
+      target: { value: 'Retry this title' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save title' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Title update failed.',
+    );
+    expect((screen.getByLabelText('Conversation title') as HTMLInputElement).value).toBe(
+      'Retry this title',
+    );
+    expect(
+      within(screen.getByRole('complementary', { name: 'Conversations' })).getByText(
+        'New conversation',
+        { selector: 'strong' },
+      ),
+    ).toBeDefined();
+  });
+
   it('reloads the selected conversation and all stored messages', async () => {
     apiMock.messages.mockResolvedValue(storedMessages);
 
@@ -202,7 +299,9 @@ describe('persistent conversation history', () => {
 
     const input = (await screen.findByLabelText('Ask your documents')) as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: 'What does the document say?' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Ask' }));
+    const sendButton = screen.getByRole('button', { name: 'Send question' });
+    expect(sendButton.querySelector('svg')).not.toBeNull();
+    fireEvent.click(sendButton);
 
     await waitFor(() =>
       expect(apiMock.askQuestion).toHaveBeenCalledWith(
@@ -215,16 +314,78 @@ describe('persistent conversation history', () => {
     expect(input.value).toBe('');
   });
 
+  it('sends with Enter but keeps Shift+Enter available for a new line', async () => {
+    render(<App />);
+
+    const input = (await screen.findByLabelText('Ask your documents')) as HTMLTextAreaElement;
+    fireEvent.change(input, { target: { value: 'First line' } });
+    fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
+    expect(apiMock.askQuestion).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+    await waitFor(() =>
+      expect(apiMock.askQuestion).toHaveBeenCalledWith('conversation-1', 'First line'),
+    );
+  });
+
+  it('bounds long input, scrolls internally, and collapses after a successful send', async () => {
+    render(<App />);
+
+    const input = (await screen.findByLabelText('Ask your documents')) as HTMLTextAreaElement;
+    await waitFor(() => expect(input.style.height).toBe('48px'));
+    let measuredHeight = 240;
+    Object.defineProperty(input, 'scrollHeight', {
+      configurable: true,
+      get: () => measuredHeight,
+    });
+    fireEvent.change(input, { target: { value: 'A long question '.repeat(30) } });
+
+    await waitFor(() => expect(input.style.height).toBe('160px'));
+    expect(input.style.overflowY).toBe('auto');
+
+    measuredHeight = 24;
+    fireEvent.click(screen.getByRole('button', { name: 'Send question' }));
+    await waitFor(() => expect(input.value).toBe(''));
+    await waitFor(() => expect(input.style.height).toBe('48px'));
+    expect(input.style.overflowY).toBe('hidden');
+  });
+
+  it('preserves the question when answer generation fails', async () => {
+    apiMock.askQuestion.mockRejectedValue(new Error('Answer failed.'));
+    render(<App />);
+
+    const input = (await screen.findByLabelText('Ask your documents')) as HTMLTextAreaElement;
+    fireEvent.change(input, { target: { value: 'Please retry this question' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send question' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Answer failed.');
+    expect(input.value).toBe('Please retry this question');
+  });
+
   it('deletes a confirmed conversation from the persistent list', async () => {
+    let resolveDelete: (() => void) | undefined;
+    apiMock.deleteConversation.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        }),
+    );
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(<App />);
 
     await screen.findByRole('button', { name: 'Delete conversation' });
+    expect(
+      screen.getByRole('button', { name: 'Delete conversation' }).querySelector('svg'),
+    ).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Delete conversation' }));
 
     await waitFor(() =>
       expect(apiMock.deleteConversation).toHaveBeenCalledWith('conversation-1'),
     );
+    const deletingButton = screen.getByRole('button', { name: 'Deleting…' });
+    expect((deletingButton as HTMLButtonElement).disabled).toBe(true);
+
+    await act(async () => resolveDelete?.());
     expect(await screen.findByText('No conversations yet.')).toBeDefined();
     expect(screen.getByText('Create or select a conversation to view its history.')).toBeDefined();
   });

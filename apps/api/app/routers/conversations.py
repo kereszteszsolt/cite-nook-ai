@@ -19,7 +19,11 @@ from ..schemas import (
     QuestionCreate,
 )
 from ..services.answers import AnswerResult, GroundedAnswerError, GroundedAnswerService
-from ..services.conversations import ConversationService, UnsupportedModelError
+from ..services.conversations import (
+    ConversationService,
+    InvalidConversationTitleError,
+    UnsupportedModelError,
+)
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -57,8 +61,9 @@ def update_conversation(
             conversation_id=conversation_id,
             chat_model=payload.chat_model,
             embedding_model=payload.embedding_model,
+            title=payload.title,
         )
-    except UnsupportedModelError as error:
+    except (InvalidConversationTitleError, UnsupportedModelError) as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     if conversation is None:
         raise HTTPException(status_code=404, detail="Conversation not found.")

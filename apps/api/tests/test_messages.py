@@ -7,8 +7,14 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
+import pytest
+
 from app.models import Conversation, ConversationMessage
-from app.services.conversations import ConversationService, deterministic_title
+from app.services.conversations import (
+    ConversationService,
+    InvalidConversationTitleError,
+    deterministic_title,
+)
 from app.settings import Settings
 
 
@@ -182,6 +188,66 @@ def test_later_turn_keeps_the_first_question_title() -> None:
     assert result is not None
     assert stored_conversation.title == "Original first question"
     assert [item.ordinal for item in result] == [3, 4]
+
+
+def test_first_turn_keeps_a_manually_edited_title() -> None:
+    stored_conversation = conversation()
+    stored_conversation.title = "My research notes"
+    session = MessageSession(
+        conversation=stored_conversation,
+        scalar_results=[stored_conversation, 0],
+    )
+
+    message_service().record_turn(  # type: ignore[arg-type]
+        session,
+        conversation_id=stored_conversation.id,
+        question="The first question",
+        answer="The first answer",
+        chat_model="chat-a",
+        citations=[],
+    )
+
+    assert stored_conversation.title == "My research notes"
+
+
+def test_update_persists_a_normalized_title_without_changing_models() -> None:
+    stored_conversation = conversation()
+    session = MessageSession(conversation=stored_conversation)
+
+    updated = message_service().update(  # type: ignore[arg-type]
+        session,
+        conversation_id=stored_conversation.id,
+        title="  Project   sources  ",
+    )
+
+    assert updated is stored_conversation
+    assert stored_conversation.title == "Project sources"
+    assert stored_conversation.chat_model == "chat-a"
+    assert stored_conversation.embedding_model == "embed-a"
+    assert session.committed is True
+    assert session.refreshed == [stored_conversation]
+
+
+def test_update_rejects_empty_and_oversized_titles() -> None:
+    stored_conversation = conversation()
+    session = MessageSession(conversation=stored_conversation)
+    service = message_service()
+
+    with pytest.raises(InvalidConversationTitleError, match="must not be empty"):
+        service.update(  # type: ignore[arg-type]
+            session,
+            conversation_id=stored_conversation.id,
+            title="   ",
+        )
+    with pytest.raises(InvalidConversationTitleError, match="at most 120"):
+        service.update(  # type: ignore[arg-type]
+            session,
+            conversation_id=stored_conversation.id,
+            title="x" * 121,
+        )
+
+    assert stored_conversation.title == "New conversation"
+    assert session.committed is False
 
 
 def test_full_history_is_ordered_and_recent_history_is_bounded() -> None:

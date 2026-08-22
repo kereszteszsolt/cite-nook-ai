@@ -111,6 +111,24 @@ describe('API client', () => {
     );
   });
 
+  it('updates a conversation title without resending model selections', async () => {
+    const updated = { id: 'conversation/1', title: 'Project sources' };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(updated)));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      api.updateConversationTitle('conversation/1', 'Project sources'),
+    ).resolves.toEqual(updated);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:8000/api/conversations/conversation%2F1',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ title: 'Project sources' }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  });
+
   it('posts a question through the conversation message boundary', async () => {
     const turn = {
       conversation: { id: 'conversation-1' },

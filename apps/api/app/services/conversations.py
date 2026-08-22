@@ -14,9 +14,14 @@ from ..models import Conversation, ConversationMessage, utc_now
 from ..settings import Settings, get_settings
 
 CONVERSATION_TITLE_LENGTH = 80
+CONVERSATION_TITLE_MAX_LENGTH = 120
 
 
 class UnsupportedModelError(ValueError):
+    pass
+
+
+class InvalidConversationTitleError(ValueError):
     pass
 
 
@@ -125,7 +130,7 @@ class ConversationService:
             chat_model=chat_model,
             citations=[serialize_citation(citation) for citation in citations],
         )
-        if next_ordinal == 1:
+        if next_ordinal == 1 and conversation.title == "New conversation":
             conversation.title = deterministic_title(normalized_question)
         conversation.updated_at = utc_now()
         session.add_all([user_message, assistant_message])
@@ -147,15 +152,30 @@ class ConversationService:
         session: Session,
         *,
         conversation_id: UUID,
-        chat_model: str,
-        embedding_model: str,
+        chat_model: str | None = None,
+        embedding_model: str | None = None,
+        title: str | None = None,
     ) -> Conversation | None:
-        self._validate(chat_model, embedding_model)
+        if chat_model is None and embedding_model is None and title is None:
+            raise ValueError("At least one conversation field must be provided.")
+        if chat_model is not None and chat_model not in self._settings.chat_models:
+            raise UnsupportedModelError("Unsupported chat model.")
+        if (
+            embedding_model is not None
+            and embedding_model not in self._settings.embedding_models
+        ):
+            raise UnsupportedModelError("Unsupported embedding model.")
+        normalized_title = normalize_custom_title(title) if title is not None else None
+
         conversation = session.get(Conversation, conversation_id)
         if conversation is None:
             return None
-        conversation.chat_model = chat_model
-        conversation.embedding_model = embedding_model
+        if chat_model is not None:
+            conversation.chat_model = chat_model
+        if embedding_model is not None:
+            conversation.embedding_model = embedding_model
+        if normalized_title is not None:
+            conversation.title = normalized_title
         conversation.updated_at = utc_now()
         session.commit()
         session.refresh(conversation)
@@ -173,6 +193,17 @@ def deterministic_title(question: str) -> str:
     if len(normalized) <= CONVERSATION_TITLE_LENGTH:
         return normalized
     return f"{normalized[: CONVERSATION_TITLE_LENGTH - 1].rstrip()}…"
+
+
+def normalize_custom_title(title: str) -> str:
+    normalized = " ".join(title.split())
+    if not normalized:
+        raise InvalidConversationTitleError("Conversation title must not be empty.")
+    if len(normalized) > CONVERSATION_TITLE_MAX_LENGTH:
+        raise InvalidConversationTitleError(
+            f"Conversation title must be at most {CONVERSATION_TITLE_MAX_LENGTH} characters."
+        )
+    return normalized
 
 
 def serialize_citation(citation: Mapping[str, Any]) -> dict[str, Any]:

@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def to_camel(value: str) -> str:
@@ -41,8 +41,26 @@ class ConversationCreate(ApiModel):
     embedding_model: str = Field(min_length=1, max_length=200)
 
 
-class ConversationUpdate(ConversationCreate):
-    pass
+class ConversationUpdate(ApiModel):
+    title: str | None = Field(default=None, min_length=1, max_length=120)
+    chat_model: str | None = Field(default=None, min_length=1, max_length=200)
+    embedding_model: str | None = Field(default=None, min_length=1, max_length=200)
+
+    @field_validator("title")
+    @classmethod
+    def normalize_title(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.split())
+        if not normalized:
+            raise ValueError("Conversation title must not be empty.")
+        return normalized
+
+    @model_validator(mode="after")
+    def require_change(self) -> ConversationUpdate:
+        if self.title is None and self.chat_model is None and self.embedding_model is None:
+            raise ValueError("At least one conversation field must be provided.")
+        return self
 
 
 class QuestionCreate(ApiModel):

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './api';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { ConversationMessages } from './components/ConversationMessages';
+import { ConversationTitle } from './components/ConversationTitle';
 import { DocumentList } from './components/DocumentList';
 import { DocumentUpload } from './components/DocumentUpload';
 import { Header } from './components/Header';
@@ -40,6 +41,7 @@ export default function App() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [asking, setAsking] = useState(false);
   const [deletingConversation, setDeletingConversation] = useState(false);
+  const [renamingConversation, setRenamingConversation] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messageRequestId = useRef(0);
 
@@ -266,6 +268,26 @@ export default function App() {
     }
   }
 
+  async function renameActiveConversation(title: string): Promise<boolean> {
+    if (!activeConversation) return false;
+    setRenamingConversation(true);
+    setError(null);
+    try {
+      const updated = await api.updateConversationTitle(activeConversation.id, title);
+      setConversations((items) =>
+        items.map((conversation) =>
+          conversation.id === updated.id ? updated : conversation,
+        ),
+      );
+      return true;
+    } catch (cause) {
+      setError(errorMessage(cause));
+      return false;
+    } finally {
+      setRenamingConversation(false);
+    }
+  }
+
   async function askQuestion(question: string): Promise<boolean> {
     if (!activeConversation) return false;
     const conversationId = activeConversation.id;
@@ -298,7 +320,7 @@ export default function App() {
         chatModel={chatModel}
         embeddingModel={embeddingModel}
         loading={loading}
-        saving={saving || asking}
+        saving={saving || asking || renamingConversation}
         ollamaAvailable={catalog?.ollamaAvailable ?? null}
         onChatModelChange={(value) => void changeModels(value, embeddingModel)}
         onEmbeddingModelChange={(value) => void changeModels(chatModel, value)}
@@ -354,7 +376,11 @@ export default function App() {
           <div className="content-column">
             <section className="model-panel">
               <p className="eyebrow">Model configuration</p>
-              <h1>{activeConversation?.title ?? 'Start a conversation'}</h1>
+              <ConversationTitle
+                conversation={activeConversation}
+                saving={renamingConversation}
+                onRename={renameActiveConversation}
+              />
               {activeConversation ? (
                 <p>
                   This conversation remembers <strong>{chatModel}</strong> for chat and{' '}

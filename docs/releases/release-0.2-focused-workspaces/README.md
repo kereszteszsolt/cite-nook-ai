@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. MRA-008 is implemented; MRA-009 is planned as the next independently complete story.
+Implemented. Both stories have complete acceptance and verification evidence and remain independently usable commits.
 
 ## Objective
 
@@ -13,7 +13,7 @@ Give documents and conversations focused workspaces while making source selectio
 | Story | Title | Status |
 | --- | --- | --- |
 | MRA-008 | Manage document availability in a dedicated workspace | Implemented |
-| MRA-009 | Refine chat interaction and conversation controls | Planned |
+| MRA-009 | Refine chat interaction and conversation controls | Implemented |
 
 ## Release boundary
 

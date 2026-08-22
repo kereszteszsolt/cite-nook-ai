@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from 'react';
 import { api } from '../api';
 import type { Conversation, ConversationMessage } from '../types';
 
@@ -17,20 +23,48 @@ interface ConversationMessagesProps {
   onDelete: () => void;
 }
 
+const COMPOSER_MIN_HEIGHT_PX = 48;
+const COMPOSER_MAX_HEIGHT_PX = 160;
+
 export function ConversationMessages(props: ConversationMessagesProps) {
   const [question, setQuestion] = useState('');
   const historyRef = useRef<HTMLDivElement>(null);
+  const questionRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const history = historyRef.current;
     if (history) history.scrollTop = history.scrollHeight;
   }, [props.messages]);
 
+  useEffect(() => {
+    const input = questionRef.current;
+    if (!input) return;
+    input.style.height = 'auto';
+    input.style.height = `${Math.max(
+      COMPOSER_MIN_HEIGHT_PX,
+      Math.min(input.scrollHeight, COMPOSER_MAX_HEIGHT_PX),
+    )}px`;
+    input.style.overflowY =
+      input.scrollHeight > COMPOSER_MAX_HEIGHT_PX ? 'auto' : 'hidden';
+  }, [props.conversation?.id, question]);
+
   async function submitQuestion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const normalized = question.trim();
     if (!normalized || !props.conversation || props.asking) return;
     if (await props.onAsk(normalized)) setQuestion('');
+  }
+
+  function handleQuestionKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (
+      event.key !== 'Enter' ||
+      event.shiftKey ||
+      event.nativeEvent.isComposing
+    ) {
+      return;
+    }
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
   }
 
   return (
@@ -42,11 +76,13 @@ export function ConversationMessages(props: ConversationMessagesProps) {
         </div>
         {props.conversation && (
           <button
-            className="danger-button"
+            type="button"
+            className="conversation-delete-button"
             disabled={props.deleting || props.asking}
             onClick={props.onDelete}
           >
-            {props.deleting ? 'Deleting…' : 'Delete conversation'}
+            <TrashIcon />
+            <span>{props.deleting ? 'Deleting…' : 'Delete conversation'}</span>
           </button>
         )}
       </div>
@@ -102,25 +138,34 @@ export function ConversationMessages(props: ConversationMessagesProps) {
 
       {props.conversation && (
         <form className="question-form" onSubmit={(event) => void submitQuestion(event)}>
-          <label htmlFor="conversation-question">Ask your documents</label>
-          <div>
+          <label className="visually-hidden" htmlFor="conversation-question">
+            Ask your documents
+          </label>
+          <div className="composer-field">
             <textarea
+              ref={questionRef}
               id="conversation-question"
               value={question}
               maxLength={4000}
-              rows={2}
+              rows={1}
               disabled={props.loading || props.asking}
               placeholder="Ask a question grounded in your ready documents…"
               onChange={(event) => setQuestion(event.target.value)}
+              onKeyDown={handleQuestionKeyDown}
+              aria-describedby="composer-hint"
             />
             <button
-              className="primary-button"
+              className="composer-send-button"
               type="submit"
               disabled={props.loading || props.asking || !question.trim()}
+              aria-label={props.asking ? 'Answering question' : 'Send question'}
             >
-              {props.asking ? 'Answering…' : 'Ask'}
+              <SendIcon />
             </button>
           </div>
+          <small id="composer-hint" className="composer-hint">
+            Enter to send · Shift+Enter for a new line
+          </small>
         </form>
       )}
     </section>
@@ -129,4 +174,34 @@ export function ConversationMessages(props: ConversationMessagesProps) {
 
 function formatScore(score: number): string {
   return `${(score * 100).toFixed(1)}%`;
+}
+
+function SendIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+      <path
+        d="M12 20V5m0 0-6 6m6-6 6 6"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.2"
+      />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16">
+      <path
+        d="M8 8v10m4-10v10m4-10v10M5 5h14M9 5V3h6v2m2 0 1 16H6L7 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
 }
