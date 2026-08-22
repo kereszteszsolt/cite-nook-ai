@@ -13,7 +13,7 @@ Provide the shortest complete document-to-answer workflow while keeping data loc
 | Story | Title | Status |
 | --- | --- | --- |
 | MRA-001 | Run the branded local monorepo | Implemented |
-| MRA-002 | Select and remember Ollama models | Planned |
+| MRA-002 | Select and remember Ollama models | Implemented |
 | MRA-003 | Upload and persist supported documents | Planned |
 | MRA-004 | Index documents with a separate worker | Planned |
 | MRA-005 | Inspect and manage document status | Planned |

@@ -1,0 +1,26 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Keresztes Zsolt <https://kereszteszsolt.hu>
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+export interface ModelOption {
+  name: string;
+  installed: boolean;
+}
+
+export interface ModelCatalog {
+  chatModels: ModelOption[];
+  embeddingModels: ModelOption[];
+  defaultChatModel: string;
+  defaultEmbeddingModel: string;
+  ollamaAvailable: boolean;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  chatModel: string;
+  embeddingModel: string;
+  createdAt: string;
+  updatedAt: string;
+}

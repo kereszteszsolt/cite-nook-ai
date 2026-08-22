@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -18,6 +20,13 @@ SessionLocal = sessionmaker(bind=engine, expire_on_commit=False, class_=Session)
 
 
 def init_database() -> None:
+    from . import models  # noqa: F401
+
     with engine.begin() as connection:
         connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         Base.metadata.create_all(bind=connection)
+
+
+def get_session() -> Generator[Session]:
+    with SessionLocal() as session:
+        yield session

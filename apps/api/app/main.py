@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .brand import load_brand
 from .database import init_database
+from .routers import conversations, system
 from .settings import get_settings
 
 
@@ -33,7 +34,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "PATCH"],
     allow_headers=["*"],
 )
 
@@ -46,3 +47,7 @@ def health() -> dict[str, str]:
 @app.get("/api/brand")
 def get_brand() -> dict[str, Any]:
     return brand
+
+
+app.include_router(system.router, prefix="/api")
+app.include_router(conversations.router, prefix="/api")

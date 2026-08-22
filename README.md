@@ -4,7 +4,7 @@ Local document Q&A with citations.
 
 **CiteNook AI** — Ask your documents. Verify the sources.
 
-This repository is being built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. Model selection, document ingestion, persistent chat, and grounded answers are introduced by the following stories.
+This repository is being built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. Document ingestion, persistent messages, and grounded answers are introduced by the following stories.
 
 ## Start with an existing Ollama instance (default)
 
@@ -25,6 +25,19 @@ docker compose -f docker-compose.yml -f docker-compose.ollama.yml up --build
 The containerized Ollama API is exposed on `http://localhost:11435` by default so it can coexist with an external instance on port `11434`. Override `OLLAMA_CONTAINER_PORT` if needed.
 
 Open CiteNook at `http://localhost:5173` and the API documentation at `http://localhost:8000/docs`.
+
+## Configure models
+
+The header lists the chat and embedding models configured through `CHAT_MODELS` and `EMBEDDING_MODELS`. CiteNook checks the selected Ollama instance and disables configured models that are not installed. The initial selections come from `DEFAULT_CHAT_MODEL` and `DEFAULT_EMBEDDING_MODEL`; every created conversation remembers both names.
+
+For example, install the default models in an external Ollama instance with:
+
+```bash
+ollama pull llama3.1:8b
+ollama pull qwen3-embedding:0.6b
+```
+
+When using the optional Compose service, run the equivalent commands through `docker compose exec ollama ollama pull ...`.
 
 ## Project identity
 
