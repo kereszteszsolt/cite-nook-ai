@@ -17,6 +17,8 @@ MRA-002's API tests cover model-name normalization, installed/unavailable catalo
 
 MRA-003's API tests cover all supported suffixes, safe names, UUID directories, chunked writes, size enforcement, SHA-256, cleanup, and the file-before-commit ordering. Its web tests cover multipart requests and uploading with the selected embedding model.
 
+MRA-004's API tests use real TXT, Markdown, DOCX, and two-page PDF fixtures to cover extraction and page retention. They also cover deterministic overlap, bounded embedding batches through the Ollama gateway, pgvector chunk construction, atomic `FOR UPDATE SKIP LOCKED` claiming, and stale-job recovery.
+
 ## Runtime smoke checks
 
 External Ollama mode:
@@ -51,5 +53,7 @@ curl --fail -X POST http://localhost:8000/api/documents \
 ```
 
 Restart the stack without `--volumes`, then verify that the document row, queued job, and `<UUID>/smoke.md` file remain present.
+
+For MRA-004, start the worker with the selected embedding model installed in the configured Ollama instance. After the upload, inspect the worker log for the completed job and verify in PostgreSQL that the document is `ready`, `chunk_count` matches its rows in `document_chunks`, every row stores the selected model, and `vector_dims(embedding)` is nonzero. A real two-session database check should hold a row lock on the first queued job and confirm that another worker claim skips it.
 
 These commands remove containers and networks only. Named volumes remain persistent.

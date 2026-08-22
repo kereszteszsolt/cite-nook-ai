@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any, Protocol
 
 from ollama import Client
@@ -12,6 +13,8 @@ from .settings import get_settings
 
 class OllamaClientProtocol(Protocol):
     def list(self) -> Any: ...
+
+    def embed(self, *, model: str, input: str | Sequence[str]) -> Any: ...
 
 
 class OllamaUnavailableError(RuntimeError):
@@ -38,3 +41,14 @@ class OllamaGateway:
             if normalized.endswith(":latest"):
                 names.add(normalized.removesuffix(":latest"))
         return names
+
+    def embed(self, model: str, inputs: str | Sequence[str]) -> list[list[float]]:
+        try:
+            response = self._client.embed(model=model, input=inputs)
+        except Exception as error:
+            raise OllamaUnavailableError("Ollama embedding request failed.") from error
+
+        embeddings = [list(vector) for vector in response.embeddings]
+        if not embeddings or any(not vector for vector in embeddings):
+            raise RuntimeError("Ollama returned an empty embedding response.")
+        return embeddings

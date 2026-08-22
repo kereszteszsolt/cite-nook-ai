@@ -13,6 +13,16 @@ def _csv(name: str, default: str) -> tuple[str, ...]:
     return tuple(value.strip() for value in os.getenv(name, default).split(",") if value.strip())
 
 
+def _positive_int(name: str, default: int) -> int:
+    try:
+        value = int(os.getenv(name, str(default)))
+    except ValueError as error:
+        raise RuntimeError(f"{name} must be a positive integer.") from error
+    if value <= 0:
+        raise RuntimeError(f"{name} must be a positive integer.")
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     database_url: str
@@ -25,6 +35,8 @@ class Settings:
     cors_origins: tuple[str, ...]
     upload_dir: Path = field(default_factory=lambda: Path("./uploads").resolve())
     max_upload_bytes: int = 20 * 1024 * 1024
+    embedding_batch_size: int = 32
+    ingestion_stale_minutes: int = 15
 
 
 @lru_cache(maxsize=1)
@@ -43,12 +55,7 @@ def get_settings() -> Settings:
     if default_embedding_model not in embedding_models:
         raise RuntimeError("DEFAULT_EMBEDDING_MODEL must be included in EMBEDDING_MODELS.")
 
-    try:
-        max_upload_mb = int(os.getenv("MAX_UPLOAD_MB", "20"))
-    except ValueError as error:
-        raise RuntimeError("MAX_UPLOAD_MB must be a positive integer.") from error
-    if max_upload_mb <= 0:
-        raise RuntimeError("MAX_UPLOAD_MB must be a positive integer.")
+    max_upload_mb = _positive_int("MAX_UPLOAD_MB", 20)
 
     return Settings(
         database_url=os.getenv(
@@ -66,4 +73,6 @@ def get_settings() -> Settings:
         cors_origins=_csv("CORS_ORIGINS", "http://localhost:5173"),
         upload_dir=Path(os.getenv("UPLOAD_DIR", "./uploads")).resolve(),
         max_upload_bytes=max_upload_mb * 1024 * 1024,
+        embedding_batch_size=_positive_int("EMBEDDING_BATCH_SIZE", 32),
+        ingestion_stale_minutes=_positive_int("INGESTION_STALE_MINUTES", 15),
     )
