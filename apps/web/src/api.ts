@@ -4,6 +4,7 @@
  */
 
 import type {
+  AnswerTurn,
   Conversation,
   ConversationMessage,
   DocumentRecord,
@@ -55,6 +56,14 @@ export const api = {
   messages: (conversationId: string) =>
     request<ConversationMessage[]>(
       `/conversations/${encodeURIComponent(conversationId)}/messages`,
+    ),
+  askQuestion: (conversationId: string, question: string) =>
+    request<AnswerTurn>(
+      `/conversations/${encodeURIComponent(conversationId)}/messages`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ question }),
+      },
     ),
   documents: () => request<DocumentRecord[]>('/documents'),
   createConversation: (chatModel: string, embeddingModel: string) =>

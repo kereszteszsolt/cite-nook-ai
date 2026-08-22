@@ -35,6 +35,7 @@ export default function App() {
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [asking, setAsking] = useState(false);
   const [deletingConversation, setDeletingConversation] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messageRequestId = useRef(0);
@@ -246,6 +247,30 @@ export default function App() {
     }
   }
 
+  async function askQuestion(question: string): Promise<boolean> {
+    if (!activeConversation) return false;
+    const conversationId = activeConversation.id;
+    const requestId = messageRequestId.current;
+    setAsking(true);
+    setError(null);
+    try {
+      const turn = await api.askQuestion(conversationId, question);
+      setConversations((items) => [
+        turn.conversation,
+        ...items.filter((conversation) => conversation.id !== turn.conversation.id),
+      ]);
+      if (requestId === messageRequestId.current) {
+        setMessages((items) => [...items, turn.userMessage, turn.assistantMessage]);
+      }
+      return true;
+    } catch (cause) {
+      setError(errorMessage(cause));
+      return false;
+    } finally {
+      setAsking(false);
+    }
+  }
+
   return (
     <div className="app-shell">
       <Header
@@ -254,7 +279,7 @@ export default function App() {
         chatModel={chatModel}
         embeddingModel={embeddingModel}
         loading={loading}
-        saving={saving}
+        saving={saving || asking}
         ollamaAvailable={catalog?.ollamaAvailable ?? null}
         onChatModelChange={(value) => void changeModels(value, embeddingModel)}
         onEmbeddingModelChange={(value) => void changeModels(chatModel, value)}
@@ -271,7 +296,7 @@ export default function App() {
         <ConversationSidebar
           conversations={conversations}
           activeId={activeId}
-          canCreate={canCreate && !saving}
+          canCreate={canCreate && !saving && !asking}
           onCreate={() => void createConversation()}
           onSelect={(conversation) => void openConversation(conversation)}
         />
@@ -298,7 +323,9 @@ export default function App() {
             conversation={activeConversation}
             messages={messages}
             loading={loadingMessages}
+            asking={asking}
             deleting={deletingConversation}
+            onAsk={askQuestion}
             onDelete={() => void deleteActiveConversation()}
           />
 

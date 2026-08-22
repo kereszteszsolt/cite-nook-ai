@@ -1,6 +1,6 @@
 # Architecture
 
-MRA-001 establishes the local runtime boundary. React talks only to FastAPI; the API and worker share PostgreSQL/pgvector and never install Ollama inside their images. MRA-002 keeps Ollama access behind the API gateway and stores each conversation's chat and embedding model in PostgreSQL. MRA-003 stores upload metadata in PostgreSQL and original bytes in the shared upload volume. MRA-004 processes those bytes in the separate worker and persists their chunks and embeddings. MRA-006 stores complete conversation histories and their answer provenance in PostgreSQL.
+MRA-001 establishes the local runtime boundary. React talks only to FastAPI; the API and worker share PostgreSQL/pgvector and never install Ollama inside their images. MRA-002 keeps Ollama access behind the API gateway and stores each conversation's chat and embedding model in PostgreSQL. MRA-003 stores upload metadata in PostgreSQL and original bytes in the shared upload volume. MRA-004 processes those bytes in the separate worker and persists their chunks and embeddings. MRA-006 stores complete conversation histories and their answer provenance in PostgreSQL. MRA-007 completes the path with model-compatible pgvector retrieval and grounded Ollama chat.
 
 ```mermaid
 flowchart LR
@@ -25,4 +25,6 @@ The document API lists persisted processing state and returns original files onl
 
 Conversation turns are written atomically after locking the conversation row. Every message has a stable ordinal; assistant messages also store the exact chat model and structured citation snapshot as JSONB. The first normalized question creates a deterministic title bounded to 80 characters without a title-generation model call. The API returns the full ordered history for reloads, while the model-input boundary selects only the most recent `CHAT_HISTORY_MESSAGES` records. Conversation deletion cascades to every message.
 
-MRA-007 connects this persistence contract to compatible-chunk retrieval and grounded Ollama answers without changing these boundaries.
+For each question, the API embeds normalized text with the conversation embedding model. A cosine-distance query joins chunks to documents, filters both stored model names to that same model, accepts only `ready` documents, orders by distance and chunk UUID, and limits the result to `RAG_TOP_K`. The result order becomes deterministic `S1`, `S2`, and so on.
+
+The system prompt treats source text as untrusted data, permits only the current sources, requires exact source markers, and mandates an explicit insufficiency sentence. Recent conversation messages are bounded context rather than evidence. `OllamaGateway` makes the one non-streaming official-client chat call with the conversation chat model. The API rejects missing or invented markers, persists only sources actually cited by the answer, and returns their document, page, chunk, snippet, and score fields. If retrieval returns no compatible source, it stores the explicit insufficiency answer without inventing a citation.

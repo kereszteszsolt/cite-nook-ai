@@ -46,6 +46,12 @@ export interface ConversationMessage {
   createdAt: string;
 }
 
+export interface AnswerTurn {
+  conversation: Conversation;
+  userMessage: ConversationMessage;
+  assistantMessage: ConversationMessage;
+}
+
 export type DocumentStatus = 'queued' | 'processing' | 'ready' | 'failed';
 
 export interface DocumentRecord {

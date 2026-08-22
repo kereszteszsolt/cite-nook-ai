@@ -4,7 +4,7 @@ Local document Q&A with citations.
 
 **CiteNook AI** — Ask your documents. Verify the sources.
 
-This repository is being built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. Grounded questions and answers are introduced by MRA-007.
+This repository was built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. MRA-007 completes the local RAG path with grounded answers and inspectable references.
 
 ## Quick start
 
@@ -49,6 +49,8 @@ The separate worker extracts queued uploads, creates deterministic overlapping c
 The Stored documents table updates while queued or processing work exists. It shows the original file metadata, embedding model, status, chunk count, upload time, and bounded processing errors. Original files open through the API; confirmed deletion removes the document, its chunks and jobs, and its UUID-scoped upload directory.
 
 Conversations and their messages remain in PostgreSQL across reloads and container restarts. The first stored question becomes a deterministic title of at most 80 characters, while `CHAT_HISTORY_MESSAGES` limits only the recent history prepared for model requests. Deleting a conversation also deletes all of its messages.
+
+After a compatible document reaches `ready`, create or select a conversation and use the fixed question field at the bottom of the viewport. CiteNook embeds the question with the conversation embedding model, searches only compatible ready chunks, and asks the selected chat model to answer solely from those sources. References under the answer show `[S1]`, `[S2]`, and so on with the original document link, page when available, chunk snippet, and similarity score. `RAG_TOP_K` sets the positive maximum number of passages supplied to one answer and defaults to `5`.
 
 For example, install the default models in an external Ollama instance with:
 

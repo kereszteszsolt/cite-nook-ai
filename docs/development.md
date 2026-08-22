@@ -18,4 +18,6 @@ The model catalog is configured with comma-separated `CHAT_MODELS` and `EMBEDDIN
 
 `CHAT_HISTORY_MESSAGES` controls the positive maximum number of recent persisted messages supplied to a model request. It defaults to `12`; the application still stores and reloads the complete conversation history.
 
+`RAG_TOP_K` controls the positive maximum number of compatible ready chunks supplied to one grounded answer. It defaults to `5`. Retrieved chunks are always filtered by the conversation embedding model before cosine-distance ordering.
+
 For the supported Docker Compose workflow, copy `.env.example` to the repository-root `.env` before the first start. Compose reads that file automatically, and Git ignores it. The supported startup commands do not read `.env.local` or `.env.dev`.

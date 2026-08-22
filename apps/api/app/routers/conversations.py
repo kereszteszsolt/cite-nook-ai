@@ -9,7 +9,16 @@ from fastapi import APIRouter, HTTPException, Response, status
 
 from ..dependencies import DatabaseSession
 from ..models import Conversation, ConversationMessage
-from ..schemas import ConversationCreate, ConversationRead, ConversationUpdate, MessageRead
+from ..ollama_gateway import OllamaUnavailableError
+from ..schemas import (
+    AnswerRead,
+    ConversationCreate,
+    ConversationRead,
+    ConversationUpdate,
+    MessageRead,
+    QuestionCreate,
+)
+from ..services.answers import AnswerResult, GroundedAnswerError, GroundedAnswerService
 from ..services.conversations import ConversationService, UnsupportedModelError
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
@@ -64,6 +73,27 @@ def list_messages(
     if messages is None:
         raise HTTPException(status_code=404, detail="Conversation not found.")
     return messages
+
+
+@router.post("/{conversation_id}/messages", response_model=AnswerRead)
+def answer_question(
+    conversation_id: UUID,
+    payload: QuestionCreate,
+    session: DatabaseSession,
+) -> AnswerResult:
+    try:
+        result = GroundedAnswerService().answer(
+            session, conversation_id=conversation_id, question=payload.question
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except OllamaUnavailableError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except GroundedAnswerError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
+    if result is None:
+        raise HTTPException(status_code=404, detail="Conversation not found.")
+    return result
 
 
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)

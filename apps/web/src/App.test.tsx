@@ -13,6 +13,7 @@ const apiMock = vi.hoisted(() => ({
   models: vi.fn(),
   conversations: vi.fn(),
   messages: vi.fn(),
+  askQuestion: vi.fn(),
   documents: vi.fn(),
   createConversation: vi.fn(),
   updateConversation: vi.fn(),
@@ -69,7 +70,7 @@ const storedMessages = [
         sourceId: 'S1',
         documentId: 'document-1',
         documentName: 'notes.md',
-        pageNumber: null,
+        pageNumber: 2,
         chunkId: 'chunk-1',
         snippet: 'Relevant text',
         score: 0.91,
@@ -96,6 +97,11 @@ beforeEach(() => {
   });
   apiMock.conversations.mockResolvedValue([storedConversation]);
   apiMock.messages.mockResolvedValue([]);
+  apiMock.askQuestion.mockResolvedValue({
+    conversation: { ...storedConversation, title: 'What does the document say?' },
+    userMessage: storedMessages[0],
+    assistantMessage: storedMessages[1],
+  });
   apiMock.documents.mockResolvedValue([]);
   apiMock.updateConversation.mockImplementation(
     (_id: string, chatModel: string, embeddingModel: string) =>
@@ -176,8 +182,31 @@ describe('persistent conversation history', () => {
     expect(await screen.findByText('What does the document say?')).toBeDefined();
     expect(screen.getByText('The persisted answer.')).toBeDefined();
     expect(screen.getAllByText('qwen3.5:9b').length).toBeGreaterThan(0);
-    expect(screen.getByText('1 stored source')).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'References' })).toBeDefined();
+    expect(screen.getByText('Relevant text')).toBeDefined();
+    expect(screen.getByText('Similarity 91.0%')).toBeDefined();
+    expect(
+      screen.getByRole('link', { name: /\[S1\] notes.md — page 2/ }).getAttribute('href'),
+    ).toBe('http://localhost:8000/api/documents/document-1/file');
     expect(apiMock.messages).toHaveBeenCalledWith('conversation-1');
+  });
+
+  it('asks a grounded question and renders the returned linked references', async () => {
+    render(<App />);
+
+    const input = (await screen.findByLabelText('Ask your documents')) as HTMLTextAreaElement;
+    fireEvent.change(input, { target: { value: 'What does the document say?' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }));
+
+    await waitFor(() =>
+      expect(apiMock.askQuestion).toHaveBeenCalledWith(
+        'conversation-1',
+        'What does the document say?',
+      ),
+    );
+    expect(await screen.findByText('The persisted answer.')).toBeDefined();
+    expect(screen.getByRole('link', { name: /\[S1\] notes.md/ })).toBeDefined();
+    expect(input.value).toBe('');
   });
 
   it('deletes a confirmed conversation from the persistent list', async () => {

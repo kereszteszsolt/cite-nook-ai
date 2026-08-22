@@ -45,6 +45,10 @@ class ConversationUpdate(ConversationCreate):
     pass
 
 
+class QuestionCreate(ApiModel):
+    question: str = Field(min_length=1, max_length=4000)
+
+
 class ConversationRead(ApiModel):
     id: UUID
     title: str
@@ -73,6 +77,12 @@ class MessageRead(ApiModel):
     chat_model: str | None
     citations: list[CitationRead]
     created_at: datetime
+
+
+class AnswerRead(ApiModel):
+    conversation: ConversationRead
+    user_message: MessageRead
+    assistant_message: MessageRead
 
 
 class DocumentRead(ApiModel):

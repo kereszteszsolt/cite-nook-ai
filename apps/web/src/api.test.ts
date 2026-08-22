@@ -93,4 +93,26 @@ describe('API client', () => {
       { method: 'DELETE', headers: {} },
     );
   });
+
+  it('posts a question through the conversation message boundary', async () => {
+    const turn = {
+      conversation: { id: 'conversation-1' },
+      userMessage: { id: 'message-1', role: 'user' },
+      assistantMessage: { id: 'message-2', role: 'assistant' },
+    };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(turn)));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.askQuestion('conversation-1', 'Grounded question?')).resolves.toEqual(
+      turn,
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:8000/api/conversations/conversation-1/messages',
+      {
+        method: 'POST',
+        body: JSON.stringify({ question: 'Grounded question?' }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  });
 });

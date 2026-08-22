@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Stories are implemented and committed one at a time; later stories remain planned until their acceptance criteria are verified.
+Implemented. All seven stories have complete acceptance and verification evidence and follow the one-story-per-commit workflow.
 
 ## Objective
 
@@ -18,7 +18,7 @@ Provide the shortest complete document-to-answer workflow while keeping data loc
 | MRA-004 | Index documents with a separate worker | Implemented |
 | MRA-005 | Inspect and manage document status | Implemented |
 | MRA-006 | Persist conversations and messages | Implemented |
-| MRA-007 | Answer from documents with references | Planned |
+| MRA-007 | Answer from documents with references | Implemented |
 
 ## Release boundary
 

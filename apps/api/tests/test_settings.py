@@ -70,6 +70,7 @@ def test_ingestion_batch_and_stale_interval_are_configurable(monkeypatch) -> Non
     monkeypatch.setenv("EMBEDDING_BATCH_SIZE", "8")
     monkeypatch.setenv("INGESTION_STALE_MINUTES", "11")
     monkeypatch.setenv("CHAT_HISTORY_MESSAGES", "7")
+    monkeypatch.setenv("RAG_TOP_K", "4")
     get_settings.cache_clear()
 
     settings = get_settings()
@@ -77,5 +78,6 @@ def test_ingestion_batch_and_stale_interval_are_configurable(monkeypatch) -> Non
     assert settings.embedding_batch_size == 8
     assert settings.ingestion_stale_minutes == 11
     assert settings.chat_history_messages == 7
+    assert settings.rag_top_k == 4
 
     get_settings.cache_clear()

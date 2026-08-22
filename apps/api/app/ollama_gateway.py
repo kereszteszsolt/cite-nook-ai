@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, Protocol
 
 from ollama import Client
@@ -15,6 +15,16 @@ class OllamaClientProtocol(Protocol):
     def list(self) -> Any: ...
 
     def embed(self, *, model: str, input: str | Sequence[str]) -> Any: ...
+
+    def chat(
+        self,
+        *,
+        model: str,
+        messages: Sequence[Mapping[str, Any]],
+        stream: bool,
+        think: bool,
+        options: Mapping[str, Any],
+    ) -> Any: ...
 
 
 class OllamaUnavailableError(RuntimeError):
@@ -50,5 +60,23 @@ class OllamaGateway:
 
         embeddings = [list(vector) for vector in response.embeddings]
         if not embeddings or any(not vector for vector in embeddings):
-            raise RuntimeError("Ollama returned an empty embedding response.")
+            raise OllamaUnavailableError("Ollama returned an empty embedding response.")
         return embeddings
+
+    def chat(self, model: str, messages: Sequence[Mapping[str, str]]) -> str:
+        try:
+            response = self._client.chat(
+                model=model,
+                messages=list(messages),
+                stream=False,
+                think=False,
+                options={"temperature": 0},
+            )
+        except Exception as error:
+            raise OllamaUnavailableError("Ollama chat request failed.") from error
+
+        content = getattr(getattr(response, "message", None), "content", None)
+        answer = str(content or "").strip()
+        if not answer:
+            raise OllamaUnavailableError("Ollama returned an empty chat response.")
+        return answer
