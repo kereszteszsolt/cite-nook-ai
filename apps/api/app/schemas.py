@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -53,10 +54,14 @@ class ConversationRead(ApiModel):
     updated_at: datetime
 
 
-class DocumentUploadRead(ApiModel):
+class DocumentRead(ApiModel):
     id: UUID
     file_name: str
     content_type: str
     size_bytes: int
     sha256: str
     embedding_model: str
+    status: Literal["queued", "processing", "ready", "failed"]
+    error_message: str | None
+    chunk_count: int
+    created_at: datetime

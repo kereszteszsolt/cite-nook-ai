@@ -4,7 +4,7 @@ Local document Q&A with citations.
 
 **CiteNook AI** — Ask your documents. Verify the sources.
 
-This repository is being built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. Document management, persistent messages, and grounded answers are introduced by the following stories.
+This repository is being built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. Persistent messages and grounded answers are introduced by the following stories.
 
 ## Quick start
 
@@ -45,6 +45,8 @@ The header lists the chat and embedding models configured through `CHAT_MODELS` 
 Uploads use `UPLOAD_DIR` and the `MAX_UPLOAD_MB` size limit from `.env`. Under Compose, uploaded bytes are stored in the persistent `citenook_uploads_data` volume.
 
 The separate worker extracts queued uploads, creates deterministic overlapping chunks, and sends them to Ollama in batches controlled by `EMBEDDING_BATCH_SIZE`. Jobs left in `processing` longer than `INGESTION_STALE_MINUTES` are returned to the queue. Both values must be positive whole numbers.
+
+The Stored documents table updates while queued or processing work exists. It shows the original file metadata, embedding model, status, chunk count, upload time, and bounded processing errors. Original files open through the API; confirmed deletion removes the document, its chunks and jobs, and its UUID-scoped upload directory.
 
 For example, install the default models in an external Ollama instance with:
 

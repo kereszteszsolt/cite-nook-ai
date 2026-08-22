@@ -27,6 +27,10 @@ describe('API client', () => {
       sizeBytes: 7,
       sha256: 'abc123',
       embeddingModel: 'embed-a',
+      status: 'queued',
+      errorMessage: null,
+      chunkCount: 0,
+      createdAt: '2026-08-22T00:00:00Z',
     };
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload)));
     vi.stubGlobal('fetch', fetchMock);
@@ -41,5 +45,30 @@ describe('API client', () => {
     expect(init.body).toBeInstanceOf(FormData);
     expect((init.body as FormData).get('embedding_model')).toBe('embed-a');
     expect((init.body as FormData).get('file')).toBe(file);
+  });
+
+  it('lists documents and deletes without parsing a 204 response body', async () => {
+    const documents = [{ id: 'document-1', fileName: 'notes.md' }];
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(documents)))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.documents()).resolves.toEqual(documents);
+    await expect(api.deleteDocument('document-1')).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:8000/api/documents',
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:8000/api/documents/document-1',
+      { method: 'DELETE', headers: {} },
+    );
+    expect(api.documentFileUrl('document-1')).toBe(
+      'http://localhost:8000/api/documents/document-1/file',
+    );
   });
 });

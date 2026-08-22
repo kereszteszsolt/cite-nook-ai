@@ -6,9 +6,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from './api';
 import { ConversationSidebar } from './components/ConversationSidebar';
+import { DocumentList } from './components/DocumentList';
 import { DocumentUpload } from './components/DocumentUpload';
 import { Header } from './components/Header';
-import type { Conversation, ModelCatalog, ModelOption, StoredUpload } from './types';
+import type {
+  Conversation,
+  DocumentRecord,
+  ModelCatalog,
+  ModelOption,
+  StoredUpload,
+} from './types';
+
+const DOCUMENT_POLL_INTERVAL_MS = 2000;
 
 export default function App() {
   const [catalog, setCatalog] = useState<ModelCatalog | null>(null);
@@ -20,6 +29,8 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState<StoredUpload | null>(null);
+  const [documents, setDocuments] = useState<DocumentRecord[]>([]);
+  const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const activeConversation = useMemo(
@@ -30,18 +41,23 @@ export default function App() {
     isInstalled(catalog?.chatModels ?? [], chatModel) &&
     isInstalled(catalog?.embeddingModels ?? [], embeddingModel);
   const canUpload = isInstalled(catalog?.embeddingModels ?? [], embeddingModel);
+  const hasProcessingDocuments = documents.some(
+    (document) => document.status === 'queued' || document.status === 'processing',
+  );
 
   useEffect(() => {
     void loadInitialState();
 
     async function loadInitialState() {
       try {
-        const [models, storedConversations] = await Promise.all([
+        const [models, storedConversations, storedDocuments] = await Promise.all([
           api.models(),
           api.conversations(),
+          api.documents(),
         ]);
         setCatalog(models);
         setConversations(storedConversations);
+        setDocuments(storedDocuments);
 
         const firstConversation = storedConversations[0];
         if (firstConversation) {
@@ -59,6 +75,39 @@ export default function App() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (!hasProcessingDocuments) return;
+    let cancelled = false;
+    let timer: number | undefined;
+
+    async function pollDocuments() {
+      try {
+        const latest = await api.documents();
+        if (cancelled) return;
+        setDocuments(latest);
+        if (latest.some(isProcessingDocument)) {
+          timer = window.setTimeout(
+            () => void pollDocuments(),
+            DOCUMENT_POLL_INTERVAL_MS,
+          );
+        }
+      } catch (cause) {
+        if (cancelled) return;
+        setError(errorMessage(cause));
+        timer = window.setTimeout(
+          () => void pollDocuments(),
+          DOCUMENT_POLL_INTERVAL_MS,
+        );
+      }
+    }
+
+    timer = window.setTimeout(() => void pollDocuments(), DOCUMENT_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [hasProcessingDocuments]);
 
   function restoreConversation(conversation: Conversation) {
     setActiveId(conversation.id);
@@ -116,13 +165,30 @@ export default function App() {
     setUploaded(null);
     setError(null);
     try {
-      setUploaded(await api.uploadDocument(file, embeddingModel));
+      const created = await api.uploadDocument(file, embeddingModel);
+      setUploaded(created);
+      setDocuments((items) => [created, ...items.filter((item) => item.id !== created.id)]);
       return true;
     } catch (cause) {
       setError(errorMessage(cause));
       return false;
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function deleteDocument(document: DocumentRecord) {
+    if (!window.confirm(`Delete "${document.fileName}" and its indexed chunks?`)) return;
+    setDeletingDocumentId(document.id);
+    setError(null);
+    try {
+      await api.deleteDocument(document.id);
+      setDocuments((items) => items.filter((item) => item.id !== document.id));
+      if (uploaded?.id === document.id) setUploaded(null);
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setDeletingDocumentId(null);
     }
   }
 
@@ -181,10 +247,21 @@ export default function App() {
             uploaded={uploaded}
             onUpload={uploadDocument}
           />
+
+          <DocumentList
+            documents={documents}
+            loading={loading}
+            deletingId={deletingDocumentId}
+            onDelete={(document) => void deleteDocument(document)}
+          />
         </div>
       </main>
     </div>
   );
+}
+
+function isProcessingDocument(document: DocumentRecord): boolean {
+  return document.status === 'queued' || document.status === 'processing';
 }
 
 function preferredInstalled(models: ModelOption[], preferred: string): string {

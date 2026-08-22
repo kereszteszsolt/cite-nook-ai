@@ -19,6 +19,8 @@ MRA-003's API tests cover all supported suffixes, safe names, UUID directories, 
 
 MRA-004's API tests use real TXT, Markdown, DOCX, and two-page PDF fixtures to cover extraction and page retention. They also cover deterministic overlap, bounded embedding batches through the Ollama gateway, pgvector chunk construction, atomic `FOR UPDATE SKIP LOCKED` claiming, and stale-job recovery.
 
+MRA-005's API tests cover newest-first listing, upload-root file boundaries, complete directory deletion, missing documents, and directory restoration after a failed database commit. Its web tests cover every displayed field, failed-job details, original-file links, confirmed deletion, and polling that stops when all documents are terminal.
+
 ## Runtime smoke checks
 
 External Ollama mode:
@@ -55,5 +57,7 @@ curl --fail -X POST http://localhost:8000/api/documents \
 Restart the stack without `--volumes`, then verify that the document row, queued job, and `<UUID>/smoke.md` file remain present.
 
 For MRA-004, start the worker with the selected embedding model installed in the configured Ollama instance. After the upload, inspect the worker log for the completed job and verify in PostgreSQL that the document is `ready`, `chunk_count` matches its rows in `document_chunks`, every row stores the selected model, and `vector_dims(embedding)` is nonzero. A real two-session database check should hold a row lock on the first queued job and confirm that another worker claim skips it.
+
+For MRA-005, use `GET /api/documents` to inspect all metadata and processing errors, then open `GET /api/documents/{id}/file` and verify that its bytes match the original upload. Delete only a dedicated smoke record through `DELETE /api/documents/{id}`; the response must be 204, its document/chunk/job counts must all be zero, and its UUID upload directory must no longer exist.
 
 These commands remove containers and networks only. Named volumes remain persistent.

@@ -21,4 +21,6 @@ For uploads, the API reduces the supplied name to a safe base name, streams the 
 
 The worker atomically claims one queued job at a time with `FOR UPDATE SKIP LOCKED`. It extracts one-based PDF pages or DOCX/TXT/Markdown text, creates deterministic overlapping chunks, and calls the official Ollama client in bounded batches. It then stores the chunk text, ordinal, optional page number, embedding model, and pgvector value in PostgreSQL before marking the document ready. A configurable age threshold returns abandoned processing jobs to the queue.
 
-Later MRA stories add document management, persistent messages, retrieval, and grounded answers without changing these boundaries.
+The document API lists persisted processing state and returns original files only from the configured upload root. Deletion first moves the document's UUID directory aside, commits the database cascade for its chunks and jobs, restores the directory if that commit fails, and removes the quarantined bytes after success. The web client polls this API only while queued or processing documents remain.
+
+Later MRA stories add persistent messages, retrieval, and grounded answers without changing these boundaries.

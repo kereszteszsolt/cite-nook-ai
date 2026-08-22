@@ -25,11 +25,19 @@ export interface Conversation {
   updatedAt: string;
 }
 
-export interface StoredUpload {
+export type DocumentStatus = 'queued' | 'processing' | 'ready' | 'failed';
+
+export interface DocumentRecord {
   id: string;
   fileName: string;
   contentType: string;
   sizeBytes: number;
   sha256: string;
   embeddingModel: string;
+  status: DocumentStatus;
+  errorMessage: string | null;
+  chunkCount: number;
+  createdAt: string;
 }
+
+export type StoredUpload = DocumentRecord;
