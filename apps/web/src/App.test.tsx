@@ -295,6 +295,17 @@ describe('conversation model selection', () => {
       }) as HTMLButtonElement).disabled,
     ).toBe(true);
     expect(within(dialog).getByRole('status').textContent).toContain('required');
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Documents' }));
+    const fileInput = (await screen.findByLabelText('Document file')) as HTMLInputElement;
+    expect(fileInput.disabled).toBe(true);
+    expect(screen.getByText('Choose file').closest('label')?.getAttribute('aria-disabled')).toBe(
+      'true',
+    );
+    expect((screen.getByRole('button', { name: 'Upload' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
   });
 
   it('uploads a supported file with the selected embedding model', async () => {
@@ -303,8 +314,11 @@ describe('conversation model selection', () => {
     fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
     const fileInput = (await screen.findByLabelText('Document file')) as HTMLInputElement;
     await waitFor(() => expect(fileInput.disabled).toBe(false));
+    expect(screen.getByText('Choose file')).toBeDefined();
+    expect(screen.getByText('No file selected')).toBeDefined();
     const file = new File(['content'], 'notes.md', { type: 'text/markdown' });
     fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(screen.getByText('notes.md')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
 
     await waitFor(() =>
@@ -314,6 +328,8 @@ describe('conversation model selection', () => {
       ),
     );
     expect(await screen.findByText(/was stored successfully/)).toBeDefined();
+    expect(screen.getByText('No file selected')).toBeDefined();
+    expect(fileInput.value).toBe('');
   });
 });
 
@@ -339,7 +355,7 @@ describe('persistent conversation history', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Edit conversation title' }));
-    fireEvent.change(screen.getByLabelText('Conversation title'), {
+    fireEvent.change(await screen.findByLabelText('Conversation title'), {
       target: { value: 'Discard this title' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -593,7 +609,15 @@ describe('document status and management', () => {
     expect(screen.getAllByText('2.0 KB')).toHaveLength(2);
     expect(screen.getAllByText('qwen3-embedding:0.6b').length).toBeGreaterThan(0);
     expect(screen.getByText('4')).toBeDefined();
-    expect(screen.getByText('The PDF structure is invalid.')).toBeDefined();
+    const failedStatus = screen.getByText('failed');
+    expect(failedStatus.classList.contains('document-status')).toBe(true);
+    expect(failedStatus.classList.contains('failed')).toBe(true);
+    const failure = screen.getByText('The PDF structure is invalid.').closest(
+      '.document-error-message',
+    );
+    expect(failure).not.toBeNull();
+    expect(failure?.querySelector('svg')).not.toBeNull();
+    expect(failure?.closest('tr')?.classList.contains('document-error-row')).toBe(true);
     const openLink = screen.getAllByRole('link', { name: 'Open' })[0];
     expect(openLink.getAttribute('href')).toBe(
       'http://localhost:8000/api/documents/document-1/file',
@@ -624,19 +648,119 @@ describe('document status and management', () => {
     expect(apiMock.documents).toHaveBeenCalledTimes(2);
   });
 
-  it('deletes a confirmed document from the persistent list', async () => {
+  it('opens an accessible document deletion dialog and supports safe cancellation', async () => {
     apiMock.documents.mockResolvedValue([readyDocument]);
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const browserConfirm = vi.spyOn(window, 'confirm');
     render(<App />);
 
     fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
     await screen.findByText('notes.md');
     fireEvent.click(screen.getByRole('button', { name: 'Delete notes.md' }));
 
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete document?' });
+    expect(within(dialog).getByText('notes.md')).toBeDefined();
+    expect(
+      within(dialog).getByText(/stored file, indexed chunks, and processing record/),
+    ).toBeDefined();
+    expect(within(dialog).getByText(/cannot be undone/i)).toBeDefined();
+    const cancel = within(dialog).getByRole('button', { name: 'Cancel' });
+    expect(document.activeElement).toBe(cancel);
+    expect(apiMock.deleteDocument).not.toHaveBeenCalled();
+    expect(browserConfirm).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('alertdialog', { name: 'Delete document?' })).toBeNull();
+    expect(apiMock.deleteDocument).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete notes.md' }));
+    fireEvent.click(
+      within(screen.getByRole('alertdialog', { name: 'Delete document?' })).getByRole(
+        'button',
+        { name: 'Cancel' },
+      ),
+    );
+    expect(screen.queryByRole('alertdialog', { name: 'Delete document?' })).toBeNull();
+    expect(screen.getByText('notes.md')).toBeDefined();
+  });
+
+  it('deletes only the confirmed document after the API succeeds', async () => {
+    let resolveDelete: (() => void) | undefined;
+    apiMock.documents.mockResolvedValue([
+      readyDocument,
+      { ...readyDocument, id: 'document-2', fileName: 'keep.pdf' },
+    ]);
+    apiMock.deleteDocument.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        }),
+    );
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete notes.md' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete document?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete document' }));
+
     await waitFor(() =>
       expect(apiMock.deleteDocument).toHaveBeenCalledWith('document-1'),
     );
+    expect(
+      (within(dialog).getByRole('button', { name: 'Deleting…' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (within(dialog).getByRole('button', { name: 'Cancel' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(screen.getAllByText('notes.md')).toHaveLength(2);
+    expect(screen.getByText('keep.pdf')).toBeDefined();
+
+    await act(async () => resolveDelete?.());
     await waitFor(() => expect(screen.queryByText('notes.md')).toBeNull());
+    expect(screen.getByText('keep.pdf')).toBeDefined();
+    expect(screen.queryByRole('alertdialog', { name: 'Delete document?' })).toBeNull();
+  });
+
+  it('keeps document deletion available for retry after an API failure', async () => {
+    apiMock.documents.mockResolvedValue([readyDocument]);
+    apiMock.deleteDocument.mockRejectedValue(new Error('Document deletion failed.'));
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete notes.md' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete document?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete document' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Document deletion failed.',
+    );
+    expect(screen.getByRole('alertdialog', { name: 'Delete document?' })).toBeDefined();
+    expect(screen.getAllByText('notes.md')).toHaveLength(2);
+    await waitFor(() =>
+      expect(
+        (within(dialog).getByRole('button', {
+          name: 'Delete document',
+        }) as HTMLButtonElement).disabled,
+      ).toBe(false),
+    );
+  });
+
+  it('renders each document lifecycle state as its own status badge', async () => {
+    apiMock.documents.mockResolvedValue([
+      { ...readyDocument, id: 'queued', fileName: 'queued.txt', status: 'queued' },
+      { ...readyDocument, id: 'processing', fileName: 'processing.txt', status: 'processing' },
+      readyDocument,
+      { ...readyDocument, id: 'failed', fileName: 'failed.txt', status: 'failed' },
+    ]);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
+    for (const status of ['queued', 'processing', 'ready', 'failed']) {
+      const badge = await screen.findByText(status);
+      expect(badge.classList.contains('document-status')).toBe(true);
+      expect(badge.classList.contains(status)).toBe(true);
+    }
   });
 
   it('deactivates a stored document without removing its management actions', async () => {

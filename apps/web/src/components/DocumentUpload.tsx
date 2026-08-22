@@ -35,17 +35,37 @@ export function DocumentUpload(props: DocumentUploadProps) {
       </div>
 
       <form className="upload-form" onSubmit={(event) => void submit(event)}>
-        <label htmlFor="document-file">Document file</label>
-        <input
-          ref={inputRef}
-          id="document-file"
-          type="file"
-          accept=".pdf,.docx,.txt,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
-          disabled={!props.enabled || props.uploading}
-          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-            setFile(event.target.files?.[0] ?? null)
-          }
-        />
+        <span id="document-file-label" className="upload-field-label">
+          Document file
+        </span>
+        <div className="file-picker">
+          <input
+            ref={inputRef}
+            className="file-picker-input"
+            id="document-file"
+            type="file"
+            aria-labelledby="document-file-label"
+            aria-describedby="document-file-name"
+            accept=".pdf,.docx,.txt,.md,.markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown"
+            disabled={!props.enabled || props.uploading}
+            onChange={(event: ChangeEvent<HTMLInputElement>) =>
+              setFile(event.target.files?.[0] ?? null)
+            }
+          />
+          <label
+            htmlFor="document-file"
+            className={`file-picker-control ${!props.enabled || props.uploading ? 'disabled' : ''}`}
+            aria-disabled={!props.enabled || props.uploading}
+          >
+            <span className="file-picker-button">
+              <FileIcon />
+              Choose file
+            </span>
+            <span id="document-file-name" className="file-picker-name" aria-live="polite">
+              {file?.name ?? 'No file selected'}
+            </span>
+          </label>
+        </div>
         <button
           className="primary-button"
           disabled={!file || !props.enabled || props.uploading}
@@ -73,6 +93,21 @@ export function DocumentUpload(props: DocumentUploadProps) {
         </div>
       )}
     </section>
+  );
+}
+
+function FileIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17">
+      <path
+        d="M6 3h8l4 4v14H6V3Zm8 0v5h4M9 13h6M9 17h4"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
   );
 }
 

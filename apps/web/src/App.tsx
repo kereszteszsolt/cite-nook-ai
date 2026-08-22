@@ -8,6 +8,7 @@ import { api } from './api';
 import {
   ConversationDeleteDialog,
   ConversationModelDialog,
+  DocumentDeleteDialog,
 } from './components/ConversationDialogs';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { ConversationMessages } from './components/ConversationMessages';
@@ -42,6 +43,7 @@ export default function App() {
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [activeView, setActiveView] = useState<ActiveView>('chat');
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
+  const [documentDeleteTarget, setDocumentDeleteTarget] = useState<DocumentRecord | null>(null);
   const [togglingDocumentId, setTogglingDocumentId] = useState<string | null>(null);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [asking, setAsking] = useState(false);
@@ -225,13 +227,13 @@ export default function App() {
   }
 
   async function deleteDocument(document: DocumentRecord) {
-    if (!window.confirm(`Delete "${document.fileName}" and its indexed chunks?`)) return;
     setDeletingDocumentId(document.id);
     setError(null);
     try {
       await api.deleteDocument(document.id);
       setDocuments((items) => items.filter((item) => item.id !== document.id));
       if (uploaded?.id === document.id) setUploaded(null);
+      setDocumentDeleteTarget(null);
     } catch (cause) {
       setError(errorMessage(cause));
     } finally {
@@ -474,7 +476,7 @@ export default function App() {
             loading={loading}
             deletingId={deletingDocumentId}
             togglingId={togglingDocumentId}
-            onDelete={(document) => void deleteDocument(document)}
+            onDelete={setDocumentDeleteTarget}
             onActiveChange={(document, isActive) =>
               void setDocumentActive(document, isActive)
             }
@@ -518,6 +520,15 @@ export default function App() {
           deleting={deletingConversation}
           onCancel={() => setDeleteDialogOpen(false)}
           onConfirm={() => void deleteActiveConversation()}
+        />
+      )}
+
+      {documentDeleteTarget && (
+        <DocumentDeleteDialog
+          fileName={documentDeleteTarget.fileName}
+          deleting={deletingDocumentId === documentDeleteTarget.id}
+          onCancel={() => setDocumentDeleteTarget(null)}
+          onConfirm={() => void deleteDocument(documentDeleteTarget)}
         />
       )}
     </div>

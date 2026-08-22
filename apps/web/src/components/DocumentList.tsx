@@ -127,7 +127,12 @@ function DocumentRows(props: {
       {document.status === 'failed' && document.errorMessage && (
         <tr className="document-error-row">
           <td colSpan={8}>
-            <strong>Processing failed:</strong> {document.errorMessage}
+            <div className="document-error-message">
+              <FailureIcon />
+              <span>
+                <strong>Processing failed:</strong> {document.errorMessage}
+              </span>
+            </div>
           </td>
         </tr>
       )}
@@ -137,6 +142,21 @@ function DocumentRows(props: {
 
 function StatusBadge({ status }: { status: DocumentStatus }) {
   return <span className={`document-status ${status}`}>{status}</span>;
+}
+
+function FailureIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M12 7v6m0 4h.01"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
 }
 
 function formatBytes(bytes: number): string {

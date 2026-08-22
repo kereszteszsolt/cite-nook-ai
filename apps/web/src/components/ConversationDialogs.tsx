@@ -9,6 +9,7 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
+  type ReactNode,
   type RefObject,
 } from 'react';
 import type { ModelOption } from '../types';
@@ -131,9 +132,67 @@ interface ConversationDeleteDialogProps {
 }
 
 export function ConversationDeleteDialog(props: ConversationDeleteDialogProps) {
-  const cancelRef = useRef<HTMLButtonElement>(null);
+  return (
+    <DestructiveConfirmationDialog
+      idPrefix="conversation-delete"
+      title="Delete conversation?"
+      description={
+        <>
+          <strong>{props.conversationTitle}</strong> and all of its messages will be permanently
+          deleted. This action cannot be undone.
+        </>
+      }
+      confirmLabel="Delete conversation"
+      busyLabel="Deleting…"
+      busy={props.deleting}
+      onCancel={props.onCancel}
+      onConfirm={props.onConfirm}
+    />
+  );
+}
 
-  useEscapeToCancel(props.deleting, props.onCancel);
+interface DocumentDeleteDialogProps {
+  fileName: string;
+  deleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+export function DocumentDeleteDialog(props: DocumentDeleteDialogProps) {
+  return (
+    <DestructiveConfirmationDialog
+      idPrefix="document-delete"
+      title="Delete document?"
+      description={
+        <>
+          <strong>{props.fileName}</strong>, its stored file, indexed chunks, and processing record
+          will be permanently deleted. This action cannot be undone.
+        </>
+      }
+      confirmLabel="Delete document"
+      busyLabel="Deleting…"
+      busy={props.deleting}
+      onCancel={props.onCancel}
+      onConfirm={props.onConfirm}
+    />
+  );
+}
+
+function DestructiveConfirmationDialog(props: {
+  idPrefix: string;
+  title: string;
+  description: ReactNode;
+  confirmLabel: string;
+  busyLabel: string;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const titleId = `${props.idPrefix}-title`;
+  const descriptionId = `${props.idPrefix}-description`;
+
+  useEscapeToCancel(props.busy, props.onCancel);
 
   useEffect(() => {
     cancelRef.current?.focus();
@@ -145,26 +204,23 @@ export function ConversationDeleteDialog(props: ConversationDeleteDialogProps) {
         className="modal-card delete-dialog"
         role="alertdialog"
         aria-modal="true"
-        aria-labelledby="delete-dialog-title"
-        aria-describedby="delete-dialog-description"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
       >
         <div className="delete-dialog-icon" aria-hidden="true">
           <TrashIcon />
         </div>
         <div className="modal-heading">
           <p className="eyebrow danger-eyebrow">Permanent action</p>
-          <h2 id="delete-dialog-title">Delete conversation?</h2>
-          <p id="delete-dialog-description">
-            <strong>{props.conversationTitle}</strong> and all of its messages will be permanently
-            deleted. This action cannot be undone.
-          </p>
+          <h2 id={titleId}>{props.title}</h2>
+          <p id={descriptionId}>{props.description}</p>
         </div>
         <div className="modal-actions">
           <button
             ref={cancelRef}
             type="button"
             className="secondary-button"
-            disabled={props.deleting}
+            disabled={props.busy}
             onClick={props.onCancel}
           >
             Cancel
@@ -172,10 +228,10 @@ export function ConversationDeleteDialog(props: ConversationDeleteDialogProps) {
           <button
             type="button"
             className="modal-danger-button"
-            disabled={props.deleting}
+            disabled={props.busy}
             onClick={props.onConfirm}
           >
-            {props.deleting ? 'Deleting…' : 'Delete conversation'}
+            {props.busy ? props.busyLabel : props.confirmLabel}
           </button>
         </div>
       </section>

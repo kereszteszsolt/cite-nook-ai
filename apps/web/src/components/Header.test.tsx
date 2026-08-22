@@ -12,13 +12,28 @@ import { Header } from './Header';
 afterEach(cleanup);
 
 describe('compact application header', () => {
-  it('shows branding and connection status without model controls', () => {
+  it('shows branding and a connected status pill without model controls', () => {
     render(<Header loading={false} ollamaAvailable />);
 
     expect(screen.getByText('CiteNook')).toBeDefined();
     expect(screen.getByText('Local document Q&A with citations')).toBeDefined();
-    expect(screen.getByRole('status').textContent).toBe('Ollama connected');
+    const status = screen.getByRole('status');
+    expect(status.textContent).toBe('Ollama connected');
+    expect(status.classList.contains('ready')).toBe(true);
     expect(screen.queryByRole('combobox')).toBeNull();
     expect(screen.queryByText('Model configuration')).toBeNull();
+  });
+
+  it('keeps unavailable and checking states text-labelled and separately styled', () => {
+    const { rerender } = render(<Header loading={false} ollamaAvailable={false} />);
+
+    let status = screen.getByRole('status');
+    expect(status.textContent).toBe('Ollama unavailable');
+    expect(status.classList.contains('unavailable')).toBe(true);
+
+    rerender(<Header loading ollamaAvailable={null} />);
+    status = screen.getByRole('status');
+    expect(status.textContent).toBe('Checking Ollama');
+    expect(status.classList.contains('checking')).toBe(true);
   });
 });
