@@ -28,6 +28,22 @@ class DocumentService:
     def get(self, session: Session, document_id: UUID) -> Document | None:
         return session.get(Document, document_id)
 
+    def set_active(
+        self, session: Session, document_id: UUID, *, is_active: bool
+    ) -> Document | None:
+        document = self.get(session, document_id)
+        if document is None:
+            return None
+
+        document.is_active = is_active
+        try:
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        session.refresh(document)
+        return document
+
     def original_file(self, document: Document) -> Path | None:
         path = Path(document.file_path).resolve()
         if not _is_document_path(path, document.id, self._settings.upload_dir):

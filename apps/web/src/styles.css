@@ -75,14 +75,36 @@ select {
 }
 .error-banner button { border: 0; color: inherit; background: transparent; font-size: 1.2rem; }
 
+.view-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px clamp(20px, 4vw, 64px) 0;
+  border-bottom: 1px solid var(--brand-border);
+  background: var(--brand-surface);
+}
+.view-tabs button {
+  min-width: 110px;
+  padding: 10px 16px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: var(--brand-text-muted);
+  background: transparent;
+  font-weight: 750;
+}
+.view-tabs button:hover { color: var(--brand-text); }
+.view-tabs button.active {
+  border-bottom-color: var(--brand-accent);
+  color: var(--brand-accent-strong);
+}
+
 .workspace {
-  min-height: calc(100vh - 92px);
+  min-height: calc(100vh - 142px);
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   gap: 18px;
   padding: 20px clamp(20px, 4vw, 64px);
 }
-.conversation-sidebar, .model-panel, .messages-panel, .upload-panel, .document-list-panel {
+.conversation-sidebar, .model-panel, .messages-panel, .upload-panel, .document-list-panel, .documents-intro {
   border: 1px solid var(--brand-border);
   border-radius: 16px;
   background: var(--brand-surface);
@@ -121,8 +143,23 @@ button:focus-visible, select:focus-visible {
 .empty-copy { padding: 12px; color: var(--brand-text-muted); text-align: center; }
 
 .content-column { min-width: 0; display: grid; gap: 18px; padding-bottom: 120px; }
+.documents-workspace {
+  min-height: calc(100vh - 142px);
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 20px clamp(20px, 4vw, 64px) 48px;
+}
+.documents-intro { padding: clamp(24px, 4vw, 42px); }
+.documents-intro h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.4rem); }
+.documents-intro > p:last-child {
+  max-width: 70ch;
+  margin-bottom: 0;
+  color: var(--brand-text-muted);
+  line-height: 1.6;
+}
 .model-panel { align-self: stretch; padding: clamp(32px, 8vw, 84px); }
-.model-panel .eyebrow, .messages-panel .eyebrow, .upload-panel .eyebrow, .document-list-panel .eyebrow {
+.model-panel .eyebrow, .messages-panel .eyebrow, .upload-panel .eyebrow, .document-list-panel .eyebrow, .documents-intro .eyebrow {
   margin: 0 0 12px;
   color: var(--brand-accent-strong);
   font-weight: 750;
@@ -274,6 +311,43 @@ button:focus-visible, select:focus-visible {
 .document-status.processing { color: #235a87; background: #e6f3ff; }
 .document-status.ready { color: var(--brand-accent-strong); background: var(--brand-accent-soft); }
 .document-status.failed { color: #9f2d25; background: #fff0ee; }
+.document-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  color: var(--brand-text-muted);
+  background: var(--brand-background);
+  font-size: .78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.document-toggle.active {
+  border-color: var(--brand-accent);
+  color: var(--brand-accent-strong);
+  background: var(--brand-accent-soft);
+}
+.document-toggle-track {
+  width: 28px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 999px;
+  background: #a8afac;
+}
+.document-toggle.active .document-toggle-track { background: var(--brand-accent); }
+.document-toggle-knob {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 2px rgb(27 40 36 / 24%);
+  transition: transform 120ms ease;
+}
+.document-toggle.active .document-toggle-knob { transform: translateX(12px); }
 .document-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
 .secondary-link, .danger-button {
   padding: 7px 9px;
@@ -316,6 +390,8 @@ button:focus-visible, select:focus-visible {
   .ollama-status { justify-self: start; }
   .model-selectors { display: grid; grid-template-columns: 1fr; }
   .workspace { grid-template-columns: 1fr; }
+  .view-tabs { padding-inline: 20px; }
+  .view-tabs button { flex: 1; min-width: 0; }
   .model-panel { padding: 36px 24px; }
   .upload-form { grid-template-columns: 1fr; }
   .document-list-heading { align-items: start; flex-direction: column; gap: 4px; }

@@ -10,6 +10,7 @@ from uuid import UUID, uuid4
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
@@ -18,6 +19,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
@@ -85,6 +87,9 @@ class Document(Base):
     status: Mapped[str] = mapped_column(String(20), default="queued", index=True)
     error_message: Mapped[str | None] = mapped_column(Text)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default=true(), nullable=False
+    )
     embedding_model: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(

@@ -85,6 +85,11 @@ export const api = {
     return request<DocumentRecord>('/documents', { method: 'POST', body });
   },
   documentFileUrl: (id: string) => `${API_URL}/documents/${encodeURIComponent(id)}/file`,
+  updateDocument: (id: string, isActive: boolean) =>
+    request<DocumentRecord>(`/documents/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+    }),
   deleteDocument: (id: string) =>
     request<void>(`/documents/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 };

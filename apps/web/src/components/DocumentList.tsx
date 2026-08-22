@@ -10,7 +10,9 @@ interface DocumentListProps {
   documents: DocumentRecord[];
   loading: boolean;
   deletingId: string | null;
+  togglingId: string | null;
   onDelete: (document: DocumentRecord) => void;
+  onActiveChange: (document: DocumentRecord, isActive: boolean) => void;
 }
 
 export function DocumentList(props: DocumentListProps) {
@@ -39,6 +41,7 @@ export function DocumentList(props: DocumentListProps) {
                 <th scope="col">Size</th>
                 <th scope="col">Embedding model</th>
                 <th scope="col">Status</th>
+                <th scope="col">Use for answers</th>
                 <th scope="col">Chunks</th>
                 <th scope="col">Uploaded</th>
                 <th scope="col"><span className="visually-hidden">Actions</span></th>
@@ -50,7 +53,9 @@ export function DocumentList(props: DocumentListProps) {
                   key={document.id}
                   document={document}
                   deleting={props.deletingId === document.id}
+                  toggling={props.togglingId === document.id}
                   onDelete={props.onDelete}
+                  onActiveChange={props.onActiveChange}
                 />
               ))}
             </tbody>
@@ -64,7 +69,9 @@ export function DocumentList(props: DocumentListProps) {
 function DocumentRows(props: {
   document: DocumentRecord;
   deleting: boolean;
+  toggling: boolean;
   onDelete: (document: DocumentRecord) => void;
+  onActiveChange: (document: DocumentRecord, isActive: boolean) => void;
 }) {
   const { document } = props;
   return (
@@ -76,6 +83,22 @@ function DocumentRows(props: {
           {document.embeddingModel}
         </td>
         <td><StatusBadge status={document.status} /></td>
+        <td>
+          <button
+            type="button"
+            className={`document-toggle ${document.isActive ? 'active' : 'inactive'}`}
+            role="switch"
+            aria-checked={document.isActive}
+            aria-label={`${document.isActive ? 'Disable' : 'Enable'} ${document.fileName} for answers`}
+            disabled={props.toggling}
+            onClick={() => props.onActiveChange(document, !document.isActive)}
+          >
+            <span aria-hidden="true" className="document-toggle-track">
+              <span className="document-toggle-knob" />
+            </span>
+            <span>{props.toggling ? 'Saving…' : document.isActive ? 'Active' : 'Inactive'}</span>
+          </button>
+        </td>
         <td>{document.chunkCount}</td>
         <td>
           <time dateTime={document.createdAt}>{formatDate(document.createdAt)}</time>
@@ -103,7 +126,7 @@ function DocumentRows(props: {
       </tr>
       {document.status === 'failed' && document.errorMessage && (
         <tr className="document-error-row">
-          <td colSpan={7}>
+          <td colSpan={8}>
             <strong>Processing failed:</strong> {document.errorMessage}
           </td>
         </tr>

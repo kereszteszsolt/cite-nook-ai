@@ -139,6 +139,7 @@ def source_row(name: str, ordinal: int, distance: float):
         sha256="0" * 64,
         status="ready",
         chunk_count=1,
+        is_active=True,
         embedding_model="embed-a",
     )
     chunk = DocumentChunk(
@@ -203,6 +204,7 @@ def test_answer_uses_conversation_models_ready_compatible_chunks_and_markers() -
     assert session.statement is not None
     sql = str(session.statement)
     assert "documents.status" in sql
+    assert "documents.is_active IS true" in sql
     assert "documents.embedding_model" in sql
     assert "document_chunks.embedding_model" in sql
     assert "<=>" in sql

@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 
 from ..dependencies import DatabaseSession
 from ..models import Document
-from ..schemas import DocumentRead
+from ..schemas import DocumentRead, DocumentUpdate
 from ..services.documents import DocumentService
 from ..services.uploads import (
     DocumentUploadService,
@@ -47,6 +47,18 @@ async def upload_document(
         raise HTTPException(status_code=413, detail=str(error)) from error
     except EmptyUploadError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+@router.patch("/{document_id}", response_model=DocumentRead)
+def update_document(
+    document_id: UUID, payload: DocumentUpdate, session: DatabaseSession
+) -> Document:
+    document = DocumentService().set_active(
+        session, document_id, is_active=payload.is_active
+    )
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    return document
 
 
 @router.get("/{document_id}/file", response_class=FileResponse)

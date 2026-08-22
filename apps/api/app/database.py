@@ -26,6 +26,12 @@ def init_database() -> None:
     with engine.begin() as connection:
         connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         Base.metadata.create_all(bind=connection)
+        connection.execute(
+            text(
+                "ALTER TABLE documents "
+                "ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE"
+            )
+        )
 
 
 def get_session() -> Generator[Session]:

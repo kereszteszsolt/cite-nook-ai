@@ -95,4 +95,9 @@ class DocumentRead(ApiModel):
     status: Literal["queued", "processing", "ready", "failed"]
     error_message: str | None
     chunk_count: int
+    is_active: bool
     created_at: datetime
+
+
+class DocumentUpdate(ApiModel):
+    is_active: bool

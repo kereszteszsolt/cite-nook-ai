@@ -4,7 +4,7 @@ Local document Q&A with citations.
 
 **CiteNook AI** — Ask your documents. Verify the sources.
 
-This repository was built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. MRA-007 completes the local RAG path with grounded answers and inspectable references.
+This repository was built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. MRA-007 completes the local RAG path with grounded answers and inspectable references. MRA-008 moves all document management into one Documents workspace and adds persistent activation controls for retrieval.
 
 ## Quick start
 
@@ -46,11 +46,11 @@ Uploads use `UPLOAD_DIR` and the `MAX_UPLOAD_MB` size limit from `.env`. Under C
 
 The separate worker extracts queued uploads, creates deterministic overlapping chunks, and sends them to Ollama in batches controlled by `EMBEDDING_BATCH_SIZE`. Jobs left in `processing` longer than `INGESTION_STALE_MINUTES` are returned to the queue. Both values must be positive whole numbers.
 
-The Stored documents table updates while queued or processing work exists. It shows the original file metadata, embedding model, status, chunk count, upload time, and bounded processing errors. Original files open through the API; confirmed deletion removes the document, its chunks and jobs, and its UUID-scoped upload directory.
+Open the Documents tab to upload and manage every stored source without occupying the Chat workspace. The Stored documents table updates while queued or processing work exists. It shows the original file metadata, embedding model, processing status, active state, chunk count, upload time, and bounded processing errors. Deactivating a document excludes it from answers without deleting its file or indexed chunks; it can be opened, deleted, or enabled again. Confirmed deletion removes the document, its chunks and jobs, and its UUID-scoped upload directory.
 
 Conversations and their messages remain in PostgreSQL across reloads and container restarts. The first stored question becomes a deterministic title of at most 80 characters, while `CHAT_HISTORY_MESSAGES` limits only the recent history prepared for model requests. Deleting a conversation also deletes all of its messages.
 
-After a compatible document reaches `ready`, create or select a conversation and use the fixed question field at the bottom of the viewport. CiteNook embeds the question with the conversation embedding model, searches only compatible ready chunks, and asks the selected chat model to answer solely from those sources. References under the answer show `[S1]`, `[S2]`, and so on with the original document link, page when available, chunk snippet, and similarity score. `RAG_TOP_K` sets the positive maximum number of passages supplied to one answer and defaults to `5`.
+After a compatible active document reaches `ready`, open the Chat tab, create or select a conversation, and use the fixed question field at the bottom of the viewport. CiteNook embeds the question with the conversation embedding model, searches only compatible ready chunks from active documents, and asks the selected chat model to answer solely from those sources. References under the answer show `[S1]`, `[S2]`, and so on with the original document link, page when available, chunk snippet, and similarity score. `RAG_TOP_K` sets the positive maximum number of passages supplied to one answer and defaults to `5`.
 
 For example, install the default models in an external Ollama instance with:
 
@@ -89,7 +89,7 @@ docker compose config
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
 ```
 
-See [the testing guide](docs/testing.md) and the [Release 0.1 story map](docs/releases/release-0.1-mini-rag/README.md).
+See [the testing guide](docs/testing.md), the [Release 0.1 story map](docs/releases/release-0.1-mini-rag/README.md), and the [Release 0.2 story map](docs/releases/release-0.2-focused-workspaces/README.md).
 
 ## License
 

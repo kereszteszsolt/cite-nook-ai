@@ -22,6 +22,7 @@ class DocumentSession:
         self.deleted: list[Document] = []
         self.committed = False
         self.rolled_back = False
+        self.refreshed: list[Document] = []
 
     def scalars(self, statement: Any) -> list[Document]:
         self.statement = str(statement)
@@ -41,6 +42,9 @@ class DocumentSession:
 
     def rollback(self) -> None:
         self.rolled_back = True
+
+    def refresh(self, document: Document) -> None:
+        self.refreshed.append(document)
 
 
 def document_settings(upload_dir: Path) -> Settings:
@@ -72,6 +76,7 @@ def stored_document(upload_dir: Path, *, file_name: str = "notes.txt") -> Docume
         sha256="0" * 64,
         status="ready",
         chunk_count=2,
+        is_active=True,
         embedding_model="embed-a",
     )
 
@@ -99,6 +104,50 @@ def test_original_file_is_limited_to_the_document_uuid_directory(tmp_path: Path)
     outside.write_text("outside", encoding="utf-8")
     document.file_path = str(outside)
     assert service.original_file(document) is None
+
+
+def test_set_active_persists_only_the_retrieval_selection(tmp_path: Path) -> None:
+    document = stored_document(tmp_path)
+    original_path = document.file_path
+    session = DocumentSession([document])
+
+    updated = DocumentService(document_settings(tmp_path)).set_active(  # type: ignore[arg-type]
+        session, document.id, is_active=False
+    )
+
+    assert updated is document
+    assert document.is_active is False
+    assert document.status == "ready"
+    assert document.chunk_count == 2
+    assert document.file_path == original_path
+    assert session.committed is True
+    assert session.refreshed == [document]
+    assert Path(original_path).is_file()
+
+
+def test_set_active_returns_none_for_an_unknown_document(tmp_path: Path) -> None:
+    session = DocumentSession([])
+
+    updated = DocumentService(document_settings(tmp_path)).set_active(  # type: ignore[arg-type]
+        session, uuid4(), is_active=False
+    )
+
+    assert updated is None
+    assert session.committed is False
+    assert session.refreshed == []
+
+
+def test_set_active_rolls_back_when_the_database_commit_fails(tmp_path: Path) -> None:
+    document = stored_document(tmp_path)
+    session = DocumentSession([document], fail_commit=True)
+
+    with pytest.raises(RuntimeError, match="database unavailable"):
+        DocumentService(document_settings(tmp_path)).set_active(  # type: ignore[arg-type]
+            session, document.id, is_active=False
+        )
+
+    assert session.rolled_back is True
+    assert session.refreshed == []
 
 
 def test_delete_removes_the_database_record_and_stored_directory(tmp_path: Path) -> None:

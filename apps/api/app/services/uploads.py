@@ -91,6 +91,7 @@ class DocumentUploadService:
                 size_bytes=size_bytes,
                 sha256=digest.hexdigest(),
                 status="queued",
+                is_active=True,
                 embedding_model=embedding_model,
             )
             job = IngestionJob(document_id=document_id, status="queued")

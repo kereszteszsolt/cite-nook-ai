@@ -20,6 +20,7 @@ import type {
 } from './types';
 
 const DOCUMENT_POLL_INTERVAL_MS = 2000;
+type ActiveView = 'chat' | 'documents';
 
 export default function App() {
   const [catalog, setCatalog] = useState<ModelCatalog | null>(null);
@@ -33,7 +34,9 @@ export default function App() {
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState<StoredUpload | null>(null);
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
+  const [activeView, setActiveView] = useState<ActiveView>('chat');
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
+  const [togglingDocumentId, setTogglingDocumentId] = useState<string | null>(null);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [asking, setAsking] = useState(false);
   const [deletingConversation, setDeletingConversation] = useState(false);
@@ -220,6 +223,22 @@ export default function App() {
     }
   }
 
+  async function setDocumentActive(document: DocumentRecord, isActive: boolean) {
+    setTogglingDocumentId(document.id);
+    setError(null);
+    try {
+      const updated = await api.updateDocument(document.id, isActive);
+      setDocuments((items) =>
+        items.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      if (uploaded?.id === updated.id) setUploaded(updated);
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setTogglingDocumentId(null);
+    }
+  }
+
   async function deleteActiveConversation() {
     if (!activeConversation) return;
     if (!window.confirm(`Delete "${activeConversation.title}" and all of its messages?`)) {
@@ -285,6 +304,31 @@ export default function App() {
         onEmbeddingModelChange={(value) => void changeModels(chatModel, value)}
       />
 
+      <nav className="view-tabs" aria-label="Primary workspace" role="tablist">
+        <button
+          id="chat-tab"
+          type="button"
+          role="tab"
+          aria-selected={activeView === 'chat'}
+          aria-controls="chat-panel"
+          className={activeView === 'chat' ? 'active' : undefined}
+          onClick={() => setActiveView('chat')}
+        >
+          Chat
+        </button>
+        <button
+          id="documents-tab"
+          type="button"
+          role="tab"
+          aria-selected={activeView === 'documents'}
+          aria-controls="documents-panel"
+          className={activeView === 'documents' ? 'active' : undefined}
+          onClick={() => setActiveView('documents')}
+        >
+          Documents
+        </button>
+      </nav>
+
       {error && (
         <div className="error-banner" role="alert">
           <span>{error}</span>
@@ -292,42 +336,65 @@ export default function App() {
         </div>
       )}
 
-      <main className="workspace">
-        <ConversationSidebar
-          conversations={conversations}
-          activeId={activeId}
-          canCreate={canCreate && !saving && !asking}
-          onCreate={() => void createConversation()}
-          onSelect={(conversation) => void openConversation(conversation)}
-        />
-
-        <div className="content-column">
-          <section className="model-panel">
-            <p className="eyebrow">Model configuration</p>
-            <h1>{activeConversation?.title ?? 'Start a conversation'}</h1>
-            {activeConversation ? (
-              <p>
-                This conversation remembers <strong>{chatModel}</strong> for chat and{' '}
-                <strong>{embeddingModel}</strong> for document embeddings.
-              </p>
-            ) : (
-              <p>
-                Select installed chat and embedding models, then create a conversation. Messages
-                saved by the grounded answer flow will appear below.
-              </p>
-            )}
-            {saving && <p className="saving-note">Saving model selection…</p>}
-          </section>
-
-          <ConversationMessages
-            conversation={activeConversation}
-            messages={messages}
-            loading={loadingMessages}
-            asking={asking}
-            deleting={deletingConversation}
-            onAsk={askQuestion}
-            onDelete={() => void deleteActiveConversation()}
+      {activeView === 'chat' ? (
+        <main
+          id="chat-panel"
+          className="workspace"
+          role="tabpanel"
+          aria-labelledby="chat-tab"
+        >
+          <ConversationSidebar
+            conversations={conversations}
+            activeId={activeId}
+            canCreate={canCreate && !saving && !asking}
+            onCreate={() => void createConversation()}
+            onSelect={(conversation) => void openConversation(conversation)}
           />
+
+          <div className="content-column">
+            <section className="model-panel">
+              <p className="eyebrow">Model configuration</p>
+              <h1>{activeConversation?.title ?? 'Start a conversation'}</h1>
+              {activeConversation ? (
+                <p>
+                  This conversation remembers <strong>{chatModel}</strong> for chat and{' '}
+                  <strong>{embeddingModel}</strong> for document embeddings.
+                </p>
+              ) : (
+                <p>
+                  Select installed chat and embedding models, then create a conversation. Messages
+                  saved by the grounded answer flow will appear below.
+                </p>
+              )}
+              {saving && <p className="saving-note">Saving model selection…</p>}
+            </section>
+
+            <ConversationMessages
+              conversation={activeConversation}
+              messages={messages}
+              loading={loadingMessages}
+              asking={asking}
+              deleting={deletingConversation}
+              onAsk={askQuestion}
+              onDelete={() => void deleteActiveConversation()}
+            />
+          </div>
+        </main>
+      ) : (
+        <main
+          id="documents-panel"
+          className="documents-workspace"
+          role="tabpanel"
+          aria-labelledby="documents-tab"
+        >
+          <section className="documents-intro">
+            <p className="eyebrow">Document workspace</p>
+            <h1>Documents</h1>
+            <p>
+              Upload and manage all local sources in one place. Inactive documents stay stored
+              but are excluded from answers until you enable them again.
+            </p>
+          </section>
 
           <DocumentUpload
             embeddingModel={embeddingModel}
@@ -341,10 +408,14 @@ export default function App() {
             documents={documents}
             loading={loading}
             deletingId={deletingDocumentId}
+            togglingId={togglingDocumentId}
             onDelete={(document) => void deleteDocument(document)}
+            onActiveChange={(document, isActive) =>
+              void setDocumentActive(document, isActive)
+            }
           />
-        </div>
-      </main>
+        </main>
+      )}
     </div>
   );
 }

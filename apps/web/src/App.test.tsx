@@ -20,6 +20,7 @@ const apiMock = vi.hoisted(() => ({
   deleteConversation: vi.fn(),
   uploadDocument: vi.fn(),
   documentFileUrl: vi.fn(),
+  updateDocument: vi.fn(),
   deleteDocument: vi.fn(),
 }));
 
@@ -44,6 +45,7 @@ const readyDocument = {
   status: 'ready',
   errorMessage: null,
   chunkCount: 4,
+  isActive: true,
   createdAt: '2026-08-22T00:00:00Z',
 };
 
@@ -117,6 +119,9 @@ beforeEach(() => {
   apiMock.documentFileUrl.mockImplementation(
     (id: string) => `http://localhost:8000/api/documents/${id}/file`,
   );
+  apiMock.updateDocument.mockImplementation((_id: string, isActive: boolean) =>
+    Promise.resolve({ ...readyDocument, isActive }),
+  );
   apiMock.deleteDocument.mockResolvedValue(undefined);
 });
 
@@ -157,6 +162,7 @@ describe('conversation model selection', () => {
   it('uploads a supported file with the selected embedding model', async () => {
     render(<App />);
 
+    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
     const fileInput = (await screen.findByLabelText('Document file')) as HTMLInputElement;
     await waitFor(() => expect(fileInput.disabled).toBe(false));
     const file = new File(['content'], 'notes.md', { type: 'text/markdown' });
@@ -225,6 +231,24 @@ describe('persistent conversation history', () => {
 });
 
 describe('document status and management', () => {
+  it('keeps document management out of Chat and exposes it on the Documents tab', async () => {
+    apiMock.documents.mockResolvedValue([readyDocument]);
+    render(<App />);
+
+    await screen.findByRole('tab', { name: 'Documents' });
+    expect(screen.queryByLabelText('Document file')).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Stored documents' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Documents' }));
+
+    expect(await screen.findByLabelText('Document file')).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Stored documents' })).toBeDefined();
+    expect(screen.getByText('notes.md')).toBeDefined();
+    expect(screen.getByRole('tab', { name: 'Documents' }).getAttribute('aria-selected')).toBe(
+      'true',
+    );
+  });
+
   it('lists document metadata, opens the original, and displays bounded failures', async () => {
     apiMock.documents.mockResolvedValue([
       readyDocument,
@@ -239,6 +263,7 @@ describe('document status and management', () => {
     ]);
 
     render(<App />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
 
     expect(await screen.findByText('notes.md')).toBeDefined();
     expect(screen.getAllByText('2.0 KB')).toHaveLength(2);
@@ -280,6 +305,7 @@ describe('document status and management', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     render(<App />);
 
+    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
     await screen.findByText('notes.md');
     fireEvent.click(screen.getByRole('button', { name: 'Delete notes.md' }));
 
@@ -287,5 +313,47 @@ describe('document status and management', () => {
       expect(apiMock.deleteDocument).toHaveBeenCalledWith('document-1'),
     );
     await waitFor(() => expect(screen.queryByText('notes.md')).toBeNull());
+  });
+
+  it('deactivates a stored document without removing its management actions', async () => {
+    apiMock.documents.mockResolvedValue([readyDocument]);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
+    const toggle = await screen.findByRole('switch', {
+      name: 'Disable notes.md for answers',
+    });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    fireEvent.click(toggle);
+
+    await waitFor(() =>
+      expect(apiMock.updateDocument).toHaveBeenCalledWith('document-1', false),
+    );
+    const inactiveToggle = await screen.findByRole('switch', {
+      name: 'Enable notes.md for answers',
+    });
+    expect(inactiveToggle.getAttribute('aria-checked')).toBe('false');
+    expect(screen.getByRole('link', { name: 'Open' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Delete notes.md' })).toBeDefined();
+  });
+
+  it('keeps the active state and reports an update failure', async () => {
+    apiMock.documents.mockResolvedValue([readyDocument]);
+    apiMock.updateDocument.mockRejectedValue(new Error('Document update failed.'));
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
+    fireEvent.click(
+      await screen.findByRole('switch', { name: 'Disable notes.md for answers' }),
+    );
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Document update failed.',
+    );
+    expect(
+      screen.getByRole('switch', { name: 'Disable notes.md for answers' }).getAttribute(
+        'aria-checked',
+      ),
+    ).toBe('true');
   });
 });

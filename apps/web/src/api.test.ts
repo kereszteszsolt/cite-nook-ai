@@ -30,6 +30,7 @@ describe('API client', () => {
       status: 'queued',
       errorMessage: null,
       chunkCount: 0,
+      isActive: true,
       createdAt: '2026-08-22T00:00:00Z',
     };
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(payload)));
@@ -69,6 +70,22 @@ describe('API client', () => {
     );
     expect(api.documentFileUrl('document-1')).toBe(
       'http://localhost:8000/api/documents/document-1/file',
+    );
+  });
+
+  it('updates whether a document participates in answers', async () => {
+    const updated = { id: 'document/1', fileName: 'notes.md', isActive: false };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(updated)));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.updateDocument('document/1', false)).resolves.toEqual(updated);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:8000/api/documents/document%2F1',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: false }),
+        headers: { 'Content-Type': 'application/json' },
+      },
     );
   });
 

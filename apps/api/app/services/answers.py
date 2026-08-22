@@ -148,6 +148,7 @@ class GroundedAnswerService:
             .join(Document, Document.id == DocumentChunk.document_id)
             .where(
                 Document.status == "ready",
+                Document.is_active.is_(True),
                 Document.embedding_model == embedding_model,
                 DocumentChunk.embedding_model == embedding_model,
             )

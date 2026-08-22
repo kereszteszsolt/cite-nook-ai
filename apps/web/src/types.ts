@@ -64,6 +64,7 @@ export interface DocumentRecord {
   status: DocumentStatus;
   errorMessage: string | null;
   chunkCount: number;
+  isActive: boolean;
   createdAt: string;
 }
 

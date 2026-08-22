@@ -106,6 +106,7 @@ def test_upload_service_accepts_supported_document_types(
     assert document.file_name == file_name
     assert document.content_type == content_type
     assert document.embedding_model == "embed-a"
+    assert document.is_active is True
     assert session.committed is True
     assert any(isinstance(item, IngestionJob) for item in session.added)
 

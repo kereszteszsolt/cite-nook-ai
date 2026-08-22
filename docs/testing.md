@@ -25,6 +25,8 @@ MRA-006's API tests cover atomic ordered turn storage, deterministic bounded tit
 
 MRA-007's API tests cover question embedding with the conversation model, ready and model-compatible cosine retrieval, deterministic source numbering, bounded top-k selection, source-only prompt rules, recent context, explicit insufficiency, invalid-marker rejection, official Ollama chat calls, and grounded-turn persistence. Its web tests cover question submission, structured references, page labels, similarity scores, and original-document links; the runtime browser smoke also checks the fixed composer layout.
 
+MRA-008's API tests cover the active default, persisted activation changes that leave bytes and indexing state intact, missing documents, and the active-document retrieval filter. Its web tests cover the Chat/Documents tab boundary, the global document list, activation and deactivation controls, retained open/delete actions, the PATCH contract, and update failures.
+
 ## Runtime smoke checks
 
 External Ollama mode:
@@ -67,5 +69,7 @@ For MRA-005, use `GET /api/documents` to inspect all metadata and processing err
 For MRA-006, store more turns than `CHAT_HISTORY_MESSAGES` through `ConversationService.record_turn`, restart the API and web containers without removing volumes, and use `GET /api/conversations/{id}/messages` to verify that the complete ordered history, assistant model, and structured citations reload. Verify separately that `recent_history` returns only the configured suffix. Delete only this dedicated smoke conversation through `DELETE /api/conversations/{id}`; the response must be 204 and both its conversation and message counts must become zero.
 
 For MRA-007, create a dedicated conversation whose models are installed, then submit a question through `POST /api/conversations/{id}/messages`. Verify that the assistant content contains only available `[S1]`, `[S2]`, and similar markers, and that every returned citation joins to a `ready` document and chunk whose embedding model matches the conversation. Open each returned document link and verify a 200 response. In the browser, inspect the source label, optional page, snippet, similarity score, and fixed question composer. Delete only the dedicated smoke conversation after recording the evidence.
+
+For MRA-008, upload or select a dedicated ready document, set `isActive` to false through `PATCH /api/documents/{id}`, and confirm the original file and chunks remain while retrieval returns no chunks from that document. Restart the API without removing volumes and verify the false state through `GET /api/documents`; then set it to true and verify retrieval can use it again. In the browser, confirm document upload and management appear only under Documents, and that the active switch retains its value after a reload.
 
 These commands remove containers and networks only. Named volumes remain persistent.
