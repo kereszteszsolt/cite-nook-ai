@@ -1,6 +1,6 @@
 # Architecture
 
-MRA-001 establishes the local runtime boundary. React talks only to FastAPI; the API and worker share PostgreSQL/pgvector and never install Ollama inside their images. MRA-002 keeps Ollama access behind the API gateway and stores each conversation's chat and embedding model in PostgreSQL. MRA-003 stores upload metadata in PostgreSQL and original bytes in the shared upload volume. MRA-004 processes those bytes in the separate worker and persists their chunks and embeddings.
+MRA-001 establishes the local runtime boundary. React talks only to FastAPI; the API and worker share PostgreSQL/pgvector and never install Ollama inside their images. MRA-002 keeps Ollama access behind the API gateway and stores each conversation's chat and embedding model in PostgreSQL. MRA-003 stores upload metadata in PostgreSQL and original bytes in the shared upload volume. MRA-004 processes those bytes in the separate worker and persists their chunks and embeddings. MRA-006 stores complete conversation histories and their answer provenance in PostgreSQL.
 
 ```mermaid
 flowchart LR
@@ -23,4 +23,6 @@ The worker atomically claims one queued job at a time with `FOR UPDATE SKIP LOCK
 
 The document API lists persisted processing state and returns original files only from the configured upload root. Deletion first moves the document's UUID directory aside, commits the database cascade for its chunks and jobs, restores the directory if that commit fails, and removes the quarantined bytes after success. The web client polls this API only while queued or processing documents remain.
 
-Later MRA stories add persistent messages, retrieval, and grounded answers without changing these boundaries.
+Conversation turns are written atomically after locking the conversation row. Every message has a stable ordinal; assistant messages also store the exact chat model and structured citation snapshot as JSONB. The first normalized question creates a deterministic title bounded to 80 characters without a title-generation model call. The API returns the full ordered history for reloads, while the model-input boundary selects only the most recent `CHAT_HISTORY_MESSAGES` records. Conversation deletion cascades to every message.
+
+MRA-007 connects this persistence contract to compatible-chunk retrieval and grounded Ollama answers without changing these boundaries.

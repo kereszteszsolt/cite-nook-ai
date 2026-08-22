@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './api';
 import { ConversationSidebar } from './components/ConversationSidebar';
+import { ConversationMessages } from './components/ConversationMessages';
 import { DocumentList } from './components/DocumentList';
 import { DocumentUpload } from './components/DocumentUpload';
 import { Header } from './components/Header';
 import type {
   Conversation,
+  ConversationMessage,
   DocumentRecord,
   ModelCatalog,
   ModelOption,
@@ -22,6 +24,7 @@ const DOCUMENT_POLL_INTERVAL_MS = 2000;
 export default function App() {
   const [catalog, setCatalog] = useState<ModelCatalog | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [chatModel, setChatModel] = useState('');
   const [embeddingModel, setEmbeddingModel] = useState('');
@@ -31,7 +34,10 @@ export default function App() {
   const [uploaded, setUploaded] = useState<StoredUpload | null>(null);
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [deletingConversation, setDeletingConversation] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const messageRequestId = useRef(0);
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeId) ?? null,
@@ -61,7 +67,7 @@ export default function App() {
 
         const firstConversation = storedConversations[0];
         if (firstConversation) {
-          restoreConversation(firstConversation);
+          await openConversation(firstConversation);
         } else {
           setChatModel(preferredInstalled(models.chatModels, models.defaultChatModel));
           setEmbeddingModel(
@@ -115,6 +121,24 @@ export default function App() {
     setEmbeddingModel(conversation.embeddingModel);
   }
 
+  async function openConversation(conversation: Conversation) {
+    restoreConversation(conversation);
+    const requestId = ++messageRequestId.current;
+    setLoadingMessages(true);
+    setError(null);
+    try {
+      const storedMessages = await api.messages(conversation.id);
+      if (requestId === messageRequestId.current) setMessages(storedMessages);
+    } catch (cause) {
+      if (requestId === messageRequestId.current) {
+        setMessages([]);
+        setError(errorMessage(cause));
+      }
+    } finally {
+      if (requestId === messageRequestId.current) setLoadingMessages(false);
+    }
+  }
+
   async function createConversation() {
     if (!canCreate) return;
     setSaving(true);
@@ -123,6 +147,9 @@ export default function App() {
       const created = await api.createConversation(chatModel, embeddingModel);
       setConversations((items) => [created, ...items]);
       restoreConversation(created);
+      messageRequestId.current += 1;
+      setMessages([]);
+      setLoadingMessages(false);
     } catch (cause) {
       setError(errorMessage(cause));
     } finally {
@@ -192,6 +219,33 @@ export default function App() {
     }
   }
 
+  async function deleteActiveConversation() {
+    if (!activeConversation) return;
+    if (!window.confirm(`Delete "${activeConversation.title}" and all of its messages?`)) {
+      return;
+    }
+    setDeletingConversation(true);
+    setError(null);
+    try {
+      await api.deleteConversation(activeConversation.id);
+      const remaining = conversations.filter(
+        (conversation) => conversation.id !== activeConversation.id,
+      );
+      setConversations(remaining);
+      messageRequestId.current += 1;
+      setMessages([]);
+      if (remaining[0]) {
+        await openConversation(remaining[0]);
+      } else {
+        setActiveId(null);
+      }
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally {
+      setDeletingConversation(false);
+    }
+  }
+
   return (
     <div className="app-shell">
       <Header
@@ -219,7 +273,7 @@ export default function App() {
           activeId={activeId}
           canCreate={canCreate && !saving}
           onCreate={() => void createConversation()}
-          onSelect={restoreConversation}
+          onSelect={(conversation) => void openConversation(conversation)}
         />
 
         <div className="content-column">
@@ -234,11 +288,19 @@ export default function App() {
             ) : (
               <p>
                 Select installed chat and embedding models, then create a conversation. Messages
-                arrive in a following story.
+                saved by the grounded answer flow will appear below.
               </p>
             )}
             {saving && <p className="saving-note">Saving model selection…</p>}
           </section>
+
+          <ConversationMessages
+            conversation={activeConversation}
+            messages={messages}
+            loading={loadingMessages}
+            deleting={deletingConversation}
+            onDelete={() => void deleteActiveConversation()}
+          />
 
           <DocumentUpload
             embeddingModel={embeddingModel}

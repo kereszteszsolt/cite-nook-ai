@@ -12,9 +12,11 @@ import App from './App';
 const apiMock = vi.hoisted(() => ({
   models: vi.fn(),
   conversations: vi.fn(),
+  messages: vi.fn(),
   documents: vi.fn(),
   createConversation: vi.fn(),
   updateConversation: vi.fn(),
+  deleteConversation: vi.fn(),
   uploadDocument: vi.fn(),
   documentFileUrl: vi.fn(),
   deleteDocument: vi.fn(),
@@ -44,6 +46,39 @@ const readyDocument = {
   createdAt: '2026-08-22T00:00:00Z',
 };
 
+const storedMessages = [
+  {
+    id: 'message-1',
+    conversationId: 'conversation-1',
+    ordinal: 1,
+    role: 'user',
+    content: 'What does the document say?',
+    chatModel: null,
+    citations: [],
+    createdAt: '2026-08-22T00:01:00Z',
+  },
+  {
+    id: 'message-2',
+    conversationId: 'conversation-1',
+    ordinal: 2,
+    role: 'assistant',
+    content: 'The persisted answer.',
+    chatModel: 'qwen3.5:9b',
+    citations: [
+      {
+        sourceId: 'S1',
+        documentId: 'document-1',
+        documentName: 'notes.md',
+        pageNumber: null,
+        chunkId: 'chunk-1',
+        snippet: 'Relevant text',
+        score: 0.91,
+      },
+    ],
+    createdAt: '2026-08-22T00:01:01Z',
+  },
+];
+
 beforeEach(() => {
   apiMock.models.mockResolvedValue({
     chatModels: [
@@ -60,11 +95,13 @@ beforeEach(() => {
     ollamaAvailable: true,
   });
   apiMock.conversations.mockResolvedValue([storedConversation]);
+  apiMock.messages.mockResolvedValue([]);
   apiMock.documents.mockResolvedValue([]);
   apiMock.updateConversation.mockImplementation(
     (_id: string, chatModel: string, embeddingModel: string) =>
       Promise.resolve({ ...storedConversation, chatModel, embeddingModel }),
   );
+  apiMock.deleteConversation.mockResolvedValue(undefined);
   apiMock.uploadDocument.mockResolvedValue({
     ...readyDocument,
     sizeBytes: 7,
@@ -127,6 +164,34 @@ describe('conversation model selection', () => {
       ),
     );
     expect(await screen.findByText(/was stored successfully/)).toBeDefined();
+  });
+});
+
+describe('persistent conversation history', () => {
+  it('reloads the selected conversation and all stored messages', async () => {
+    apiMock.messages.mockResolvedValue(storedMessages);
+
+    render(<App />);
+
+    expect(await screen.findByText('What does the document say?')).toBeDefined();
+    expect(screen.getByText('The persisted answer.')).toBeDefined();
+    expect(screen.getAllByText('qwen3.5:9b').length).toBeGreaterThan(0);
+    expect(screen.getByText('1 stored source')).toBeDefined();
+    expect(apiMock.messages).toHaveBeenCalledWith('conversation-1');
+  });
+
+  it('deletes a confirmed conversation from the persistent list', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<App />);
+
+    await screen.findByRole('button', { name: 'Delete conversation' });
+    fireEvent.click(screen.getByRole('button', { name: 'Delete conversation' }));
+
+    await waitFor(() =>
+      expect(apiMock.deleteConversation).toHaveBeenCalledWith('conversation-1'),
+    );
+    expect(await screen.findByText('No conversations yet.')).toBeDefined();
+    expect(screen.getByText('Create or select a conversation to view its history.')).toBeDefined();
   });
 });
 

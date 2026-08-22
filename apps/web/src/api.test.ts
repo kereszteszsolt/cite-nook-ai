@@ -71,4 +71,26 @@ describe('API client', () => {
       'http://localhost:8000/api/documents/document-1/file',
     );
   });
+
+  it('loads conversation messages and deletes a conversation', async () => {
+    const messages = [{ id: 'message-1', role: 'user', content: 'Question' }];
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(messages)))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.messages('conversation-1')).resolves.toEqual(messages);
+    await expect(api.deleteConversation('conversation-1')).resolves.toBeUndefined();
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:8000/api/conversations/conversation-1/messages',
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:8000/api/conversations/conversation-1',
+      { method: 'DELETE', headers: {} },
+    );
+  });
 });

@@ -69,11 +69,13 @@ def test_upload_size_limit_must_be_positive(monkeypatch) -> None:
 def test_ingestion_batch_and_stale_interval_are_configurable(monkeypatch) -> None:
     monkeypatch.setenv("EMBEDDING_BATCH_SIZE", "8")
     monkeypatch.setenv("INGESTION_STALE_MINUTES", "11")
+    monkeypatch.setenv("CHAT_HISTORY_MESSAGES", "7")
     get_settings.cache_clear()
 
     settings = get_settings()
 
     assert settings.embedding_batch_size == 8
     assert settings.ingestion_stale_minutes == 11
+    assert settings.chat_history_messages == 7
 
     get_settings.cache_clear()

@@ -25,6 +25,27 @@ export interface Conversation {
   updatedAt: string;
 }
 
+export interface Citation {
+  sourceId: string;
+  documentId: string;
+  documentName: string;
+  pageNumber: number | null;
+  chunkId: string;
+  snippet: string;
+  score: number;
+}
+
+export interface ConversationMessage {
+  id: string;
+  conversationId: string;
+  ordinal: number;
+  role: 'user' | 'assistant';
+  content: string;
+  chatModel: string | null;
+  citations: Citation[];
+  createdAt: string;
+}
+
 export type DocumentStatus = 'queued' | 'processing' | 'ready' | 'failed';
 
 export interface DocumentRecord {

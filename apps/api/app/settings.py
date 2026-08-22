@@ -37,6 +37,7 @@ class Settings:
     max_upload_bytes: int = 20 * 1024 * 1024
     embedding_batch_size: int = 32
     ingestion_stale_minutes: int = 15
+    chat_history_messages: int = 12
 
 
 @lru_cache(maxsize=1)
@@ -75,4 +76,5 @@ def get_settings() -> Settings:
         max_upload_bytes=max_upload_mb * 1024 * 1024,
         embedding_batch_size=_positive_int("EMBEDDING_BATCH_SIZE", 32),
         ingestion_stale_minutes=_positive_int("INGESTION_STALE_MINUTES", 15),
+        chat_history_messages=_positive_int("CHAT_HISTORY_MESSAGES", 12),
     )

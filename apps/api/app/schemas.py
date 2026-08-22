@@ -54,6 +54,27 @@ class ConversationRead(ApiModel):
     updated_at: datetime
 
 
+class CitationRead(ApiModel):
+    source_id: str = Field(min_length=1, max_length=20)
+    document_id: UUID
+    document_name: str
+    page_number: int | None
+    chunk_id: UUID
+    snippet: str
+    score: float
+
+
+class MessageRead(ApiModel):
+    id: UUID
+    conversation_id: UUID
+    ordinal: int
+    role: Literal["user", "assistant"]
+    content: str
+    chat_model: str | None
+    citations: list[CitationRead]
+    created_at: datetime
+
+
 class DocumentRead(ApiModel):
     id: UUID
     file_name: str

@@ -3,13 +3,17 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..models import Conversation, utc_now
+from ..models import Conversation, ConversationMessage, utc_now
 from ..settings import Settings, get_settings
+
+CONVERSATION_TITLE_LENGTH = 80
 
 
 class UnsupportedModelError(ValueError):
@@ -21,7 +25,13 @@ class ConversationService:
         self._settings = settings or get_settings()
 
     def list(self, session: Session) -> list[Conversation]:
-        return list(session.scalars(select(Conversation).order_by(Conversation.created_at.desc())))
+        return list(
+            session.scalars(
+                select(Conversation).order_by(
+                    Conversation.updated_at.desc(), Conversation.id.desc()
+                )
+            )
+        )
 
     def create(
         self,
@@ -36,6 +46,101 @@ class ConversationService:
         session.commit()
         session.refresh(conversation)
         return conversation
+
+    def list_messages(
+        self, session: Session, conversation_id: UUID
+    ) -> list[ConversationMessage] | None:
+        if session.get(Conversation, conversation_id) is None:
+            return None
+        return list(
+            session.scalars(
+                select(ConversationMessage)
+                .where(ConversationMessage.conversation_id == conversation_id)
+                .order_by(ConversationMessage.ordinal)
+            )
+        )
+
+    def recent_history(
+        self, session: Session, conversation_id: UUID
+    ) -> list[ConversationMessage]:
+        messages = list(
+            session.scalars(
+                select(ConversationMessage)
+                .where(ConversationMessage.conversation_id == conversation_id)
+                .order_by(ConversationMessage.ordinal.desc())
+                .limit(self._settings.chat_history_messages)
+            )
+        )
+        messages.reverse()
+        return messages
+
+    def record_turn(
+        self,
+        session: Session,
+        *,
+        conversation_id: UUID,
+        question: str,
+        answer: str,
+        chat_model: str,
+        citations: list[Mapping[str, Any]],
+    ) -> tuple[ConversationMessage, ConversationMessage] | None:
+        normalized_question = " ".join(question.split())
+        normalized_answer = answer.strip()
+        if not normalized_question:
+            raise ValueError("Question must not be empty.")
+        if not normalized_answer:
+            raise ValueError("Answer must not be empty.")
+        if chat_model not in self._settings.chat_models:
+            raise UnsupportedModelError("Unsupported chat model.")
+
+        conversation = session.scalar(
+            select(Conversation)
+            .where(Conversation.id == conversation_id)
+            .with_for_update()
+        )
+        if conversation is None:
+            return None
+        if conversation.chat_model != chat_model:
+            raise UnsupportedModelError("Chat model does not match the conversation.")
+
+        last_ordinal = session.scalar(
+            select(func.coalesce(func.max(ConversationMessage.ordinal), 0)).where(
+                ConversationMessage.conversation_id == conversation_id
+            )
+        )
+        next_ordinal = int(last_ordinal or 0) + 1
+        user_message = ConversationMessage(
+            conversation_id=conversation_id,
+            ordinal=next_ordinal,
+            role="user",
+            content=normalized_question,
+            chat_model=None,
+            citations=[],
+        )
+        assistant_message = ConversationMessage(
+            conversation_id=conversation_id,
+            ordinal=next_ordinal + 1,
+            role="assistant",
+            content=normalized_answer,
+            chat_model=chat_model,
+            citations=[serialize_citation(citation) for citation in citations],
+        )
+        if next_ordinal == 1:
+            conversation.title = deterministic_title(normalized_question)
+        conversation.updated_at = utc_now()
+        session.add_all([user_message, assistant_message])
+        session.commit()
+        session.refresh(user_message)
+        session.refresh(assistant_message)
+        return user_message, assistant_message
+
+    def delete(self, session: Session, conversation_id: UUID) -> bool:
+        conversation = session.get(Conversation, conversation_id)
+        if conversation is None:
+            return False
+        session.delete(conversation)
+        session.commit()
+        return True
 
     def update(
         self,
@@ -61,3 +166,23 @@ class ConversationService:
             raise UnsupportedModelError("Unsupported chat model.")
         if embedding_model not in self._settings.embedding_models:
             raise UnsupportedModelError("Unsupported embedding model.")
+
+
+def deterministic_title(question: str) -> str:
+    normalized = " ".join(question.split())
+    if len(normalized) <= CONVERSATION_TITLE_LENGTH:
+        return normalized
+    return f"{normalized[: CONVERSATION_TITLE_LENGTH - 1].rstrip()}…"
+
+
+def serialize_citation(citation: Mapping[str, Any]) -> dict[str, Any]:
+    page_number = citation["page_number"]
+    return {
+        "source_id": str(citation["source_id"]),
+        "document_id": str(UUID(str(citation["document_id"]))),
+        "document_name": str(citation["document_name"]),
+        "page_number": None if page_number is None else int(page_number),
+        "chunk_id": str(UUID(str(citation["chunk_id"]))),
+        "snippet": str(citation["snippet"]),
+        "score": float(citation["score"]),
+    }

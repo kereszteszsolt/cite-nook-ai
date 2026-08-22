@@ -6,7 +6,7 @@ MRA-001 contains only the runtime foundation. The document-to-answer path is add
 2. MRA-003 persists supported uploads.
 3. MRA-004 extracts, chunks, and embeds documents in the worker. Implemented.
 4. MRA-005 exposes processing state and document management. Implemented.
-5. MRA-006 persists conversations and messages.
+5. MRA-006 persists conversations and messages. Implemented.
 6. MRA-007 retrieves compatible chunks and returns grounded answers with citations.
 
 Until a story is implemented, its acceptance criteria remain unchecked.

@@ -16,4 +16,6 @@ The model catalog is configured with comma-separated `CHAT_MODELS` and `EMBEDDIN
 
 `EMBEDDING_BATCH_SIZE` controls how many chunks the worker sends in one Ollama embedding request. `INGESTION_STALE_MINUTES` defines when an abandoned `processing` job is returned to the PostgreSQL queue. Both settings accept positive whole numbers and default to `32` and `15` respectively.
 
+`CHAT_HISTORY_MESSAGES` controls the positive maximum number of recent persisted messages supplied to a model request. It defaults to `12`; the application still stores and reloads the complete conversation history.
+
 For the supported Docker Compose workflow, copy `.env.example` to the repository-root `.env` before the first start. Compose reads that file automatically, and Git ignores it. The supported startup commands do not read `.env.local` or `.env.dev`.

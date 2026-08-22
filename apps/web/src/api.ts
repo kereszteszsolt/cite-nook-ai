@@ -3,7 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Conversation, DocumentRecord, ModelCatalog } from './types';
+import type {
+  Conversation,
+  ConversationMessage,
+  DocumentRecord,
+  ModelCatalog,
+} from './types';
 
 export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api';
 
@@ -47,6 +52,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   models: () => request<ModelCatalog>('/models'),
   conversations: () => request<Conversation[]>('/conversations'),
+  messages: (conversationId: string) =>
+    request<ConversationMessage[]>(
+      `/conversations/${encodeURIComponent(conversationId)}/messages`,
+    ),
   documents: () => request<DocumentRecord[]>('/documents'),
   createConversation: (chatModel: string, embeddingModel: string) =>
     request<Conversation>('/conversations', {
@@ -58,6 +67,8 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ chatModel, embeddingModel }),
     }),
+  deleteConversation: (id: string) =>
+    request<void>(`/conversations/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   uploadDocument: (file: File, embeddingModel: string) => {
     const body = new FormData();
     body.append('file', file);

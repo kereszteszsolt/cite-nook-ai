@@ -82,7 +82,7 @@ select {
   gap: 18px;
   padding: 20px clamp(20px, 4vw, 64px);
 }
-.conversation-sidebar, .model-panel, .upload-panel, .document-list-panel {
+.conversation-sidebar, .model-panel, .messages-panel, .upload-panel, .document-list-panel {
   border: 1px solid var(--brand-border);
   border-radius: 16px;
   background: var(--brand-surface);
@@ -122,7 +122,7 @@ button:focus-visible, select:focus-visible {
 
 .content-column { min-width: 0; display: grid; gap: 18px; }
 .model-panel { align-self: stretch; padding: clamp(32px, 8vw, 84px); }
-.model-panel .eyebrow, .upload-panel .eyebrow, .document-list-panel .eyebrow {
+.model-panel .eyebrow, .messages-panel .eyebrow, .upload-panel .eyebrow, .document-list-panel .eyebrow {
   margin: 0 0 12px;
   color: var(--brand-accent-strong);
   font-weight: 750;
@@ -166,6 +166,31 @@ button:focus-visible, select:focus-visible {
   overflow-wrap: anywhere;
 }
 .upload-success small { color: var(--brand-text-muted); }
+
+.messages-panel { padding: clamp(24px, 4vw, 42px); }
+.messages-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+.messages-heading h2 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.3rem); }
+.messages-state { margin: 28px 0 0; color: var(--brand-text-muted); text-align: center; }
+.message-list { display: grid; gap: 14px; margin-top: 24px; }
+.message-bubble {
+  max-width: min(78%, 760px);
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--brand-border);
+  border-radius: 14px;
+  background: var(--brand-background);
+}
+.message-bubble.user { justify-self: end; border-color: var(--brand-accent); background: var(--brand-accent-soft); }
+.message-bubble.assistant { justify-self: start; }
+.message-bubble p { margin: 0; line-height: 1.6; white-space: pre-wrap; }
+.message-bubble small, .message-meta span { color: var(--brand-text-muted); }
+.message-meta { display: flex; justify-content: space-between; gap: 16px; font-size: .78rem; }
 
 .document-list-panel { padding: clamp(24px, 4vw, 42px); }
 .document-list-heading {
@@ -246,4 +271,6 @@ button:focus-visible, select:focus-visible {
   .model-panel { padding: 36px 24px; }
   .upload-form { grid-template-columns: 1fr; }
   .document-list-heading { align-items: start; flex-direction: column; gap: 4px; }
+  .messages-heading { align-items: start; flex-direction: column; }
+  .message-bubble { max-width: 92%; }
 }

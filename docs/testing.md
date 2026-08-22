@@ -21,6 +21,8 @@ MRA-004's API tests use real TXT, Markdown, DOCX, and two-page PDF fixtures to c
 
 MRA-005's API tests cover newest-first listing, upload-root file boundaries, complete directory deletion, missing documents, and directory restoration after a failed database commit. Its web tests cover every displayed field, failed-job details, original-file links, confirmed deletion, and polling that stops when all documents are terminal.
 
+MRA-006's API tests cover atomic ordered turn storage, deterministic bounded titles, assistant model and citation provenance, newest-activity ordering, complete reload history, bounded recent model history, and conversation deletion. Its web tests cover persisted-message reload and confirmed conversation deletion.
+
 ## Runtime smoke checks
 
 External Ollama mode:
@@ -59,5 +61,7 @@ Restart the stack without `--volumes`, then verify that the document row, queued
 For MRA-004, start the worker with the selected embedding model installed in the configured Ollama instance. After the upload, inspect the worker log for the completed job and verify in PostgreSQL that the document is `ready`, `chunk_count` matches its rows in `document_chunks`, every row stores the selected model, and `vector_dims(embedding)` is nonzero. A real two-session database check should hold a row lock on the first queued job and confirm that another worker claim skips it.
 
 For MRA-005, use `GET /api/documents` to inspect all metadata and processing errors, then open `GET /api/documents/{id}/file` and verify that its bytes match the original upload. Delete only a dedicated smoke record through `DELETE /api/documents/{id}`; the response must be 204, its document/chunk/job counts must all be zero, and its UUID upload directory must no longer exist.
+
+For MRA-006, store more turns than `CHAT_HISTORY_MESSAGES` through `ConversationService.record_turn`, restart the API and web containers without removing volumes, and use `GET /api/conversations/{id}/messages` to verify that the complete ordered history, assistant model, and structured citations reload. Verify separately that `recent_history` returns only the configured suffix. Delete only this dedicated smoke conversation through `DELETE /api/conversations/{id}`; the response must be 204 and both its conversation and message counts must become zero.
 
 These commands remove containers and networks only. Named volumes remain persistent.

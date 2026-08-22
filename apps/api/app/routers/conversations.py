@@ -5,11 +5,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Response, status
 
 from ..dependencies import DatabaseSession
-from ..models import Conversation
-from ..schemas import ConversationCreate, ConversationRead, ConversationUpdate
+from ..models import Conversation, ConversationMessage
+from ..schemas import ConversationCreate, ConversationRead, ConversationUpdate, MessageRead
 from ..services.conversations import ConversationService, UnsupportedModelError
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
@@ -54,3 +54,20 @@ def update_conversation(
     if conversation is None:
         raise HTTPException(status_code=404, detail="Conversation not found.")
     return conversation
+
+
+@router.get("/{conversation_id}/messages", response_model=list[MessageRead])
+def list_messages(
+    conversation_id: UUID, session: DatabaseSession
+) -> list[ConversationMessage]:
+    messages = ConversationService().list_messages(session, conversation_id)
+    if messages is None:
+        raise HTTPException(status_code=404, detail="Conversation not found.")
+    return messages
+
+
+@router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_conversation(conversation_id: UUID, session: DatabaseSession) -> Response:
+    if not ConversationService().delete(session, conversation_id):
+        raise HTTPException(status_code=404, detail="Conversation not found.")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

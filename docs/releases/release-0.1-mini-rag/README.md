@@ -17,7 +17,7 @@ Provide the shortest complete document-to-answer workflow while keeping data loc
 | MRA-003 | Upload and persist supported documents | Implemented |
 | MRA-004 | Index documents with a separate worker | Implemented |
 | MRA-005 | Inspect and manage document status | Implemented |
-| MRA-006 | Persist conversations and messages | Planned |
+| MRA-006 | Persist conversations and messages | Implemented |
 | MRA-007 | Answer from documents with references | Planned |
 
 ## Release boundary
