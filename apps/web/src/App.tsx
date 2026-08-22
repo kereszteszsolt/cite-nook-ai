@@ -5,6 +5,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './api';
+import {
+  ConversationDeleteDialog,
+  ConversationModelDialog,
+} from './components/ConversationDialogs';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { ConversationMessages } from './components/ConversationMessages';
 import { ConversationTitle } from './components/ConversationTitle';
@@ -22,6 +26,7 @@ import type {
 
 const DOCUMENT_POLL_INTERVAL_MS = 2000;
 type ActiveView = 'chat' | 'documents';
+type ModelDialogMode = 'create' | 'edit';
 
 export default function App() {
   const [catalog, setCatalog] = useState<ModelCatalog | null>(null);
@@ -42,6 +47,8 @@ export default function App() {
   const [asking, setAsking] = useState(false);
   const [deletingConversation, setDeletingConversation] = useState(false);
   const [renamingConversation, setRenamingConversation] = useState(false);
+  const [modelDialog, setModelDialog] = useState<ModelDialogMode | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messageRequestId = useRef(0);
 
@@ -49,9 +56,6 @@ export default function App() {
     () => conversations.find((conversation) => conversation.id === activeId) ?? null,
     [activeId, conversations],
   );
-  const canCreate =
-    isInstalled(catalog?.chatModels ?? [], chatModel) &&
-    isInstalled(catalog?.embeddingModels ?? [], embeddingModel);
   const canUpload = isInstalled(catalog?.embeddingModels ?? [], embeddingModel);
   const hasProcessingDocuments = documents.some(
     (document) => document.status === 'queued' || document.status === 'processing',
@@ -128,6 +132,8 @@ export default function App() {
   }
 
   async function openConversation(conversation: Conversation) {
+    setModelDialog(null);
+    setDeleteDialogOpen(false);
     restoreConversation(conversation);
     const requestId = ++messageRequestId.current;
     setLoadingMessages(true);
@@ -145,17 +151,23 @@ export default function App() {
     }
   }
 
-  async function createConversation() {
-    if (!canCreate) return;
+  async function createConversation(nextChatModel: string, nextEmbeddingModel: string) {
+    if (
+      !isInstalled(catalog?.chatModels ?? [], nextChatModel) ||
+      !isInstalled(catalog?.embeddingModels ?? [], nextEmbeddingModel)
+    ) {
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
-      const created = await api.createConversation(chatModel, embeddingModel);
+      const created = await api.createConversation(nextChatModel, nextEmbeddingModel);
       setConversations((items) => [created, ...items]);
       restoreConversation(created);
       messageRequestId.current += 1;
       setMessages([]);
       setLoadingMessages(false);
+      setModelDialog(null);
     } catch (cause) {
       setError(errorMessage(cause));
     } finally {
@@ -163,12 +175,11 @@ export default function App() {
     }
   }
 
-  async function changeModels(nextChatModel: string, nextEmbeddingModel: string) {
-    const previousChatModel = chatModel;
-    const previousEmbeddingModel = embeddingModel;
-    setChatModel(nextChatModel);
-    setEmbeddingModel(nextEmbeddingModel);
-    if (!activeId) return;
+  async function changeModels(
+    nextChatModel: string,
+    nextEmbeddingModel: string,
+  ): Promise<boolean> {
+    if (!activeId) return false;
 
     setSaving(true);
     setError(null);
@@ -183,10 +194,13 @@ export default function App() {
           conversation.id === updated.id ? updated : conversation,
         ),
       );
+      setChatModel(updated.chatModel);
+      setEmbeddingModel(updated.embeddingModel);
+      setModelDialog(null);
+      return true;
     } catch (cause) {
-      setChatModel(previousChatModel);
-      setEmbeddingModel(previousEmbeddingModel);
       setError(errorMessage(cause));
+      return false;
     } finally {
       setSaving(false);
     }
@@ -243,9 +257,6 @@ export default function App() {
 
   async function deleteActiveConversation() {
     if (!activeConversation) return;
-    if (!window.confirm(`Delete "${activeConversation.title}" and all of its messages?`)) {
-      return;
-    }
     setDeletingConversation(true);
     setError(null);
     try {
@@ -256,10 +267,20 @@ export default function App() {
       setConversations(remaining);
       messageRequestId.current += 1;
       setMessages([]);
+      setDeleteDialogOpen(false);
       if (remaining[0]) {
         await openConversation(remaining[0]);
       } else {
         setActiveId(null);
+        setChatModel(
+          preferredInstalled(catalog?.chatModels ?? [], catalog?.defaultChatModel ?? ''),
+        );
+        setEmbeddingModel(
+          preferredInstalled(
+            catalog?.embeddingModels ?? [],
+            catalog?.defaultEmbeddingModel ?? '',
+          ),
+        );
       }
     } catch (cause) {
       setError(errorMessage(cause));
@@ -315,15 +336,8 @@ export default function App() {
   return (
     <div className="app-shell">
       <Header
-        chatModels={catalog?.chatModels ?? []}
-        embeddingModels={catalog?.embeddingModels ?? []}
-        chatModel={chatModel}
-        embeddingModel={embeddingModel}
         loading={loading}
-        saving={saving || asking || renamingConversation}
         ollamaAvailable={catalog?.ollamaAvailable ?? null}
-        onChatModelChange={(value) => void changeModels(value, embeddingModel)}
-        onEmbeddingModelChange={(value) => void changeModels(chatModel, value)}
       />
 
       <nav className="view-tabs" aria-label="Primary workspace" role="tablist">
@@ -368,31 +382,58 @@ export default function App() {
           <ConversationSidebar
             conversations={conversations}
             activeId={activeId}
-            canCreate={canCreate && !saving && !asking}
-            onCreate={() => void createConversation()}
+            canCreate={Boolean(catalog) && !saving && !asking && !deletingConversation}
+            onCreate={() => setModelDialog('create')}
             onSelect={(conversation) => void openConversation(conversation)}
           />
 
           <div className="content-column">
-            <section className="model-panel">
-              <p className="eyebrow">Model configuration</p>
-              <ConversationTitle
-                conversation={activeConversation}
-                saving={renamingConversation}
-                onRename={renameActiveConversation}
-              />
+            <section className="conversation-header">
+              <div className="conversation-header-main">
+                <ConversationTitle
+                  conversation={activeConversation}
+                  saving={renamingConversation}
+                  onRename={renameActiveConversation}
+                />
+                {activeConversation && (
+                  <div className="conversation-header-actions">
+                    <button
+                      type="button"
+                      className="model-edit-button"
+                      disabled={saving || asking || deletingConversation}
+                      onClick={() => setModelDialog('edit')}
+                    >
+                      <SlidersIcon />
+                      <span>Edit models</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="conversation-delete-button"
+                      disabled={deletingConversation || asking || saving}
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      <TrashIcon />
+                      <span>Delete conversation</span>
+                    </button>
+                  </div>
+                )}
+              </div>
               {activeConversation ? (
-                <p>
-                  This conversation remembers <strong>{chatModel}</strong> for chat and{' '}
-                  <strong>{embeddingModel}</strong> for document embeddings.
-                </p>
+                <div className="conversation-model-summary" aria-label="Conversation models">
+                  <span>
+                    <small>Chat model</small>
+                    <strong>{chatModel}</strong>
+                  </span>
+                  <span>
+                    <small>Embedding model</small>
+                    <strong>{embeddingModel}</strong>
+                  </span>
+                </div>
               ) : (
-                <p>
-                  Select installed chat and embedding models, then create a conversation. Messages
-                  saved by the grounded answer flow will appear below.
+                <p className="conversation-header-note">
+                  Create a conversation and choose the two models it should remember.
                 </p>
               )}
-              {saving && <p className="saving-note">Saving model selection…</p>}
             </section>
 
             <ConversationMessages
@@ -400,9 +441,7 @@ export default function App() {
               messages={messages}
               loading={loadingMessages}
               asking={asking}
-              deleting={deletingConversation}
               onAsk={askQuestion}
-              onDelete={() => void deleteActiveConversation()}
             />
           </div>
         </main>
@@ -442,6 +481,45 @@ export default function App() {
           />
         </main>
       )}
+
+      {modelDialog && catalog && (
+        <ConversationModelDialog
+          key={`${modelDialog}-${activeConversation?.id ?? 'new'}`}
+          mode={modelDialog}
+          chatModels={catalog.chatModels}
+          embeddingModels={catalog.embeddingModels}
+          defaultChatModel={catalog.defaultChatModel}
+          defaultEmbeddingModel={catalog.defaultEmbeddingModel}
+          initialChatModel={
+            modelDialog === 'edit'
+              ? chatModel
+              : preferredInstalled(catalog.chatModels, catalog.defaultChatModel)
+          }
+          initialEmbeddingModel={
+            modelDialog === 'edit'
+              ? embeddingModel
+              : preferredInstalled(catalog.embeddingModels, catalog.defaultEmbeddingModel)
+          }
+          saving={saving}
+          onCancel={() => setModelDialog(null)}
+          onSubmit={(nextChatModel, nextEmbeddingModel) => {
+            if (modelDialog === 'create') {
+              void createConversation(nextChatModel, nextEmbeddingModel);
+            } else {
+              void changeModels(nextChatModel, nextEmbeddingModel);
+            }
+          }}
+        />
+      )}
+
+      {deleteDialogOpen && activeConversation && (
+        <ConversationDeleteDialog
+          conversationTitle={activeConversation.title}
+          deleting={deletingConversation}
+          onCancel={() => setDeleteDialogOpen(false)}
+          onConfirm={() => void deleteActiveConversation()}
+        />
+      )}
     </div>
   );
 }
@@ -461,4 +539,33 @@ function isInstalled(models: ModelOption[], selected: string): boolean {
 
 function errorMessage(cause: unknown): string {
   return cause instanceof Error ? cause.message : 'An unexpected error occurred.';
+}
+
+function SlidersIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16">
+      <path
+        d="M4 7h10m4 0h2M4 17h2m4 0h10M14 4v6M6 14v6"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16">
+      <path
+        d="M8 8v10m4-10v10m4-10v10M5 5h14M9 5V3h6v2m2 0 1 16H6L7 5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
 }

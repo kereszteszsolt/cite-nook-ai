@@ -114,6 +114,15 @@ beforeEach(() => {
     assistantMessage: storedMessages[1],
   });
   apiMock.documents.mockResolvedValue([]);
+  apiMock.createConversation.mockImplementation(
+    (chatModel: string, embeddingModel: string) =>
+      Promise.resolve({
+        ...storedConversation,
+        id: 'conversation-2',
+        chatModel,
+        embeddingModel,
+      }),
+  );
   apiMock.updateConversation.mockImplementation(
     (_id: string, chatModel: string, embeddingModel: string) =>
       Promise.resolve({ ...storedConversation, chatModel, embeddingModel }),
@@ -145,22 +154,78 @@ afterEach(() => {
 });
 
 describe('conversation model selection', () => {
-  it('restores the stored models when an existing conversation opens', async () => {
+  it('shows the stored model pair in the conversation header and nowhere in the app header', async () => {
     render(<App />);
 
-    const chatSelect = (await screen.findByLabelText('Chat model')) as HTMLSelectElement;
-    await waitFor(() => expect(chatSelect.value).toBe('qwen3.5:9b'));
-    expect((screen.getByLabelText('Embedding model') as HTMLSelectElement).value).toBe(
-      'qwen3-embedding:0.6b',
+    const modelSummary = await screen.findByLabelText('Conversation models');
+    expect(within(modelSummary).getByText('qwen3.5:9b')).toBeDefined();
+    expect(within(modelSummary).getByText('qwen3-embedding:0.6b')).toBeDefined();
+    expect(screen.queryByRole('combobox')).toBeNull();
+    expect(screen.queryByText('Model configuration')).toBeNull();
+    expect(screen.queryByText('Saved messages')).toBeNull();
+  });
+
+  it('asks for both models before creating a conversation and preselects available defaults', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'New conversation' }));
+    const dialog = screen.getByRole('dialog', { name: 'Start a new conversation' });
+    const chatSelect = within(dialog).getByLabelText('Chat model') as HTMLSelectElement;
+    const embeddingSelect = within(dialog).getByLabelText(
+      'Embedding model',
+    ) as HTMLSelectElement;
+
+    expect(chatSelect.value).toBe('llama3.1:8b');
+    expect(embeddingSelect.value).toBe('qwen3-embedding:0.6b');
+    expect(apiMock.createConversation).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Create conversation' }));
+
+    await waitFor(() =>
+      expect(apiMock.createConversation).toHaveBeenCalledWith(
+        'llama3.1:8b',
+        'qwen3-embedding:0.6b',
+      ),
+    );
+    expect(screen.queryByRole('dialog', { name: 'Start a new conversation' })).toBeNull();
+    expect(
+      within(screen.getByLabelText('Conversation models')).getByText('llama3.1:8b'),
+    ).toBeDefined();
+  });
+
+  it('falls back to the first installed models when configured defaults are unavailable', async () => {
+    apiMock.models.mockResolvedValue({
+      chatModels: [
+        { name: 'llama3.1:8b', installed: false },
+        { name: 'qwen3.5:9b', installed: true },
+      ],
+      embeddingModels: [
+        { name: 'qwen3-embedding:0.6b', installed: false },
+        { name: 'embeddinggemma', installed: true },
+      ],
+      defaultChatModel: 'llama3.1:8b',
+      defaultEmbeddingModel: 'qwen3-embedding:0.6b',
+      ollamaAvailable: true,
+    });
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'New conversation' }));
+    const dialog = screen.getByRole('dialog', { name: 'Start a new conversation' });
+    expect((within(dialog).getByLabelText('Chat model') as HTMLSelectElement).value).toBe(
+      'qwen3.5:9b',
+    );
+    expect((within(dialog).getByLabelText('Embedding model') as HTMLSelectElement).value).toBe(
+      'embeddinggemma',
     );
   });
 
-  it('persists selector changes on the active conversation', async () => {
+  it('persists both edited models on the active conversation', async () => {
     render(<App />);
 
-    const chatSelect = (await screen.findByLabelText('Chat model')) as HTMLSelectElement;
-    await waitFor(() => expect(chatSelect.value).toBe('qwen3.5:9b'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit models' }));
+    const dialog = screen.getByRole('dialog', { name: 'Change conversation models' });
+    const chatSelect = within(dialog).getByLabelText('Chat model');
     fireEvent.change(chatSelect, { target: { value: 'llama3.1:8b' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save models' }));
 
     await waitFor(() =>
       expect(apiMock.updateConversation).toHaveBeenCalledWith(
@@ -169,6 +234,67 @@ describe('conversation model selection', () => {
         'qwen3-embedding:0.6b',
       ),
     );
+    expect(screen.queryByRole('dialog', { name: 'Change conversation models' })).toBeNull();
+    expect(
+      within(screen.getByLabelText('Conversation models')).getByText('llama3.1:8b'),
+    ).toBeDefined();
+  });
+
+  it('cancels model editing without persisting changes', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit models' }));
+    const dialog = screen.getByRole('dialog', { name: 'Change conversation models' });
+    fireEvent.change(within(dialog).getByLabelText('Chat model'), {
+      target: { value: 'llama3.1:8b' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+
+    expect(apiMock.updateConversation).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog', { name: 'Change conversation models' })).toBeNull();
+  });
+
+  it('keeps the model editor open and the stored pair visible after a failed update', async () => {
+    apiMock.updateConversation.mockRejectedValue(new Error('Model update failed.'));
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit models' }));
+    const dialog = screen.getByRole('dialog', { name: 'Change conversation models' });
+    fireEvent.change(within(dialog).getByLabelText('Chat model'), {
+      target: { value: 'llama3.1:8b' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save models' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Model update failed.');
+    expect(screen.getByRole('dialog', { name: 'Change conversation models' })).toBeDefined();
+    expect(
+      within(screen.getByLabelText('Conversation models')).getByText('qwen3.5:9b'),
+    ).toBeDefined();
+  });
+
+  it('keeps creation disabled when no installed model pair is available', async () => {
+    apiMock.models.mockResolvedValue({
+      chatModels: [{ name: 'missing-chat', installed: false }],
+      embeddingModels: [{ name: 'missing-embedding', installed: false }],
+      defaultChatModel: 'missing-chat',
+      defaultEmbeddingModel: 'missing-embedding',
+      ollamaAvailable: true,
+    });
+    apiMock.conversations.mockResolvedValue([]);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'New conversation' }));
+    const dialog = screen.getByRole('dialog', { name: 'Start a new conversation' });
+    expect((within(dialog).getByLabelText('Chat model') as HTMLSelectElement).value).toBe('');
+    expect((within(dialog).getByLabelText('Embedding model') as HTMLSelectElement).value).toBe(
+      '',
+    );
+    expect(
+      (within(dialog).getByRole('button', {
+        name: 'Create conversation',
+      }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(within(dialog).getByRole('status').textContent).toContain('required');
   });
 
   it('uploads a supported file with the selected embedding model', async () => {
@@ -362,7 +488,7 @@ describe('persistent conversation history', () => {
     expect(input.value).toBe('Please retry this question');
   });
 
-  it('deletes a confirmed conversation from the persistent list', async () => {
+  it('deletes through the custom confirmation dialog without a browser confirm', async () => {
     let resolveDelete: (() => void) | undefined;
     apiMock.deleteConversation.mockImplementation(
       () =>
@@ -370,24 +496,61 @@ describe('persistent conversation history', () => {
           resolveDelete = resolve;
         }),
     );
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const browserConfirm = vi.spyOn(window, 'confirm');
     render(<App />);
 
-    await screen.findByRole('button', { name: 'Delete conversation' });
-    expect(
-      screen.getByRole('button', { name: 'Delete conversation' }).querySelector('svg'),
-    ).not.toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Delete conversation' }));
+    const deleteButton = await screen.findByRole('button', { name: 'Delete conversation' });
+    expect(deleteButton.querySelector('svg')).not.toBeNull();
+    fireEvent.click(deleteButton);
+
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete conversation?' });
+    expect(within(dialog).getByText(/cannot be undone/i)).toBeDefined();
+    expect(apiMock.deleteConversation).not.toHaveBeenCalled();
+    expect(browserConfirm).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete conversation' }));
 
     await waitFor(() =>
       expect(apiMock.deleteConversation).toHaveBeenCalledWith('conversation-1'),
     );
-    const deletingButton = screen.getByRole('button', { name: 'Deleting…' });
+    const deletingButton = within(dialog).getByRole('button', { name: 'Deleting…' });
     expect((deletingButton as HTMLButtonElement).disabled).toBe(true);
 
     await act(async () => resolveDelete?.());
     expect(await screen.findByText('No conversations yet.')).toBeDefined();
     expect(screen.getByText('Create or select a conversation to view its history.')).toBeDefined();
+  });
+
+  it('cancels conversation deletion without calling the API', async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete conversation' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete conversation?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+
+    expect(apiMock.deleteConversation).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog', { name: 'Delete conversation?' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'New conversation' })).toBeDefined();
+  });
+
+  it('keeps the delete dialog available for retry when deletion fails', async () => {
+    apiMock.deleteConversation.mockRejectedValue(new Error('Conversation deletion failed.'));
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete conversation' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete conversation?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete conversation' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Conversation deletion failed.',
+    );
+    expect(screen.getByRole('alertdialog', { name: 'Delete conversation?' })).toBeDefined();
+    await waitFor(() =>
+      expect(
+        (within(dialog).getByRole('button', {
+          name: 'Delete conversation',
+        }) as HTMLButtonElement).disabled,
+      ).toBe(false),
+    );
   });
 });
 

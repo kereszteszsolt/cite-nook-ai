@@ -7,3 +7,4 @@
 - [Testing](testing.md)
 - [Release 0.1 stories](releases/release-0.1-mini-rag/README.md)
 - [Release 0.2 stories](releases/release-0.2-focused-workspaces/README.md)
+- [Release 0.3 stories](releases/release-0.3-conversation-model-workflows/README.md)

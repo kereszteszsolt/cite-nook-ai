@@ -111,6 +111,48 @@ describe('API client', () => {
     );
   });
 
+  it('creates and updates a conversation with an explicit model pair', async () => {
+    const created = {
+      id: 'conversation/1',
+      chatModel: 'chat-a',
+      embeddingModel: 'embed-a',
+    };
+    const updated = {
+      ...created,
+      chatModel: 'chat-b',
+      embeddingModel: 'embed-b',
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(created)))
+      .mockResolvedValueOnce(new Response(JSON.stringify(updated)));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.createConversation('chat-a', 'embed-a')).resolves.toEqual(created);
+    await expect(
+      api.updateConversation('conversation/1', 'chat-b', 'embed-b'),
+    ).resolves.toEqual(updated);
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:8000/api/conversations',
+      {
+        method: 'POST',
+        body: JSON.stringify({ chatModel: 'chat-a', embeddingModel: 'embed-a' }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:8000/api/conversations/conversation%2F1',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ chatModel: 'chat-b', embeddingModel: 'embed-b' }),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  });
+
   it('updates a conversation title without resending model selections', async () => {
     const updated = { id: 'conversation/1', title: 'Project sources' };
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(updated)));

@@ -68,8 +68,8 @@ def message_service(*, history_messages: int = 12) -> ConversationService:
         Settings(
             database_url="postgresql+psycopg://unused",
             ollama_host="http://ollama.test",
-            chat_models=("chat-a",),
-            embedding_models=("embed-a",),
+            chat_models=("chat-a", "chat-b"),
+            embedding_models=("embed-a", "embed-b"),
             default_chat_model="chat-a",
             default_embedding_model="embed-a",
             brand_config_path=Path("brand.json"),
@@ -224,6 +224,30 @@ def test_update_persists_a_normalized_title_without_changing_models() -> None:
     assert stored_conversation.title == "Project sources"
     assert stored_conversation.chat_model == "chat-a"
     assert stored_conversation.embedding_model == "embed-a"
+    assert session.committed is True
+    assert session.refreshed == [stored_conversation]
+
+
+def test_update_changes_the_conversation_pair_without_rewriting_message_provenance() -> None:
+    stored_conversation = conversation()
+    stored_assistant = message(2)
+    session = MessageSession(
+        conversation=stored_conversation,
+        messages=[stored_assistant],
+    )
+
+    updated = message_service().update(  # type: ignore[arg-type]
+        session,
+        conversation_id=stored_conversation.id,
+        chat_model="chat-b",
+        embedding_model="embed-b",
+    )
+
+    assert updated is stored_conversation
+    assert stored_conversation.chat_model == "chat-b"
+    assert stored_conversation.embedding_model == "embed-b"
+    assert stored_assistant.chat_model == "chat-a"
+    assert session.messages == [stored_assistant]
     assert session.committed is True
     assert session.refreshed == [stored_conversation]
 

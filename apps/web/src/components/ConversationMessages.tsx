@@ -18,9 +18,7 @@ interface ConversationMessagesProps {
   messages: ConversationMessage[];
   loading: boolean;
   asking: boolean;
-  deleting: boolean;
   onAsk: (question: string) => Promise<boolean>;
-  onDelete: () => void;
 }
 
 const COMPOSER_MIN_HEIGHT_PX = 48;
@@ -68,25 +66,7 @@ export function ConversationMessages(props: ConversationMessagesProps) {
   }
 
   return (
-    <section className="messages-panel" aria-labelledby="messages-heading">
-      <div className="messages-heading">
-        <div>
-          <p className="eyebrow">Conversation</p>
-          <h2 id="messages-heading">Saved messages</h2>
-        </div>
-        {props.conversation && (
-          <button
-            type="button"
-            className="conversation-delete-button"
-            disabled={props.deleting || props.asking}
-            onClick={props.onDelete}
-          >
-            <TrashIcon />
-            <span>{props.deleting ? 'Deleting…' : 'Delete conversation'}</span>
-          </button>
-        )}
-      </div>
-
+    <section className="messages-panel" aria-label="Conversation messages">
       <div className="message-history" ref={historyRef}>
         {!props.conversation ? (
           <p className="messages-state">Create or select a conversation to view its history.</p>
@@ -186,21 +166,6 @@ function SendIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="2.2"
-      />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16">
-      <path
-        d="M8 8v10m4-10v10m4-10v10M5 5h14M9 5V3h6v2m2 0 1 16H6L7 5"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
       />
     </svg>
   );
