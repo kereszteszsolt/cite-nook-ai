@@ -43,6 +43,7 @@ export interface ConversationMessage {
   content: string;
   chatModel: string | null;
   citations: Citation[];
+  responseDurationMs: number | null;
   createdAt: string;
 }
 

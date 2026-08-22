@@ -101,6 +101,7 @@ class FakeConversationService:
             content=values["answer"],
             chat_model=values["chat_model"],
             citations=values["citations"],
+            response_duration_ms=values["response_duration_ms"],
         )
         return user_message, assistant_message
 
@@ -177,6 +178,7 @@ def test_answer_uses_conversation_models_ready_compatible_chunks_and_markers() -
         gateway=gateway,  # type: ignore[arg-type]
         settings=settings(),
         conversations=conversation_service,  # type: ignore[arg-type]
+        clock=iter([100.0, 102.345]).__next__,
     )
 
     result = service.answer(
@@ -201,6 +203,8 @@ def test_answer_uses_conversation_models_ready_compatible_chunks_and_markers() -
     assert citations[0]["document_name"] == "second.pdf"
     assert citations[0]["page_number"] == 2
     assert citations[0]["score"] == 0.8
+    assert conversation_service.record_call["response_duration_ms"] == 2345
+    assert result.assistant_message.response_duration_ms == 2345
     assert session.statement is not None
     sql = str(session.statement)
     assert "documents.status" in sql

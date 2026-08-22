@@ -67,6 +67,7 @@ const storedMessages = [
     content: 'What does the document say?',
     chatModel: null,
     citations: [],
+    responseDurationMs: null,
     createdAt: '2026-08-22T00:01:00Z',
   },
   {
@@ -87,11 +88,16 @@ const storedMessages = [
         score: 0.91,
       },
     ],
+    responseDurationMs: 2345,
     createdAt: '2026-08-22T00:01:01Z',
   },
 ];
 
 beforeEach(() => {
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: vi.fn().mockResolvedValue(undefined) },
+  });
   apiMock.models.mockResolvedValue({
     chatModels: [
       { name: 'llama3.1:8b', installed: true },
@@ -430,10 +436,139 @@ describe('persistent conversation history', () => {
     expect(screen.getByRole('heading', { name: 'References' })).toBeDefined();
     expect(screen.getByText('Relevant text')).toBeDefined();
     expect(screen.getByText('Similarity 91.0%')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Copy message 1' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Copy message 2' })).toBeDefined();
+    expect(
+      screen.getByRole('button', { name: 'Ask question again for answer 2' }),
+    ).toBeDefined();
+    expect(screen.getByLabelText('Response time 2.3 s')).toBeDefined();
     expect(
       screen.getByRole('link', { name: /\[S1\] notes.md — page 2/ }).getAttribute('href'),
     ).toBe('http://localhost:8000/api/documents/document-1/file');
     expect(apiMock.messages).toHaveBeenCalledWith('conversation-1');
+  });
+
+  it('copies complete message text and reports clipboard success', async () => {
+    apiMock.messages.mockResolvedValue(storedMessages);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Copy message 2' }));
+
+    await waitFor(() =>
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        'The persisted answer.',
+      ),
+    );
+    expect(await screen.findByText('Message 2 copied to the clipboard.')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Copied message 2' })).toBeDefined();
+    expect(screen.getByText('The persisted answer.')).toBeDefined();
+  });
+
+  it('reports clipboard failure without changing the message', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: vi.fn().mockRejectedValue(new Error('Denied')) },
+    });
+    apiMock.messages.mockResolvedValue(storedMessages);
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Copy message 1' }));
+
+    expect(
+      await screen.findByText(
+        'Message 1 could not be copied. Check clipboard permission and try again.',
+      ),
+    ).toBeDefined();
+    expect(screen.getByText('What does the document say?')).toBeDefined();
+  });
+
+  it('asks an assistant question again and appends the successful turn', async () => {
+    let resolveRetry: ((turn: unknown) => void) | undefined;
+    apiMock.messages.mockResolvedValue(storedMessages);
+    apiMock.askQuestion.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRetry = resolve;
+        }),
+    );
+    render(<App />);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Ask question again for answer 2' }),
+    );
+
+    await waitFor(() =>
+      expect(apiMock.askQuestion).toHaveBeenCalledWith(
+        'conversation-1',
+        'What does the document say?',
+      ),
+    );
+    const retrying = screen.getByRole('button', {
+      name: 'Asking question again for answer 2',
+    }) as HTMLButtonElement;
+    expect(retrying.disabled).toBe(true);
+    expect((screen.getByLabelText('Ask your documents') as HTMLTextAreaElement).disabled).toBe(
+      true,
+    );
+
+    await act(async () =>
+      resolveRetry?.({
+        conversation: { ...storedConversation, title: 'What does the document say?' },
+        userMessage: {
+          ...storedMessages[0],
+          id: 'message-3',
+          ordinal: 3,
+        },
+        assistantMessage: {
+          ...storedMessages[1],
+          id: 'message-4',
+          ordinal: 4,
+          content: 'A newly grounded answer.',
+          responseDurationMs: 980,
+        },
+      }),
+    );
+
+    expect(await screen.findByText('A newly grounded answer.')).toBeDefined();
+    expect(
+      within(screen.getByLabelText('Conversation messages')).getAllByText(
+        'What does the document say?',
+      ),
+    ).toHaveLength(2);
+    expect(screen.getByText('The persisted answer.')).toBeDefined();
+    expect(screen.getByLabelText('Response time 980 ms')).toBeDefined();
+    expect(
+      screen.getByText('The question was asked again and a new answer was added.'),
+    ).toBeDefined();
+  });
+
+  it('preserves existing history when asking again fails', async () => {
+    apiMock.messages.mockResolvedValue(storedMessages);
+    apiMock.askQuestion.mockRejectedValue(new Error('Retry failed.'));
+    render(<App />);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Ask question again for answer 2' }),
+    );
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Retry failed.');
+    expect(
+      await screen.findByText(
+        'The question could not be asked again. The existing history was preserved.',
+      ),
+    ).toBeDefined();
+    expect(screen.getAllByText('What does the document say?')).toHaveLength(1);
+    expect(screen.getAllByText('The persisted answer.')).toHaveLength(1);
+  });
+
+  it('keeps legacy assistant responses explicit when timing is unavailable', async () => {
+    apiMock.messages.mockResolvedValue([
+      storedMessages[0],
+      { ...storedMessages[1], responseDurationMs: null },
+    ]);
+    render(<App />);
+
+    expect(await screen.findByLabelText('Response time unavailable')).toBeDefined();
   });
 
   it('asks a grounded question and renders the returned linked references', async () => {

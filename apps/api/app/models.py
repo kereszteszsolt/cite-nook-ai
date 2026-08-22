@@ -55,6 +55,10 @@ class ConversationMessage(Base):
         CheckConstraint(
             "role IN ('user', 'assistant')", name="ck_conversation_messages_role"
         ),
+        CheckConstraint(
+            "response_duration_ms IS NULL OR response_duration_ms >= 0",
+            name="ck_conversation_messages_response_duration",
+        ),
         UniqueConstraint(
             "conversation_id", "ordinal", name="uq_conversation_messages_ordinal"
         ),
@@ -70,6 +74,7 @@ class ConversationMessage(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     chat_model: Mapped[str | None] = mapped_column(String(200))
     citations: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list)
+    response_duration_ms: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")

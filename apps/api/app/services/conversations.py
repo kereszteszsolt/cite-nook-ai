@@ -88,6 +88,7 @@ class ConversationService:
         answer: str,
         chat_model: str,
         citations: list[Mapping[str, Any]],
+        response_duration_ms: int | None = None,
     ) -> tuple[ConversationMessage, ConversationMessage] | None:
         normalized_question = " ".join(question.split())
         normalized_answer = answer.strip()
@@ -97,6 +98,8 @@ class ConversationService:
             raise ValueError("Answer must not be empty.")
         if chat_model not in self._settings.chat_models:
             raise UnsupportedModelError("Unsupported chat model.")
+        if response_duration_ms is not None and response_duration_ms < 0:
+            raise ValueError("Response duration must not be negative.")
 
         conversation = session.scalar(
             select(Conversation)
@@ -121,6 +124,7 @@ class ConversationService:
             content=normalized_question,
             chat_model=None,
             citations=[],
+            response_duration_ms=None,
         )
         assistant_message = ConversationMessage(
             conversation_id=conversation_id,
@@ -129,6 +133,7 @@ class ConversationService:
             content=normalized_answer,
             chat_model=chat_model,
             citations=[serialize_citation(citation) for citation in citations],
+            response_duration_ms=response_duration_ms,
         )
         if next_ordinal == 1 and conversation.title == "New conversation":
             conversation.title = deterministic_title(normalized_question)

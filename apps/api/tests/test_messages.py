@@ -126,6 +126,7 @@ def test_first_turn_is_atomic_titled_and_preserves_assistant_provenance() -> Non
         answer="It describes a bounded local title.",
         chat_model="chat-a",
         citations=[citation],
+        response_duration_ms=1234,
     )
 
     assert result is not None
@@ -138,6 +139,8 @@ def test_first_turn_is_atomic_titled_and_preserves_assistant_provenance() -> Non
     assert assistant_message.ordinal == 2
     assert assistant_message.role == "assistant"
     assert assistant_message.chat_model == "chat-a"
+    assert user_message.response_duration_ms is None
+    assert assistant_message.response_duration_ms == 1234
     assert set(assistant_message.citations[0]) == {
         "source_id",
         "document_id",
@@ -154,6 +157,28 @@ def test_first_turn_is_atomic_titled_and_preserves_assistant_provenance() -> Non
     assert session.committed is True
     assert len(session.scalar_statements) == 2
     assert "FOR UPDATE" in str(session.scalar_statements[0])
+
+
+def test_turn_rejects_a_negative_response_duration_before_persistence() -> None:
+    stored_conversation = conversation()
+    session = MessageSession(
+        conversation=stored_conversation,
+        scalar_results=[stored_conversation, 0],
+    )
+
+    with pytest.raises(ValueError, match="must not be negative"):
+        message_service().record_turn(  # type: ignore[arg-type]
+            session,
+            conversation_id=stored_conversation.id,
+            question="Question",
+            answer="Answer",
+            chat_model="chat-a",
+            citations=[],
+            response_duration_ms=-1,
+        )
+
+    assert session.added == []
+    assert session.committed is False
 
 
 def test_deterministic_title_is_normalized_and_bounded() -> None:

@@ -94,6 +94,7 @@ class MessageRead(ApiModel):
     content: str
     chat_model: str | None
     citations: list[CitationRead]
+    response_duration_ms: int | None = Field(default=None, ge=0)
     created_at: datetime
 
 

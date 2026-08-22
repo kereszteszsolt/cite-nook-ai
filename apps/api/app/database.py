@@ -32,6 +32,26 @@ def init_database() -> None:
                 "ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE"
             )
         )
+        connection.execute(
+            text(
+                "ALTER TABLE conversation_messages "
+                "ADD COLUMN IF NOT EXISTS response_duration_ms INTEGER"
+            )
+        )
+        connection.execute(
+            text(
+                "DO $$ BEGIN "
+                "IF NOT EXISTS ("
+                "SELECT 1 FROM pg_constraint "
+                "WHERE conname = 'ck_conversation_messages_response_duration'"
+                ") THEN "
+                "ALTER TABLE conversation_messages "
+                "ADD CONSTRAINT ck_conversation_messages_response_duration "
+                "CHECK (response_duration_ms IS NULL OR response_duration_ms >= 0); "
+                "END IF; "
+                "END $$"
+            )
+        )
 
 
 def get_session() -> Generator[Session]:

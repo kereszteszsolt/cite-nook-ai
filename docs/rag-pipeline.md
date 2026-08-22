@@ -9,5 +9,6 @@ MRA-001 contains only the runtime foundation. The document-to-answer path is add
 5. MRA-006 persists conversations and messages. Implemented.
 6. MRA-007 retrieves compatible chunks and returns grounded answers with citations. Implemented.
 7. MRA-008 lets users keep documents stored while excluding inactive ones from retrieval. Implemented.
+8. MRA-012 records grounded-answer duration and lets the UI submit a prior question through the same RAG path as a new auditable turn. Implemented.
 
 Each story's acceptance criteria were checked only after its implementation and verification evidence were complete.

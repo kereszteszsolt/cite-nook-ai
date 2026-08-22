@@ -5,8 +5,9 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from time import perf_counter
 from typing import Any
 from uuid import UUID
 
@@ -75,10 +76,12 @@ class GroundedAnswerService:
         gateway: OllamaGateway | None = None,
         settings: Settings | None = None,
         conversations: ConversationService | None = None,
+        clock: Callable[[], float] | None = None,
     ) -> None:
         self._gateway = gateway or OllamaGateway()
         self._settings = settings or get_settings()
         self._conversations = conversations or ConversationService(self._settings)
+        self._clock = clock or perf_counter
 
     def answer(
         self, session: Session, *, conversation_id: UUID, question: str
@@ -91,6 +94,7 @@ class GroundedAnswerService:
         if conversation is None:
             return None
 
+        started_at = self._clock()
         embeddings = self._gateway.embed(
             conversation.embedding_model, normalized_question
         )
@@ -114,6 +118,7 @@ class GroundedAnswerService:
         else:
             answer = INSUFFICIENT_ANSWER
             citations = []
+        response_duration_ms = max(0, round((self._clock() - started_at) * 1000))
 
         stored = self._conversations.record_turn(
             session,
@@ -122,6 +127,7 @@ class GroundedAnswerService:
             answer=answer,
             chat_model=conversation.chat_model,
             citations=[source.citation() for source in citations],
+            response_duration_ms=response_duration_ms,
         )
         if stored is None:
             return None

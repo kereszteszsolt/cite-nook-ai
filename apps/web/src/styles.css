@@ -405,7 +405,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .messages-state { margin: 28px 0 0; color: var(--brand-text-muted); text-align: center; }
 .message-list { display: grid; gap: 14px; }
 .message-bubble {
-  max-width: min(88%, 920px);
+  width: min(94%, 1160px);
   display: grid;
   gap: 8px;
   padding: 14px 16px;
@@ -424,6 +424,41 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .message-references li { padding-left: 3px; }
 .message-references a { color: var(--brand-accent-strong); overflow-wrap: anywhere; }
 .message-references li > p { margin-top: 5px; color: var(--brand-text-muted); font-size: .85rem; }
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  margin-top: 2px;
+}
+.message-action-button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--brand-text-muted);
+  background: transparent;
+}
+.message-action-button:hover:not(:disabled), .message-action-button.confirmed {
+  border-color: var(--brand-border);
+  color: var(--brand-accent-strong);
+  background: var(--brand-accent-soft);
+}
+.message-response-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 0 7px;
+  color: var(--brand-text-muted);
+  font-size: .75rem;
+  white-space: nowrap;
+}
+.spinning { animation: spin 900ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .conversation-delete-button {
   color: #9f2d25;
 }
@@ -693,7 +728,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .conversation-header { padding: 18px; }
   .upload-form { grid-template-columns: 1fr; }
   .document-list-heading { align-items: start; flex-direction: column; gap: 4px; }
-  .message-bubble { max-width: 96%; }
+  .message-bubble { width: 96%; }
   .messages-panel { min-height: 480px; padding: 20px; }
   .conversation-title-display { align-items: flex-start; flex-direction: column; }
   .conversation-title-actions { flex-wrap: wrap; }
