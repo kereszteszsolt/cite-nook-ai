@@ -1,8 +1,8 @@
 # CiteNook
 
-Local document Q&A with citations.
+**CiteNook AI** is a local-first document question-answering application that lets you upload files, ask grounded questions, and inspect the cited sources.
 
-**CiteNook AI** — Ask your documents. Verify the sources.
+_Ask your documents. Verify the sources._
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-D22128?style=flat-square&labelColor=2B3137&logo=apache&logoColor=white)](LICENSE)
 ![Local-first](https://img.shields.io/badge/local--first-no%20accounts-2EA44F?style=flat-square&labelColor=2B3137)
@@ -15,7 +15,15 @@ Local document Q&A with citations.
 ![Turborepo](https://img.shields.io/badge/Turborepo-2.10.11-EF4444?style=flat-square&labelColor=2B3137&logo=turborepo&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?style=flat-square&labelColor=2B3137&logo=typescript&logoColor=white)
 
-This repository was built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. MRA-007 completes the local RAG path with grounded answers and inspectable references. MRA-008 moves all document management into one Documents workspace and adds persistent activation controls for retrieval. MRA-009 adds editable conversation titles and refines the chat interaction controls. MRA-010 moves model selection into explicit per-conversation create/edit flows and replaces native conversation deletion confirmation with CiteNook dialogs. MRA-011 adds the matching document-deletion dialog, a styled accessible file picker, and restrained status feedback. MRA-012 widens the message layout and adds copy, grounded retry, and persisted response-time actions. MRA-013 routes local browser API requests through the web origin and adds accurate, retryable startup feedback. MRA-014 adds the missing browser favicon through the central brand contract. MRA-015 adds reproducible, privacy-safe product screenshots backed only by generic browser fixtures. MRA-016 publishes a task-focused user guide linked from the project entry points. MRA-017 synchronizes the portable interface design handoff to Penpot and records a distinct Penpot-origin export.
+## Highlights
+
+- Upload and persist PDF, DOCX, TXT, and Markdown documents.
+- Index documents asynchronously with a separate worker, Ollama embeddings, and PostgreSQL/pgvector.
+- Keep conversations, messages, selected models, citations, and document state across restarts.
+- Ask grounded questions and inspect the exact document, page, passage, and similarity score behind each cited source.
+- Run locally without accounts, using either an existing Ollama instance or a dedicated Ollama service in the Compose stack.
+
+CiteNook is developed through independently verifiable MRA stories. The [release story maps](#verification-references) document the path from the initial local RAG workflow to the current document and conversation experience.
 
 ## Screenshots
 
@@ -25,10 +33,7 @@ This repository was built in independently working MRA stories. MRA-001 provides
 
 ## Documentation
 
-- [User guide](docs/user-guide.md)
-- [Interface design handoff](docs/design/README.md)
-- [Documentation index](docs/README.md)
-- [Testing and screenshot regeneration](docs/testing.md)
+[User guide](docs/user-guide.md) · [Architecture](docs/architecture.md) · [RAG pipeline](docs/rag-pipeline.md) · [Development](docs/development.md) · [Testing](docs/testing.md) · [Design handoff](docs/design/README.md) · [All documentation](docs/README.md)
 
 ## Architecture
 
@@ -83,26 +88,16 @@ If the API cannot be reached during startup, the header reports `CiteNook API un
 
 ## Configure models
 
-CiteNook lists the chat and embedding models configured through `CHAT_MODELS` and `EMBEDDING_MODELS` when a new conversation starts or the active conversation's models are edited. It checks the selected Ollama instance and disables configured models that are not installed. The initial new-conversation selections come from the available `DEFAULT_CHAT_MODEL` and `DEFAULT_EMBEDDING_MODEL`, falling back to the first installed model in each list. Every created conversation remembers both names; model controls do not appear in the global application header.
+CiteNook displays the models listed in `CHAT_MODELS` and `EMBEDDING_MODELS`. Each conversation stores its selected chat and embedding model. Configured models that are not installed in Ollama remain visible but cannot be selected.
 
-Uploads use `UPLOAD_DIR` and the `MAX_UPLOAD_MB` size limit from `.env`. Under Compose, uploaded bytes are stored in the persistent `citenook_uploads_data` volume.
-
-The separate worker extracts queued uploads, creates deterministic overlapping chunks, and sends them to Ollama in batches controlled by `EMBEDDING_BATCH_SIZE`. Jobs left in `processing` longer than `INGESTION_STALE_MINUTES` are returned to the queue. Both values must be positive whole numbers.
-
-Open the Documents tab to upload and manage every stored source without occupying the Chat workspace. Its styled file picker displays the selected local file name and resets after a successful upload. The Stored documents table updates while queued or processing work exists. It shows the original file metadata, embedding model, softly color-coded status badge, active state, chunk count, upload time, and a restrained explanation for failed processing. Deactivating a document excludes it from answers without deleting its file or indexed chunks; it can be opened, deleted, or enabled again. Document deletion first opens an irreversible-action CiteNook confirmation dialog; after confirmation it removes the document, its chunks and jobs, and its UUID-scoped upload directory.
-
-Conversations and their messages remain in PostgreSQL across reloads and container restarts. The compact conversation header shows the stored model pair and lets the user change both models for future questions. The first stored question becomes a deterministic title of at most 80 characters unless the user has already supplied a custom title. Custom titles can be edited in the Chat workspace and are normalized and bounded to 120 characters. `CHAT_HISTORY_MESSAGES` limits only the recent history prepared for model requests. Deleting a conversation uses an irreversible-action CiteNook confirmation dialog and also deletes all of its messages.
-
-After a compatible active document reaches `ready`, open the Chat tab, create or select a conversation, and use the question field at the bottom of the conversation panel. The composer grows upward to a bounded height and then scrolls internally; Enter sends and Shift+Enter inserts a line break. The wider message history scrolls independently above the composer, so messages never move underneath the input. Every message can be copied. An assistant answer also shows the server-measured response time and can ask its preceding question again; retry preserves the original answer and appends a new persisted turn. CiteNook embeds the question with the conversation embedding model, searches only compatible ready chunks from active documents, and asks the selected chat model to answer solely from those sources. References under the answer show `[S1]`, `[S2]`, and so on with the original document link, page when available, chunk snippet, and similarity score. `RAG_TOP_K` sets the positive maximum number of passages supplied to one answer and defaults to `5`.
-
-For example, install the default models in an external Ollama instance with:
+Install the default models in an existing Ollama instance with:
 
 ```bash
 ollama pull llama3.1:8b
 ollama pull qwen3-embedding:0.6b
 ```
 
-When using the optional Compose service, include the override file when installing the models in another terminal:
+When using the dedicated Compose service, install the models from another terminal with:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml exec ollama ollama pull llama3.1:8b
@@ -111,18 +106,31 @@ docker compose -f docker-compose.yml -f docker-compose.ollama.yml exec ollama ol
 
 Reload CiteNook after installing a model so the conversation dialogs refresh their installed status.
 
-## Project identity
+## Basic workflow
 
-- Display brand: `CiteNook`
-- Extended name: `CiteNook AI`
-- Repository and technical app ID: `cite-nook-ai`
-- Package scope: `@citenook/*`
-- Docker project: `citenook`
-- Story prefix: `MRA`
+1. Open **Documents**, upload a PDF, DOCX, TXT, or Markdown file, and wait for it to become `ready`.
+2. Create a conversation with an installed chat and embedding model.
+3. Ask a question in **Chat** and inspect the cited document, page, passage, and similarity score below the answer.
 
-Product identity is defined once in [`packages/brand/brand.json`](packages/brand/brand.json).
+Documents and conversations persist across restarts. Documents can be excluded from retrieval without deleting them, and conversations retain their selected models and complete message history. See the [user guide](docs/user-guide.md) for interface details and [`.env.example`](.env.example) for all runtime settings.
+
+## Brand and technical identifiers
+
+| Purpose | Value |
+| --- | --- |
+| Product name | `CiteNook` |
+| Full product name | `CiteNook AI` |
+| Repository | `cite-nook-ai` |
+| Application ID | `cite-nook-ai` |
+| npm package scope | `@citenook/*` |
+| Docker Compose project | `citenook` |
+| User story prefix | `MRA` |
+
+Canonical brand metadata and shared technical identifiers are maintained in [`packages/brand/brand.json`](packages/brand/brand.json).
 
 ## Verification
+
+Run the repository checks before submitting a change:
 
 ```bash
 npm run lint
@@ -155,11 +163,11 @@ Apache License 2.0. See [`LICENSE`](LICENSE).
 | Website | [kereszteszsolt.hu](https://kereszteszsolt.hu/) |
 | GitHub | [@kereszteszsolt](https://github.com/kereszteszsolt) |
 
-> The website is available in multiple languages: Hungarian (HU), English (EN), Romanian (RO), and German (DE).
+> The maintainer's website is available in Hungarian (HU), English (EN), Romanian (RO), and German (DE).
 
 ## ☕ Ways to support
 
-**Explore the available ways to support the maintainer and this work.**
+**Explore ways to support the maintainer and their projects.**
 
 [https://kereszteszsolt.hu/ways-to-support](https://kereszteszsolt.hu/ways-to-support)
 
