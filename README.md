@@ -30,6 +30,23 @@ This repository was built in independently working MRA stories. MRA-001 provides
 - [Documentation index](docs/README.md)
 - [Testing and screenshot regeneration](docs/testing.md)
 
+## Architecture
+
+```mermaid
+flowchart TD
+    BROWSER[Browser] -->|same-origin /api| WEB[React and Vite proxy]
+    WEB --> API[FastAPI]
+    API --> DB[(PostgreSQL + pgvector)]
+    DB -->|queued jobs| WORKER[Ingestion worker]
+    WORKER -->|chunks and status| DB
+    API -->|uploads| FILES[(Upload volume)]
+    WORKER -->|reads uploads| FILES
+    API -. configured HTTP .-> OLLAMA[External or Compose Ollama]
+    WORKER -. configured HTTP .-> OLLAMA
+```
+
+See the [detailed architecture](docs/architecture.md) and [RAG pipeline](docs/rag-pipeline.md) documentation.
+
 ## Quick start
 
 Create the local configuration file before the first start:
