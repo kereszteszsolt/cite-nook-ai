@@ -118,9 +118,10 @@ Apache License 2.0. See [`LICENSE`](LICENSE).
 
 ## Contact
 
-| Contact | Details |
+**Project maintainer: Keresztes Zsolt**
+
+| Platform | Link |
 | --- | --- |
-| Project maintainer | [Keresztes Zsolt](https://kereszteszsolt.hu/) |
 | Website | [kereszteszsolt.hu](https://kereszteszsolt.hu/) |
 | GitHub | [@kereszteszsolt](https://github.com/kereszteszsolt) |
 
@@ -128,12 +129,15 @@ Apache License 2.0. See [`LICENSE`](LICENSE).
 
 ## ☕ Ways to support
 
-[Explore the available ways to support the maintainer and this work.](https://kereszteszsolt.hu/hu/ways-to-support/)
+**[Explore the available ways to support the maintainer and this work.](https://kereszteszsolt.hu/ways-to-support/)**
+
+[https://kereszteszsolt.hu/ways-to-support/](https://kereszteszsolt.hu/ways-to-support/)
 
 **Every coffee counts! ☕❤️**
 
 ---
 
-**Made with ❤️ by [Kereszteszsolt](https://kereszteszsolt.com/)**
-
-⭐ Star this repository if you found it helpful!
+<p align="center">
+  <strong>Made with ❤️ by <a href="https://kereszteszsolt.com/">Kereszteszsolt</a></strong><br>
+  ⭐ Star this repository if you found it helpful!
+</p>
