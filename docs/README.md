@@ -1,6 +1,7 @@
 # CiteNook documentation
 
 - [User guide](user-guide.md)
+- [Interface design handoff](design/README.md)
 - [Architecture](architecture.md)
 - [Brand configuration](brand-configuration.md)
 - [Development](development.md)
