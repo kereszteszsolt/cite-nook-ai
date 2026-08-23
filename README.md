@@ -110,7 +110,15 @@ docker compose config
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
 ```
 
-See [the testing guide](docs/testing.md), the [Release 0.1 story map](docs/releases/release-0.1-mini-rag/README.md), the [Release 0.2 story map](docs/releases/release-0.2-focused-workspaces/README.md), the [Release 0.3 story map](docs/releases/release-0.3-conversation-model-workflows/README.md), and the [Release 0.4 story map](docs/releases/release-0.4-local-experience-polish/README.md).
+### Verification references
+
+| Document | Contents |
+| --- | --- |
+| [Testing guide](docs/testing.md) | Automated checks, screenshot regeneration, and runtime smoke tests |
+| [Release 0.1 story map](docs/releases/release-0.1-mini-rag/README.md) | Minimal local RAG |
+| [Release 0.2 story map](docs/releases/release-0.2-focused-workspaces/README.md) | Focused workspaces |
+| [Release 0.3 story map](docs/releases/release-0.3-conversation-model-workflows/README.md) | Conversation model workflows |
+| [Release 0.4 story map](docs/releases/release-0.4-local-experience-polish/README.md) | Local experience polish |
 
 ## License
 
