@@ -4,6 +4,12 @@ Local document Q&A with citations.
 
 **CiteNook AI** — Ask your documents. Verify the sources.
 
+[![License: Apache-2.0](https://img.shields.io/github/license/kereszteszsolt/cite-nook-ai?style=flat-square&color=315C52)](LICENSE)
+![Local-first](https://img.shields.io/badge/local--first-no%20accounts-20453D?style=flat-square)
+![Docker Compose](https://img.shields.io/badge/Docker%20Compose-ready-315C52?style=flat-square&logo=docker&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-local%20models-20453D?style=flat-square&logo=ollama&logoColor=white)
+![PostgreSQL + pgvector](https://img.shields.io/badge/PostgreSQL-pgvector-315C52?style=flat-square&logo=postgresql&logoColor=white)
+
 This repository was built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. MRA-007 completes the local RAG path with grounded answers and inspectable references. MRA-008 moves all document management into one Documents workspace and adds persistent activation controls for retrieval. MRA-009 adds editable conversation titles and refines the chat interaction controls. MRA-010 moves model selection into explicit per-conversation create/edit flows and replaces native conversation deletion confirmation with CiteNook dialogs. MRA-011 adds the matching document-deletion dialog, a styled accessible file picker, and restrained status feedback. MRA-012 widens the message layout and adds copy, grounded retry, and persisted response-time actions. MRA-013 routes local browser API requests through the web origin and adds accurate, retryable startup feedback. MRA-014 adds the missing browser favicon through the central brand contract. MRA-015 adds reproducible, privacy-safe product screenshots backed only by generic browser fixtures. MRA-016 publishes a task-focused user guide linked from the project entry points. MRA-017 synchronizes the portable interface design handoff to Penpot and records a distinct Penpot-origin export.
 
 ## Screenshots
@@ -109,3 +115,25 @@ See [the testing guide](docs/testing.md), the [Release 0.1 story map](docs/relea
 ## License
 
 Apache License 2.0. See [`LICENSE`](LICENSE).
+
+## Contact
+
+| Contact | Details |
+| --- | --- |
+| Project maintainer | [Keresztes Zsolt](https://kereszteszsolt.hu/) |
+| Website | [kereszteszsolt.hu](https://kereszteszsolt.hu/) |
+| GitHub | [@kereszteszsolt](https://github.com/kereszteszsolt) |
+
+> The website is available in multiple languages: Hungarian (HU), English (EN), Romanian (RO), and German (DE).
+
+## ☕ Ways to support
+
+[Explore the available ways to support the maintainer and this work.](https://kereszteszsolt.hu/hu/ways-to-support/)
+
+**Every coffee counts! ☕❤️**
+
+---
+
+**Made with ❤️ by [Kereszteszsolt](https://kereszteszsolt.com/)**
+
+⭐ Star this repository if you found it helpful!
