@@ -21,6 +21,7 @@ def load_brand() -> dict[str, Any]:
         "description",
         "tagline",
         "developer",
+        "assets",
         "technical",
         "theme",
     }

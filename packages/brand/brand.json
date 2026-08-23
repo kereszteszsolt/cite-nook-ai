@@ -7,6 +7,9 @@
     "name": "Keresztes Zsolt",
     "website": "https://kereszteszsolt.hu"
   },
+  "assets": {
+    "favicon": "/favicon.svg"
+  },
   "technical": {
     "repository": "cite-nook-ai",
     "packageScope": "@citenook/*",

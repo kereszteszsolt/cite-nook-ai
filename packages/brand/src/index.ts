@@ -14,6 +14,9 @@ export interface BrandConfig {
     name: string;
     website: string;
   };
+  assets: {
+    favicon: string;
+  };
   technical: {
     repository: string;
     packageScope: string;

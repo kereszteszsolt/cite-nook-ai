@@ -15,6 +15,7 @@ def test_brand_contains_public_and_technical_identity() -> None:
     assert brand["extendedName"] == "CiteNook AI"
     assert brand["description"] == "Local document Q&A with citations"
     assert brand["tagline"] == "Ask your documents. Verify the sources."
+    assert brand["assets"] == {"favicon": "/favicon.svg"}
     assert brand["technical"] == {
         "repository": "cite-nook-ai",
         "packageScope": "@citenook/*",

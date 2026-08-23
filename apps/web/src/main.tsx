@@ -14,6 +14,7 @@ for (const [name, value] of Object.entries(brand.theme)) {
 }
 document.title = brand.productName;
 document.querySelector('meta[name="description"]')?.setAttribute('content', brand.description);
+document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.setAttribute('href', brand.assets.favicon);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

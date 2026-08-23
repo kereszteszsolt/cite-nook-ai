@@ -12,6 +12,7 @@ describe('brand configuration', () => {
     expect(brand.extendedName).toBe('CiteNook AI');
     expect(brand.description).toBe('Local document Q&A with citations');
     expect(brand.tagline).toBe('Ask your documents. Verify the sources.');
+    expect(brand.assets.favicon).toBe('/favicon.svg');
     expect(brand.technical).toEqual({
       repository: 'cite-nook-ai',
       packageScope: '@citenook/*',

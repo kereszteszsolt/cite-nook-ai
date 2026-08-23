@@ -37,6 +37,8 @@ MRA-012's API tests cover deterministic server-side duration measurement, assist
 
 MRA-013's settings and web tests cover both loopback CORS defaults, relative same-origin API URLs, normalized fetch failures, checking/connected/Ollama-unavailable/API-unavailable header states, failed initial loading, and successful in-place retry of models, conversations, documents, and the active history.
 
+MRA-014's brand tests cover the configured favicon asset path in both the typed frontend package and the backend-loaded brand document. The web production build copies the SVG into the static output and the browser entrypoint applies the configured path.
+
 ## Runtime smoke checks
 
 External Ollama mode:
