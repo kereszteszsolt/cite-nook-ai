@@ -39,6 +39,8 @@ MRA-013's settings and web tests cover both loopback CORS defaults, relative sam
 
 MRA-014's brand tests cover the configured favicon asset path in both the typed frontend package and the backend-loaded brand document. The web production build copies the SVG into the static output and the browser entrypoint applies the configured path.
 
+MRA-015's Playwright screenshot suite serves only the real Vite/React application shell and intercepts every `/api` request with static generic fixture responses. It does not connect to PostgreSQL, an upload volume, the running Compose application, or Ollama. The suite captures desktop chat, the stored-document panel, and mobile chat into `docs/screenshots`.
+
 ## Runtime smoke checks
 
 External Ollama mode:
@@ -95,3 +97,24 @@ For MRA-012, create a dedicated conversation with installed models and submit on
 For MRA-013, keep an external Ollama instance on the configured endpoint and start the base Compose stack. Open both `http://localhost:5173` and `http://127.0.0.1:5173`; in each case confirm that `/api/models`, `/api/conversations`, and `/api/documents` stay on that page origin, return successfully through the Vite proxy, and produce `Ollama connected` without an error banner. Then stop only the API container while keeping the loaded web page open, reload the page, and confirm the neutral check resolves to `CiteNook API unavailable`, no raw `Failed to fetch` appears, and **Retry connection** is present. Start the API again, use that button without refreshing, and confirm the connected state and normal controls return with no duplicate database records.
 
 These commands remove containers and networks only. Named volumes remain persistent.
+
+## Product screenshots
+
+With Node and a Playwright Chromium installation available, regenerate the checked screenshots with:
+
+```bash
+npm run screenshots
+```
+
+The repository's pinned browser image can run the same dev-only workflow from WSL without using the host Node installation:
+
+```bash
+docker run --rm --init --ipc=host \
+  -v "$PWD":/workspace \
+  -v citenook-node-modules:/workspace/node_modules \
+  -w /workspace \
+  mcr.microsoft.com/playwright:v1.62.0-noble \
+  sh -lc 'npm ci && npm run screenshots'
+```
+
+The fixture contains only invented energy, garden, transit, and workshop examples. Keep personal uploads and live API responses out of this suite and review every regenerated PNG before committing it.

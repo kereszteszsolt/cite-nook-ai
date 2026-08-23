@@ -16,6 +16,7 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "screenshots": "npm run screenshots --workspace @citenook/web",
     "check": "npm run verify:repo && turbo run lint test build",
     "verify:repo": "python3 .agents/skills/release-evidence/scripts/verify_repository.py"
   },
