@@ -1,10 +1,11 @@
 # Architecture
 
-MRA-001 establishes the local runtime boundary. React talks only to FastAPI; the API and worker share PostgreSQL/pgvector and never install Ollama inside their images. MRA-002 keeps Ollama access behind the API gateway and stores each conversation's chat and embedding model in PostgreSQL. MRA-003 stores upload metadata in PostgreSQL and original bytes in the shared upload volume. MRA-004 processes those bytes in the separate worker and persists their chunks and embeddings. MRA-006 stores complete conversation histories and their answer provenance in PostgreSQL. MRA-007 completes the path with model-compatible pgvector retrieval and grounded Ollama chat. MRA-008 adds a global Documents workspace and a persistent per-document retrieval switch. MRA-009 adds partial conversation updates for durable custom titles and refines the browser-only chat interaction layer. MRA-010 keeps the existing per-conversation model contract while moving selection into custom creation/edit dialogs and conversation deletion into a custom confirmation dialog. MRA-011 adds equivalent document-deletion safety and restrained status presentation. MRA-012 adds persisted server-side answer duration and browser message actions without branching the linear conversation model.
+MRA-001 establishes the local runtime boundary. React talks only to FastAPI; the API and worker share PostgreSQL/pgvector and never install Ollama inside their images. MRA-002 keeps Ollama access behind the API gateway and stores each conversation's chat and embedding model in PostgreSQL. MRA-003 stores upload metadata in PostgreSQL and original bytes in the shared upload volume. MRA-004 processes those bytes in the separate worker and persists their chunks and embeddings. MRA-006 stores complete conversation histories and their answer provenance in PostgreSQL. MRA-007 completes the path with model-compatible pgvector retrieval and grounded Ollama chat. MRA-008 adds a global Documents workspace and a persistent per-document retrieval switch. MRA-009 adds partial conversation updates for durable custom titles and refines the browser-only chat interaction layer. MRA-010 keeps the existing per-conversation model contract while moving selection into custom creation/edit dialogs and conversation deletion into a custom confirmation dialog. MRA-011 adds equivalent document-deletion safety and restrained status presentation. MRA-012 adds persisted server-side answer duration and browser message actions without branching the linear conversation model. MRA-013 makes the local browser-to-API boundary same-origin and distinguishes API startup failure from Ollama availability.
 
 ```mermaid
 flowchart LR
-    WEB[React web] --> API[FastAPI]
+    BROWSER[Browser] -->|same-origin /api| WEB[React and Vite proxy]
+    WEB --> API[FastAPI]
     API --> DB[(PostgreSQL + pgvector)]
     DB --> WORKER[worker]
     API -. configured HTTP .-> OLLAMA[external or Compose Ollama]
@@ -13,7 +14,7 @@ flowchart LR
     WORKER --> FILES
 ```
 
-The default `docker-compose.yml` expects an external Ollama endpoint. `docker-compose.ollama.yml` adds Ollama as a separate service, redirects the application services to it, and exposes it on host port `11435` by default to avoid colliding with an existing external instance.
+The default `docker-compose.yml` expects an external Ollama endpoint. `docker-compose.ollama.yml` adds Ollama as a separate service, redirects the application services to it, and exposes it on host port `11435` by default to avoid colliding with an existing external instance. The browser uses the web origin's relative `/api` path; Vite forwards that path to `http://api:8000` in Compose and to a configurable `VITE_API_PROXY_TARGET` in host development. Consequently `localhost:5173` and `127.0.0.1:5173` do not depend on cross-origin browser access. Direct development origins for both loopback names remain allowed by FastAPI's default CORS list.
 
 The web client reads the configured model catalog from FastAPI. FastAPI uses the official Ollama client only to discover which configured names are installed; configured but unavailable names remain part of the API response. The global header has no model controls. New-conversation and active-conversation edit dialogs expose the catalog, allow only installed choices, and send both selected names through the centralized API client. Conversation creation and updates accept only configured names and persist both selections directly on the conversation.
 

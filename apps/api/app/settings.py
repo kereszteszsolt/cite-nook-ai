@@ -72,7 +72,9 @@ def get_settings() -> Settings:
         brand_config_path=Path(
             os.getenv("BRAND_CONFIG_PATH", "../../packages/brand/brand.json")
         ).resolve(),
-        cors_origins=_csv("CORS_ORIGINS", "http://localhost:5173"),
+        cors_origins=_csv(
+            "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+        ),
         upload_dir=Path(os.getenv("UPLOAD_DIR", "./uploads")).resolve(),
         max_upload_bytes=max_upload_mb * 1024 * 1024,
         embedding_batch_size=_positive_int("EMBEDDING_BATCH_SIZE", 32),

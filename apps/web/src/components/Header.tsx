@@ -18,19 +18,24 @@ export function Header(props: HeaderProps) {
         <span>{brand.description}</span>
       </div>
 
-      <span className={`ollama-status ${statusClass(props.ollamaAvailable)}`} role="status">
+      <span
+        className={`ollama-status ${statusClass(props.ollamaAvailable, props.loading)}`}
+        role="status"
+      >
         {statusLabel(props.ollamaAvailable, props.loading)}
       </span>
     </header>
   );
 }
 
-function statusClass(available: boolean | null): string {
-  if (available === null) return 'checking';
+function statusClass(available: boolean | null, loading: boolean): string {
+  if (loading) return 'checking';
+  if (available === null) return 'unavailable';
   return available ? 'ready' : 'unavailable';
 }
 
 function statusLabel(available: boolean | null, loading: boolean): string {
-  if (loading || available === null) return 'Checking Ollama';
+  if (loading) return 'Checking Ollama';
+  if (available === null) return 'CiteNook API unavailable';
   return available ? 'Ollama connected' : 'Ollama unavailable';
 }

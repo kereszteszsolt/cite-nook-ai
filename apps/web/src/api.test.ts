@@ -4,7 +4,7 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { api, getHealth } from './api';
+import { API_CONNECTION_ERROR_MESSAGE, api, getHealth } from './api';
 
 describe('API client', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -16,7 +16,19 @@ describe('API client', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(getHealth()).resolves.toEqual({ status: 'ok', appId: 'cite-nook-ai' });
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/health');
+    expect(fetchMock).toHaveBeenCalledWith('/api/health');
+  });
+
+  it('normalizes browser network failures into an actionable API error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+
+    await expect(getHealth()).rejects.toThrow(API_CONNECTION_ERROR_MESSAGE);
+  });
+
+  it('normalizes unavailable proxy responses into the same actionable error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 502 })));
+
+    await expect(getHealth()).rejects.toThrow(API_CONNECTION_ERROR_MESSAGE);
   });
 
   it('uploads multipart data without overriding its content type boundary', async () => {
@@ -40,7 +52,7 @@ describe('API client', () => {
     await expect(api.uploadDocument(file, 'embed-a')).resolves.toEqual(payload);
 
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('http://localhost:8000/api/documents');
+    expect(url).toBe('/api/documents');
     expect(init.method).toBe('POST');
     expect(init.headers).toEqual({});
     expect(init.body).toBeInstanceOf(FormData);
@@ -61,15 +73,15 @@ describe('API client', () => {
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      'http://localhost:8000/api/documents',
+      '/api/documents',
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      'http://localhost:8000/api/documents/document-1',
+      '/api/documents/document-1',
       { method: 'DELETE', headers: {} },
     );
     expect(api.documentFileUrl('document-1')).toBe(
-      'http://localhost:8000/api/documents/document-1/file',
+      '/api/documents/document-1/file',
     );
   });
 
@@ -80,7 +92,7 @@ describe('API client', () => {
 
     await expect(api.updateDocument('document/1', false)).resolves.toEqual(updated);
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/api/documents/document%2F1',
+      '/api/documents/document%2F1',
       {
         method: 'PATCH',
         body: JSON.stringify({ isActive: false }),
@@ -102,11 +114,11 @@ describe('API client', () => {
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      'http://localhost:8000/api/conversations/conversation-1/messages',
+      '/api/conversations/conversation-1/messages',
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      'http://localhost:8000/api/conversations/conversation-1',
+      '/api/conversations/conversation-1',
       { method: 'DELETE', headers: {} },
     );
   });
@@ -135,7 +147,7 @@ describe('API client', () => {
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      'http://localhost:8000/api/conversations',
+      '/api/conversations',
       {
         method: 'POST',
         body: JSON.stringify({ chatModel: 'chat-a', embeddingModel: 'embed-a' }),
@@ -144,7 +156,7 @@ describe('API client', () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      'http://localhost:8000/api/conversations/conversation%2F1',
+      '/api/conversations/conversation%2F1',
       {
         method: 'PATCH',
         body: JSON.stringify({ chatModel: 'chat-b', embeddingModel: 'embed-b' }),
@@ -162,7 +174,7 @@ describe('API client', () => {
       api.updateConversationTitle('conversation/1', 'Project sources'),
     ).resolves.toEqual(updated);
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/api/conversations/conversation%2F1',
+      '/api/conversations/conversation%2F1',
       {
         method: 'PATCH',
         body: JSON.stringify({ title: 'Project sources' }),
@@ -184,7 +196,7 @@ describe('API client', () => {
       turn,
     );
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:8000/api/conversations/conversation-1/messages',
+      '/api/conversations/conversation-1/messages',
       {
         method: 'POST',
         body: JSON.stringify({ question: 'Grounded question?' }),

@@ -35,5 +35,10 @@ describe('compact application header', () => {
     status = screen.getByRole('status');
     expect(status.textContent).toBe('Checking Ollama');
     expect(status.classList.contains('checking')).toBe(true);
+
+    rerender(<Header loading={false} ollamaAvailable={null} />);
+    status = screen.getByRole('status');
+    expect(status.textContent).toBe('CiteNook API unavailable');
+    expect(status.classList.contains('unavailable')).toBe(true);
   });
 });

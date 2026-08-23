@@ -84,6 +84,7 @@ select {
   margin: 14px clamp(20px, 4vw, 64px) 0;
   padding: 10px 14px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   border: 1px solid #f0b7b1;
@@ -91,7 +92,30 @@ select {
   color: #9f2d25;
   background: #fff0ee;
 }
-.error-banner button { border: 0; color: inherit; background: transparent; font-size: 1.2rem; }
+.error-banner-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.error-banner .error-retry-button {
+  padding: 6px 10px;
+  border: 1px solid #dba49e;
+  border-radius: 8px;
+  color: inherit;
+  background: #fff9f8;
+  font-size: .8rem;
+  font-weight: 750;
+}
+.error-banner .error-retry-button:hover { background: #fde4e1; }
+.error-banner .error-dismiss-button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font-size: 1.2rem;
+}
 
 .view-tabs {
   flex: 0 0 auto;

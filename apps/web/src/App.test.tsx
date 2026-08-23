@@ -159,6 +159,33 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+describe('local API startup recovery', () => {
+  it('replaces a raw fetch failure with API status and recovers through retry', async () => {
+    apiMock.models.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    render(<App />);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toContain('CiteNook could not reach its API');
+    expect(alert.textContent).not.toContain('Failed to fetch');
+    expect(screen.getByText('CiteNook API unavailable')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Retry connection' })).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry connection' }));
+
+    expect(await screen.findByText('Ollama connected')).toBeDefined();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(apiMock.models).toHaveBeenCalledTimes(2);
+    expect(apiMock.conversations).toHaveBeenCalledTimes(2);
+    expect(apiMock.documents).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(apiMock.messages).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.queryByText('Loading messages…')).toBeNull());
+    expect(
+      (screen.getByRole('button', { name: 'New conversation' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
+  });
+});
+
 describe('conversation model selection', () => {
   it('shows the stored model pair in the conversation header and nowhere in the app header', async () => {
     render(<App />);
@@ -452,7 +479,11 @@ describe('persistent conversation history', () => {
     apiMock.messages.mockResolvedValue(storedMessages);
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Copy message 2' }));
+    const copyButton = await screen.findByRole('button', { name: 'Copy message 2' });
+    await act(async () => {
+      fireEvent.click(copyButton);
+      await Promise.resolve();
+    });
 
     await waitFor(() =>
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
@@ -465,15 +496,21 @@ describe('persistent conversation history', () => {
   });
 
   it('reports clipboard failure without changing the message', async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error('Denied'));
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
-      value: { writeText: vi.fn().mockRejectedValue(new Error('Denied')) },
+      value: { writeText },
     });
     apiMock.messages.mockResolvedValue(storedMessages);
     render(<App />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Copy message 1' }));
+    const copyButton = await screen.findByRole('button', { name: 'Copy message 1' });
+    await act(async () => {
+      fireEvent.click(copyButton);
+      await Promise.resolve();
+    });
 
+    expect(writeText).toHaveBeenCalledWith('What does the document say?');
     expect(
       await screen.findByText(
         'Message 1 could not be copied. Check clipboard permission and try again.',

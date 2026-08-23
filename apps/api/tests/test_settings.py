@@ -15,6 +15,18 @@ def test_ollama_host_can_point_to_an_external_instance(monkeypatch) -> None:
     get_settings.cache_clear()
 
 
+def test_default_cors_origins_support_both_loopback_hostnames(monkeypatch) -> None:
+    monkeypatch.delenv("CORS_ORIGINS", raising=False)
+    get_settings.cache_clear()
+
+    assert get_settings().cors_origins == (
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    )
+
+    get_settings.cache_clear()
+
+
 def test_model_catalog_and_defaults_are_configurable(monkeypatch) -> None:
     monkeypatch.setenv("CHAT_MODELS", "chat-a, chat-b")
     monkeypatch.setenv("EMBEDDING_MODELS", "embed-a, embed-b")

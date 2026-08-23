@@ -51,6 +51,7 @@ export default function App() {
   const [renamingConversation, setRenamingConversation] = useState(false);
   const [modelDialog, setModelDialog] = useState<ModelDialogMode | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [initialLoadFailed, setInitialLoadFailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messageRequestId = useRef(0);
 
@@ -65,34 +66,39 @@ export default function App() {
 
   useEffect(() => {
     void loadInitialState();
-
-    async function loadInitialState() {
-      try {
-        const [models, storedConversations, storedDocuments] = await Promise.all([
-          api.models(),
-          api.conversations(),
-          api.documents(),
-        ]);
-        setCatalog(models);
-        setConversations(storedConversations);
-        setDocuments(storedDocuments);
-
-        const firstConversation = storedConversations[0];
-        if (firstConversation) {
-          await openConversation(firstConversation);
-        } else {
-          setChatModel(preferredInstalled(models.chatModels, models.defaultChatModel));
-          setEmbeddingModel(
-            preferredInstalled(models.embeddingModels, models.defaultEmbeddingModel),
-          );
-        }
-      } catch (cause) {
-        setError(errorMessage(cause));
-      } finally {
-        setLoading(false);
-      }
-    }
   }, []);
+
+  async function loadInitialState() {
+    setLoading(true);
+    setInitialLoadFailed(false);
+    setError(null);
+    try {
+      const [models, storedConversations, storedDocuments] = await Promise.all([
+        api.models(),
+        api.conversations(),
+        api.documents(),
+      ]);
+      setCatalog(models);
+      setConversations(storedConversations);
+      setDocuments(storedDocuments);
+
+      const firstConversation = storedConversations[0];
+      if (firstConversation) {
+        await openConversation(firstConversation);
+      } else {
+        setChatModel(preferredInstalled(models.chatModels, models.defaultChatModel));
+        setEmbeddingModel(
+          preferredInstalled(models.embeddingModels, models.defaultEmbeddingModel),
+        );
+      }
+    } catch (cause) {
+      setCatalog(null);
+      setInitialLoadFailed(true);
+      setError(initialLoadErrorMessage(cause));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (!hasProcessingDocuments) return;
@@ -370,7 +376,25 @@ export default function App() {
       {error && (
         <div className="error-banner" role="alert">
           <span>{error}</span>
-          <button onClick={() => setError(null)} aria-label="Dismiss error">×</button>
+          <div className="error-banner-actions">
+            {initialLoadFailed && (
+              <button
+                type="button"
+                className="error-retry-button"
+                onClick={() => void loadInitialState()}
+              >
+                Retry connection
+              </button>
+            )}
+            <button
+              type="button"
+              className="error-dismiss-button"
+              onClick={() => setError(null)}
+              aria-label="Dismiss error"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
 
@@ -550,6 +574,14 @@ function isInstalled(models: ModelOption[], selected: string): boolean {
 
 function errorMessage(cause: unknown): string {
   return cause instanceof Error ? cause.message : 'An unexpected error occurred.';
+}
+
+function initialLoadErrorMessage(cause: unknown): string {
+  const message = errorMessage(cause);
+  if (message === 'Failed to fetch' || message === 'NetworkError when attempting to fetch resource.') {
+    return 'CiteNook could not reach its API. Check that the Docker services are running, then retry.';
+  }
+  return message;
 }
 
 function SlidersIcon() {

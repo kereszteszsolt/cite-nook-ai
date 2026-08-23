@@ -11,7 +11,9 @@ import type {
   ModelCatalog,
 } from './types';
 
-export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api';
+export const API_URL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/+$/, '');
+export const API_CONNECTION_ERROR_MESSAGE =
+  'CiteNook could not reach its API. Check that the Docker services are running, then retry.';
 
 export interface HealthResponse {
   status: string;
@@ -35,7 +37,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         },
       }
     : null;
-  const response = requestInit ? await fetch(url, requestInit) : await fetch(url);
+  let response: Response;
+  try {
+    response = requestInit ? await fetch(url, requestInit) : await fetch(url);
+  } catch (cause) {
+    throw new Error(API_CONNECTION_ERROR_MESSAGE, { cause });
+  }
+  if (response.status === 502 || response.status === 503 || response.status === 504) {
+    throw new Error(API_CONNECTION_ERROR_MESSAGE);
+  }
   if (!response.ok) {
     let message = `Request failed with status ${response.status}.`;
     try {
