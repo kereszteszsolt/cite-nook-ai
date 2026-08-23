@@ -4,13 +4,19 @@ Local document Q&A with citations.
 
 **CiteNook AI** — Ask your documents. Verify the sources.
 
-This repository was built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. MRA-007 completes the local RAG path with grounded answers and inspectable references. MRA-008 moves all document management into one Documents workspace and adds persistent activation controls for retrieval. MRA-009 adds editable conversation titles and refines the chat interaction controls. MRA-010 moves model selection into explicit per-conversation create/edit flows and replaces native conversation deletion confirmation with CiteNook dialogs. MRA-011 adds the matching document-deletion dialog, a styled accessible file picker, and restrained status feedback. MRA-012 widens the message layout and adds copy, grounded retry, and persisted response-time actions. MRA-013 routes local browser API requests through the web origin and adds accurate, retryable startup feedback. MRA-014 adds the missing browser favicon through the central brand contract. MRA-015 adds reproducible, privacy-safe product screenshots backed only by generic browser fixtures.
+This repository was built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. MRA-007 completes the local RAG path with grounded answers and inspectable references. MRA-008 moves all document management into one Documents workspace and adds persistent activation controls for retrieval. MRA-009 adds editable conversation titles and refines the chat interaction controls. MRA-010 moves model selection into explicit per-conversation create/edit flows and replaces native conversation deletion confirmation with CiteNook dialogs. MRA-011 adds the matching document-deletion dialog, a styled accessible file picker, and restrained status feedback. MRA-012 widens the message layout and adds copy, grounded retry, and persisted response-time actions. MRA-013 routes local browser API requests through the web origin and adds accurate, retryable startup feedback. MRA-014 adds the missing browser favicon through the central brand contract. MRA-015 adds reproducible, privacy-safe product screenshots backed only by generic browser fixtures. MRA-016 publishes a task-focused user guide linked from the project entry points.
 
 ## Screenshots
 
 [![CiteNook grounded chat with references](docs/screenshots/citenook-chat-desktop.png)](docs/screenshots/citenook-chat-desktop.png)
 
 [Desktop chat](docs/screenshots/citenook-chat-desktop.png) · [Document management](docs/screenshots/citenook-documents-desktop.png) · [Mobile chat](docs/screenshots/citenook-chat-mobile.png) · [Screenshot notes](docs/screenshots/README.md)
+
+## Documentation
+
+- [User guide](docs/user-guide.md)
+- [Documentation index](docs/README.md)
+- [Testing and screenshot regeneration](docs/testing.md)
 
 ## Quick start
 

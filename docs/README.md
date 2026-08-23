@@ -1,5 +1,6 @@
 # CiteNook documentation
 
+- [User guide](user-guide.md)
 - [Architecture](architecture.md)
 - [Brand configuration](brand-configuration.md)
 - [Development](development.md)
