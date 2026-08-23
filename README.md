@@ -4,11 +4,16 @@ Local document Q&A with citations.
 
 **CiteNook AI** — Ask your documents. Verify the sources.
 
-[![License: Apache-2.0](https://img.shields.io/github/license/kereszteszsolt/cite-nook-ai?style=flat-square&color=315C52)](LICENSE)
-![Local-first](https://img.shields.io/badge/local--first-no%20accounts-20453D?style=flat-square)
-![Docker Compose](https://img.shields.io/badge/Docker%20Compose-ready-315C52?style=flat-square&logo=docker&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-local%20models-20453D?style=flat-square&logo=ollama&logoColor=white)
-![PostgreSQL + pgvector](https://img.shields.io/badge/PostgreSQL-pgvector-315C52?style=flat-square&logo=postgresql&logoColor=white)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-D22128?style=flat-square&labelColor=2B3137&logo=apache&logoColor=white)](LICENSE)
+![Local-first](https://img.shields.io/badge/local--first-no%20accounts-2EA44F?style=flat-square&labelColor=2B3137)
+![Docker Compose](https://img.shields.io/badge/Docker%20Compose-ready-2496ED?style=flat-square&labelColor=2B3137&logo=docker&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-local%20models-FF7A3D?style=flat-square&labelColor=2B3137&logo=ollama&logoColor=white)
+![PostgreSQL + pgvector](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?style=flat-square&labelColor=2B3137&logo=postgresql&logoColor=white)<br>
+![Python](https://img.shields.io/badge/Python-3.13%20%7C%203.14-F59E0B?style=flat-square&labelColor=2B3137&logo=python&logoColor=white)
+![React](https://img.shields.io/badge/React-19.2.8-087EA4?style=flat-square&labelColor=2B3137&logo=react&logoColor=white)
+![RAG](https://img.shields.io/badge/RAG-grounded%20answers-8B5CF6?style=flat-square&labelColor=2B3137)
+![Turborepo](https://img.shields.io/badge/Turborepo-2.10.11-EF4444?style=flat-square&labelColor=2B3137&logo=turborepo&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-3178C6?style=flat-square&labelColor=2B3137&logo=typescript&logoColor=white)
 
 This repository was built in independently working MRA stories. MRA-001 provides the branded React/FastAPI/PostgreSQL foundation and a separate worker. MRA-002 adds configured Ollama model discovery and stores the selected chat and embedding model on each conversation. MRA-003 adds persistent PDF, DOCX, TXT, and Markdown uploads. MRA-004 indexes those uploads in the worker with Ollama embeddings and pgvector storage. MRA-005 shows processing state and supports opening and deleting stored documents. MRA-006 persists and reloads complete conversation histories. MRA-007 completes the local RAG path with grounded answers and inspectable references. MRA-008 moves all document management into one Documents workspace and adds persistent activation controls for retrieval. MRA-009 adds editable conversation titles and refines the chat interaction controls. MRA-010 moves model selection into explicit per-conversation create/edit flows and replaces native conversation deletion confirmation with CiteNook dialogs. MRA-011 adds the matching document-deletion dialog, a styled accessible file picker, and restrained status feedback. MRA-012 widens the message layout and adds copy, grounded retry, and persisted response-time actions. MRA-013 routes local browser API requests through the web origin and adds accurate, retryable startup feedback. MRA-014 adds the missing browser favicon through the central brand contract. MRA-015 adds reproducible, privacy-safe product screenshots backed only by generic browser fixtures. MRA-016 publishes a task-focused user guide linked from the project entry points. MRA-017 synchronizes the portable interface design handoff to Penpot and records a distinct Penpot-origin export.
 
@@ -137,15 +142,18 @@ Apache License 2.0. See [`LICENSE`](LICENSE).
 
 ## ☕ Ways to support
 
-**[Explore the available ways to support the maintainer and this work.](https://kereszteszsolt.hu/ways-to-support/)**
+**Explore the available ways to support the maintainer and this work.**
 
-[https://kereszteszsolt.hu/ways-to-support/](https://kereszteszsolt.hu/ways-to-support/)
+[https://kereszteszsolt.hu/ways-to-support](https://kereszteszsolt.hu/ways-to-support)
 
-**Every coffee counts! ☕❤️**
+<p align="center">
+  <a href="https://buymeacoffee.com/kereszteszsolt"><img src="docs/assets/buy-me-a-coffee-orange.png" alt="Buy Me a Coffee" width="360"></a><br>
+  <strong>Every coffee counts! ☕❤️</strong>
+</p>
 
 ---
 
 <p align="center">
-  <strong>Made with ❤️ by <a href="https://kereszteszsolt.com/">Kereszteszsolt</a></strong><br>
+  <strong>Made with ❤️ by <a href="https://kereszteszsolt.hu/">Keresztes Zsolt</a></strong><br>
   ⭐ Star this repository if you found it helpful!
 </p>
