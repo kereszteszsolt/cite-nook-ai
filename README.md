@@ -45,9 +45,9 @@ Ollama is not installed in the API, worker, or web containers. By default the ap
 docker compose up --build
 ```
 
-### Option B: run Ollama as a separate container
+### Option B: run a dedicated Ollama instance for CiteNook
 
-This is optional and is not the default. The override adds the official Ollama image as an independent service with its own persistent model volume:
+This optional override starts an official Ollama container dedicated to CiteNook as part of the same Compose stack. It keeps its models in a CiteNook-managed persistent volume while remaining isolated from the API, worker, and web containers:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml up --build
