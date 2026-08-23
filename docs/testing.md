@@ -39,7 +39,7 @@ MRA-013's settings and web tests cover both loopback CORS defaults, relative sam
 
 MRA-014's brand tests cover the configured favicon asset path in both the typed frontend package and the backend-loaded brand document. The web production build copies the SVG into the static output and the browser entrypoint applies the configured path.
 
-MRA-015's Playwright screenshot suite serves only the real Vite/React application shell and intercepts every `/api` request with static generic fixture responses. It does not connect to PostgreSQL, an upload volume, the running Compose application, or Ollama. The suite captures desktop chat, the stored-document panel, and mobile chat into `docs/screenshots`.
+MRA-015's Playwright screenshot suite serves only the real Vite/React application shell and intercepts every `/api` request with static generic fixture responses. It does not connect to PostgreSQL, an upload volume, the running Compose application, or Ollama. The suite captures desktop chat, the new-conversation dialog, the stored-document panel, and mobile chat into `docs/screenshots`.
 
 ## Runtime smoke checks
 

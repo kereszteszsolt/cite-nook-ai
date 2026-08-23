@@ -10,7 +10,7 @@ This repository was built in independently working MRA stories. MRA-001 provides
 
 [![CiteNook grounded chat with references](docs/screenshots/citenook-chat-desktop.png)](docs/screenshots/citenook-chat-desktop.png)
 
-[Desktop chat](docs/screenshots/citenook-chat-desktop.png) · [Document management](docs/screenshots/citenook-documents-desktop.png) · [Mobile chat](docs/screenshots/citenook-chat-mobile.png) · [Screenshot notes](docs/screenshots/README.md)
+[Desktop chat](docs/screenshots/citenook-chat-desktop.png) · [New conversation](docs/screenshots/citenook-new-conversation-desktop.png) · [Document management](docs/screenshots/citenook-documents-desktop.png) · [Mobile chat](docs/screenshots/citenook-chat-mobile.png) · [Screenshot notes](docs/screenshots/README.md)
 
 ## Documentation
 

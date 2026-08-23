@@ -8,6 +8,10 @@ These screenshots are generated from the real React application with static, inv
 
 [![Grounded CiteNook chat on desktop](citenook-chat-desktop.png)](citenook-chat-desktop.png)
 
+### New conversation on desktop
+
+[![CiteNook new-conversation dialog](citenook-new-conversation-desktop.png)](citenook-new-conversation-desktop.png)
+
 ### Stored document management
 
 [![CiteNook stored document management](citenook-documents-desktop.png)](citenook-documents-desktop.png)

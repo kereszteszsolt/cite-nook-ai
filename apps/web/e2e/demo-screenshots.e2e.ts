@@ -151,6 +151,12 @@ test.beforeEach(async ({ page }) => {
 test('captures privacy-safe product screenshots', async ({ page }) => {
   await capture(page, 'citenook-chat-desktop.png');
 
+  await page.getByRole('button', { name: 'New conversation' }).click();
+  await expect(page.getByRole('dialog', { name: 'Start a new conversation' })).toBeVisible();
+  await capture(page, 'citenook-new-conversation-desktop.png');
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.getByRole('dialog', { name: 'Start a new conversation' })).toBeHidden();
+
   await page.getByRole('tab', { name: 'Documents' }).click();
   await expect(page.getByRole('heading', { name: 'Stored documents' })).toBeVisible();
   await expect(page.getByText('neighborhood-energy-brief.pdf')).toBeVisible();

@@ -21,3 +21,13 @@ The checked [interface design plan](citenook-interface-plan.svg) records the cur
 - Board ID: `5cc6ef41-e335-8023-8008-8692985e4d8d`
 
 The SVG remains the portable repository source and is reviewable without a running design service. The distinct `.penpot.png` file was exported from the named board after synchronization through the connected Penpot MCP plugin. Penpot's SVG importer did not render the two decorative drop-shadow filters, so the synchronized board omits those shadows while preserving all documented content and hierarchy.
+
+## Detailed screen boards
+
+Three additional boards preserve privacy-safe captures of the implemented interface as separate, full-resolution Penpot screens:
+
+- [Chat workspace](citenook-chat-workspace.penpot.png): `MRA-017 · Chat workspace · Desktop`, board `5cc6ef41-e335-8023-8008-8695c7a1f9ed`
+- [Documents workspace](citenook-documents-workspace.penpot.png): `MRA-017 · Documents workspace · Desktop`, board `5cc6ef41-e335-8023-8008-8695e461c91f`
+- [New conversation dialog](citenook-new-conversation.penpot.png): `MRA-017 · New conversation dialog · Desktop`, board `5cc6ef41-e335-8023-8008-86960477cd17`
+
+Each export is byte-identical to its corresponding checked source under `docs/screenshots`, so the Penpot handoff preserves the inspected fixture-only pixels without introducing personal application data.
