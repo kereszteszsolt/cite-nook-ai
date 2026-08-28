@@ -46,3 +46,35 @@ uv run --directory apps/api --extra framework-evaluation citenook-llamaindex \
 Repeat `--document-id` to include another document. The command reads at most `--max-chunks` rows and accepts a maximum of 1,000. It uses only chunks from selected documents that are active, `ready`, and match the selected embedding model. An empty or incompatible selection produces a structured `no_data` result.
 
 The command maps the stored CiteNook text and embeddings into an in-memory LlamaIndex `VectorStoreIndex`, embeds only the question through the selected local Ollama embedding model, and queries a `RetrieverQueryEngine` with the selected local chat model. It emits the answer, elapsed time, eligible chunk count, and the metadata and score of the source nodes returned by LlamaIndex. It does not re-ingest content, persist a LlamaIndex index, write embeddings, create a conversation, change document state, expose a public API route, or claim compatibility with CiteNook's exact `[S1]` citation contract.
+
+## Local Ragas evaluation
+
+MRA-019 uses the same `framework-evaluation` extra and keeps Ragas out of the normal API and worker images. Use Python 3.13 for this developer-only environment because Ragas 0.4.3's transitive `scikit-network` release does not publish a Python 3.14 wheel:
+
+```bash
+uv sync --directory apps/api --python 3.13 \
+  --extra framework-evaluation --group dev --frozen
+```
+
+Start the supported CiteNook stack and ensure the answer, embedding, and evaluator models are already installed in the local Ollama instance. Run the committed eight-case fixture through the public API with:
+
+```bash
+RAGAS_DO_NOT_TRACK=true \
+uv run --directory apps/api --python 3.13 --extra framework-evaluation \
+  citenook-ragas \
+  --api-url http://localhost:8000/api \
+  --ollama-url http://localhost:11434 \
+  --answer-model llama3.1:8b \
+  --embedding-model qwen3-embedding:0.6b \
+  --evaluator-model llama3.1:8b \
+  --ingestion-timeout-seconds 180 \
+  --request-timeout-seconds 600
+```
+
+The command validates `evals/fixtures/mra-019-cases.json` before any model call, uploads the invented fixture under a run-specific name, waits for successful ingestion with a bounded timeout, and creates a tagged conversation for each single-turn case. Separate conversations prevent earlier questions from influencing later answers. It evaluates the returned answer with Ragas Faithfulness and Factual Correctness through Ollama's local OpenAI-compatible endpoint. Ragas telemetry is disabled in code as well as in the example command; no hosted key, account, upload, or experiment service is used.
+
+Only citation snippets returned by CiteNook become `retrieved_contexts`. The public answer contract does not expose every raw top-k candidate, so this harness evaluates answer groundedness against cited contexts and does not measure full retriever ranking or recall.
+
+Run-specific conversations and the uploaded document are deleted after success, ingestion timeout, answer or evaluator failure, and keyboard interruption. `--retain-resources` deliberately preserves only that run's tagged resources for diagnosis. Timestamped JSON and CSV artifacts are written under ignored `evals/experiments/`; they contain answers, citations, scores, durations, models, statuses, and errors, but no hidden model prompts or unrelated database content.
+
+The command warns if the answer and evaluator models match. The recorded MRA-019 smoke run uses the same locally available model in both roles, so correlated judgment is an explicit limitation; choose a separate capable local judge when available. Scores are model-assisted review signals, not human ground truth, a benchmark, or proof that one implementation is superior. The local smoke gate checks complete case coverage, scores in the `0..1` range, and successful cleanup; it deliberately imposes no CI quality threshold.

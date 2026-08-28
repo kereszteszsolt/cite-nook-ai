@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "fixture": "evals/fixtures/mosslight-workshop.md",
+  "cases": [
+    {
+      "id": "mra019-hours",
+      "question": "When is Mosslight open, and which days is it closed?",
+      "reference": "Mosslight is open Tuesday through Saturday from 09:30 to 17:30 and is closed on Sunday and Monday.",
+      "evidenceHints": ["open Tuesday through Saturday from 09:30 to 17:30", "closed on Sunday and Monday"]
+    },
+    {
+      "id": "mra019-induction",
+      "question": "When is the safety induction, how long does it last, and how many people can attend?",
+      "reference": "The safety induction starts every Thursday at 18:00, lasts 45 minutes, and permits at most eight participants.",
+      "evidenceHints": ["begins every Thursday at 18:00", "lasts 45 minutes", "at most eight participants"]
+    },
+    {
+      "id": "mra019-tool-loan",
+      "question": "According to Mosslight's loan rules, how many tools may one member borrow at once, and how many calendar days is the standard loan period?",
+      "reference": "A member may borrow no more than two tools at once for a standard period of seven calendar days.",
+      "evidenceHints": ["no more than two tools at once", "standard loan period is seven calendar days"]
+    },
+    {
+      "id": "mra019-repair-cafe",
+      "question": "When does the repair cafe run, and which appliance will volunteers not repair?",
+      "reference": "The repair cafe runs from 10:00 to 12:00 on the first Saturday of each month, and volunteers do not repair microwave ovens.",
+      "evidenceHints": ["first Saturday of each month from 10:00 to 12:00", "do not repair microwave ovens"]
+    },
+    {
+      "id": "mra019-rainwater",
+      "question": "What is the rainwater tank capacity, and what may its water be used for?",
+      "reference": "The tank holds 2,400 litres. Its water may be used for the teaching garden and cleaning outdoor tools, but not for drinking.",
+      "evidenceHints": ["rainwater tank holds 2,400 litres", "used for the teaching garden and for cleaning outdoor tools", "not drinking water"]
+    },
+    {
+      "id": "mra019-minibus",
+      "question": "At what times does the minibus stop at Elm Gate, and how can bicycles be carried?",
+      "reference": "On workshop days the minibus stops at Elm Gate at 09:10 and 14:10; bicycles may be carried only on the rear rack.",
+      "evidenceHints": ["Elm Gate at 09:10 and 14:10", "bicycles may be carried only on the rear rack"]
+    },
+    {
+      "id": "mra019-materials",
+      "question": "How many workshop tokens does one reclaimed plywood sheet cost at Mosslight?",
+      "reference": "One reclaimed plywood sheet costs three workshop tokens.",
+      "evidenceHints": ["reclaimed plywood sheets for three workshop tokens each"]
+    },
+    {
+      "id": "mra019-design-room",
+      "question": "How long can one member reserve the quiet design room consecutively, and may food be brought inside?",
+      "reference": "Reservations use 30-minute blocks and are limited to two consecutive blocks, so one member may reserve one hour; food is not allowed.",
+      "evidenceHints": ["reservable in 30-minute blocks", "at most two consecutive blocks", "food is not allowed"]
+    }
+  ]
+}

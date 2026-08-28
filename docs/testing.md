@@ -48,6 +48,14 @@ uv run --directory apps/api --extra framework-evaluation \
   pytest -q tests/test_llamaindex_compare.py
 ```
 
+MRA-019's focused tests cover strict dataset validation, API orchestration, bounded ingestion polling, cited-context sample mapping, answer and evaluator failures, keyboard-interrupt cleanup, explicit resource retention, score ranges, and matching JSON/CSV serialization through fake API and evaluator boundaries. They require neither Docker nor a running Ollama server:
+
+```bash
+RAGAS_DO_NOT_TRACK=true \
+uv run --directory apps/api --python 3.13 --extra framework-evaluation \
+  pytest -q tests/test_ragas_evaluation.py
+```
+
 ## Runtime smoke checks
 
 External Ollama mode:
@@ -104,6 +112,8 @@ For MRA-012, create a dedicated conversation with installed models and submit on
 For MRA-013, keep an external Ollama instance on the configured endpoint and start the base Compose stack. Open both `http://localhost:5173` and `http://127.0.0.1:5173`; in each case confirm that `/api/models`, `/api/conversations`, and `/api/documents` stay on that page origin, return successfully through the Vite proxy, and produce `Ollama connected` without an error banner. Then stop only the API container while keeping the loaded web page open, reload the page, and confirm the neutral check resolves to `CiteNook API unavailable`, no raw `Failed to fetch` appears, and **Retry connection** is present. Start the API again, use that button without refreshing, and confirm the connected state and normal controls return with no duplicate database records.
 
 For MRA-018, select a dedicated privacy-safe document that is active, `ready`, and embedded with an installed configured model. Record the document, chunk, conversation, message, and job counts before the command. Run the documented `citenook-llamaindex` command with that document UUID and inspect the JSON for `status: answered`, the selected models, a positive eligible chunk count, elapsed time, and returned source-node document/page/chunk metadata plus scores. Run it again with an installed configured embedding model that has no compatible selected chunks and verify `status: no_data` without unrelated fallback sources. Recheck the same database counts and the selected document state, chunk text, and embeddings afterward; they must be unchanged. Do not record private source text in the evidence.
+
+For MRA-019, run the documented `citenook-ragas` command with the committed invented fixture and three explicitly installed local models. A successful smoke run must report all eight cases as scored, keep both metric values within `0..1`, produce matching timestamped JSON and CSV artifacts, and leave no `mra019-<run-id>` document or `MRA-019 eval <run-id>` conversation behind. Repeat with a deliberately short ingestion timeout and with fake answer/evaluator failures in the focused tests; cleanup must still target only resources owned by that run. Do not add aggregate score thresholds to CI, upload artifacts, or describe this small model-assisted run as a benchmark.
 
 These commands remove containers and networks only. Named volumes remain persistent.
 
