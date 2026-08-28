@@ -12,3 +12,4 @@
 - [Release 0.2 stories](releases/release-0.2-focused-workspaces/README.md)
 - [Release 0.3 stories](releases/release-0.3-conversation-model-workflows/README.md)
 - [Release 0.4 stories](releases/release-0.4-local-experience-polish/README.md)
+- [Release 0.5 stories](releases/release-0.5-llamaindex-ragas-evaluation/README.md)
