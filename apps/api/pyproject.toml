@@ -18,6 +18,16 @@ dependencies = [
   "sqlalchemy==2.0.52",
 ]
 
+[project.optional-dependencies]
+framework-evaluation = [
+  "llama-index-core==0.14.24",
+  "llama-index-embeddings-ollama==0.9.0",
+  "llama-index-llms-ollama==0.10.1",
+]
+
+[project.scripts]
+citenook-llamaindex = "app.evaluation.llamaindex_compare:main"
+
 [dependency-groups]
 dev = [
   "pytest>=8,<10",

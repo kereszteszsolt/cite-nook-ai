@@ -8,7 +8,7 @@ Release 0.5 adds one deliberately bounded LlamaIndex comparison path and one rep
 
 | Story | Outcome | Status |
 | --- | --- | --- |
-| [MRA-018](stories/MRA-018-optional-llamaindex-comparison-path.md) | Query existing CiteNook chunks through a local, developer-only LlamaIndex path | Planned |
+| [MRA-018](stories/MRA-018-optional-llamaindex-comparison-path.md) | Query existing CiteNook chunks through a local, developer-only LlamaIndex path | Implemented |
 | [MRA-019](stories/MRA-019-local-ragas-evaluation-harness.md) | Evaluate grounded answers locally with a small reproducible Ragas dataset | Planned |
 | [MRA-020](stories/MRA-020-framework-evaluation-verification-and-presentation.md) | Verify regressions and document the two additions accurately | Planned |
 

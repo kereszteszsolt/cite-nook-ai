@@ -41,6 +41,13 @@ MRA-014's brand tests cover the configured favicon asset path in both the typed 
 
 MRA-015's Playwright screenshot suite serves only the real Vite/React application shell and intercepts every `/api` request with static generic fixture responses. It does not connect to PostgreSQL, an upload volume, the running Compose application, or Ollama. The suite captures desktop chat, the new-conversation dialog, the stored-document panel, and mobile chat into `docs/screenshots`.
 
+MRA-018's focused API tests cover configured and installed model validation, selected/ready/active/model-compatible chunk filtering, bounded loading, stored-embedding and metadata mapping, structured source serialization, explicit no-data behavior, missing optional dependencies, and a real in-memory LlamaIndex retrieval/query-engine flow with fake models. They require neither PostgreSQL nor Ollama:
+
+```bash
+uv run --directory apps/api --extra framework-evaluation \
+  pytest -q tests/test_llamaindex_compare.py
+```
+
 ## Runtime smoke checks
 
 External Ollama mode:
@@ -95,6 +102,8 @@ For MRA-011, open Documents at desktop and mobile widths. Verify Choose file use
 For MRA-012, create a dedicated conversation with installed models and submit one grounded question. Confirm the POST response and a subsequent `GET /api/conversations/{id}/messages` return `responseDurationMs: null` for the user message and the same non-negative integer for the assistant message. Restart the API without removing volumes and verify the values again; inspect PostgreSQL to confirm the nullable integer column and non-negative check constraint. In the browser, verify assistant messages use the wider bounded layout, action rows follow content and references, copy writes the complete message, retry sends the exact preceding question, and the original turn remains while a successful new turn is appended. Force clipboard and retry failures and confirm the stored history remains unchanged. Verify millisecond, second, minute, and unavailable timing labels, disabled retry while answering, independent history/composer layout, no desktop page scrollbar, and no horizontal overflow at 390 px. Delete only the dedicated smoke conversation and confirm both its conversation and message counts are zero.
 
 For MRA-013, keep an external Ollama instance on the configured endpoint and start the base Compose stack. Open both `http://localhost:5173` and `http://127.0.0.1:5173`; in each case confirm that `/api/models`, `/api/conversations`, and `/api/documents` stay on that page origin, return successfully through the Vite proxy, and produce `Ollama connected` without an error banner. Then stop only the API container while keeping the loaded web page open, reload the page, and confirm the neutral check resolves to `CiteNook API unavailable`, no raw `Failed to fetch` appears, and **Retry connection** is present. Start the API again, use that button without refreshing, and confirm the connected state and normal controls return with no duplicate database records.
+
+For MRA-018, select a dedicated privacy-safe document that is active, `ready`, and embedded with an installed configured model. Record the document, chunk, conversation, message, and job counts before the command. Run the documented `citenook-llamaindex` command with that document UUID and inspect the JSON for `status: answered`, the selected models, a positive eligible chunk count, elapsed time, and returned source-node document/page/chunk metadata plus scores. Run it again with an installed configured embedding model that has no compatible selected chunks and verify `status: no_data` without unrelated fallback sources. Recheck the same database counts and the selected document state, chunk text, and embeddings afterward; they must be unchanged. Do not record private source text in the evidence.
 
 These commands remove containers and networks only. Named volumes remain persistent.
 
