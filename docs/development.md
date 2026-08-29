@@ -27,13 +27,26 @@ For the supported Docker Compose workflow, copy `.env.example` to the repository
 Release 0.5 keeps LlamaIndex outside the normal API and worker installation. Install the exact optional dependency set only in a development environment that needs the comparison command:
 
 ```bash
-uv sync --directory apps/api --extra framework-evaluation --group dev
+uv python install 3.13
+uv sync --directory apps/api --python 3.13 --managed-python \
+  --extra framework-evaluation --group dev --frozen
 ```
+
+Python 3.13 uses the prebuilt locked dependency wheels and is the quickest setup. Python 3.14 is also supported, but Ragas 0.4.3's locked `scikit-network` dependency currently has no CPython 3.14 wheel. On Linux, install a C/C++ build toolchain, then use an uv-managed interpreter so the source build has Python headers:
+
+```bash
+uv python install 3.14
+uv sync --directory apps/api --python 3.14 --managed-python \
+  --extra framework-evaluation --group dev --frozen
+```
+
+The release verification used clean uv-managed Python 3.13.14 and 3.14.6 environments. Both resolved the same lock and passed the combined 43 focused framework/evaluation tests.
 
 The configured chat and embedding models must already be installed in the Ollama instance selected by `OLLAMA_HOST`. Choose one or more existing CiteNook document UUIDs explicitly, then run:
 
 ```bash
-uv run --directory apps/api --extra framework-evaluation citenook-llamaindex \
+uv run --directory apps/api --python 3.13 --managed-python \
+  --extra framework-evaluation citenook-llamaindex \
   --question "What does the selected document say about the topic?" \
   --chat-model llama3.1:8b \
   --embedding-model qwen3-embedding:0.6b \
@@ -49,18 +62,14 @@ The command maps the stored CiteNook text and embeddings into an in-memory Llama
 
 ## Local Ragas evaluation
 
-MRA-019 uses the same `framework-evaluation` extra and keeps Ragas out of the normal API and worker images. Use Python 3.13 for this developer-only environment because Ragas 0.4.3's transitive `scikit-network` release does not publish a Python 3.14 wheel:
+MRA-019 uses the same installed `framework-evaluation` environment and keeps Ragas out of the normal API and worker images. Start the supported CiteNook stack and ensure the answer, embedding, and evaluator models are already installed in the local Ollama instance. The evaluator does not have to be listed in CiteNook's product chat-model catalog, but it must be available from the explicit local `--ollama-url`.
 
-```bash
-uv sync --directory apps/api --python 3.13 \
-  --extra framework-evaluation --group dev --frozen
-```
-
-Start the supported CiteNook stack and ensure the answer, embedding, and evaluator models are already installed in the local Ollama instance. Run the committed eight-case fixture through the public API with:
+Run the committed eight-case fixture through the public API with:
 
 ```bash
 RAGAS_DO_NOT_TRACK=true \
-uv run --directory apps/api --python 3.13 --extra framework-evaluation \
+uv run --directory apps/api --python 3.13 --managed-python \
+  --extra framework-evaluation \
   citenook-ragas \
   --api-url http://localhost:8000/api \
   --ollama-url http://localhost:11434 \
@@ -78,3 +87,13 @@ Only citation snippets returned by CiteNook become `retrieved_contexts`. The pub
 Run-specific conversations and the uploaded document are deleted after success, ingestion timeout, answer or evaluator failure, and keyboard interruption. `--retain-resources` deliberately preserves only that run's tagged resources for diagnosis. Timestamped JSON and CSV artifacts are written under ignored `evals/experiments/`; they contain answers, citations, scores, durations, models, statuses, and errors, but no hidden model prompts or unrelated database content.
 
 The command warns if the answer and evaluator models match. The recorded MRA-019 smoke run uses the same locally available model in both roles, so correlated judgment is an explicit limitation; choose a separate capable local judge when available. Scores are model-assisted review signals, not human ground truth, a benchmark, or proof that one implementation is superior. The local smoke gate checks complete case coverage, scores in the `0..1` range, and successful cleanup; it deliberately imposes no CI quality threshold.
+
+## Framework/evaluation troubleshooting
+
+- **Optional imports are missing:** rerun the exact `uv sync` command with `--extra framework-evaluation --frozen`; the normal API environment intentionally omits these packages.
+- **Python 3.14 cannot build `scikit-network`:** confirm `uv python find --managed-python 3.14` resolves to an uv-managed interpreter and that a C/C++ compiler is installed. Use Python 3.13 if a local source-build toolchain is unavailable.
+- **A configured model is rejected or unavailable:** inspect `GET /api/models` for CiteNook answer/embedding models and `GET <OLLAMA_HOST>/api/tags` for the evaluator. The commands never pull models automatically.
+- **LlamaIndex returns `no_data`:** confirm every selected UUID exists and its document is active, `ready`, and embedded with the exact `--embedding-model`; increase `--max-chunks` only deliberately.
+- **Ragas ingestion times out:** verify the worker is running, the embedding model is installed, and the uploaded evaluation document did not enter `failed`. Increase the bounded ingestion timeout only for a demonstrably slower local machine.
+- **Ragas evaluation is slow or a judge schema fails:** use a local instruction-following evaluator that reliably produces structured output, keep `--request-timeout-seconds` bounded, and review per-case errors in the JSON artifact. Small models can be faster but less schema-reliable.
+- **Temporary resources need inspection:** rerun once with `--retain-resources`, inspect only the run-tagged document/conversations, then delete them through the public API. Retention is diagnostic and deliberately disables automatic cleanup for that run.

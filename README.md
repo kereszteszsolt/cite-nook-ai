@@ -22,6 +22,7 @@ _Ask your documents. Verify the sources._
 - Keep conversations, messages, selected models, citations, and document state across restarts.
 - Ask grounded questions and inspect the exact document, page, passage, and similarity score behind each cited source.
 - Run locally without accounts, using either an existing Ollama instance or a dedicated Ollama service in the Compose stack.
+- Optionally compare selected existing chunks through LlamaIndex and evaluate the shipped local RAG flow with a privacy-safe Ragas fixture.
 
 CiteNook is developed through independently verifiable MRA stories. The [release story maps](#verification-references) document the path from the initial local RAG workflow to the current document and conversation experience.
 
@@ -34,6 +35,12 @@ CiteNook is developed through independently verifiable MRA stories. The [release
 ## Documentation
 
 [User guide](docs/user-guide.md) · [Architecture](docs/architecture.md) · [RAG pipeline](docs/rag-pipeline.md) · [Development](docs/development.md) · [Testing](docs/testing.md) · [Design handoff](docs/design/README.md) · [All documentation](docs/README.md)
+
+## Optional framework and evaluation tools
+
+Release 0.5 adds two developer-only commands behind the `framework-evaluation` dependency extra. `citenook-llamaindex` performs a bounded comparison query over selected chunks already stored by CiteNook; `citenook-ragas` runs an invented eight-case fixture through the local public API and scores cited contexts with a local Ollama judge. Neither command is required to run CiteNook, replaces the direct Ollama + pgvector RAG path, adds a product UI mode, or provides a production benchmark.
+
+See the [Release 0.5 story map](docs/releases/release-0.5-llamaindex-ragas-evaluation/README.md) for verified evidence and the [development guide](docs/development.md) for exact local commands.
 
 ## Architecture
 
@@ -149,6 +156,7 @@ docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
 | [Release 0.2 story map](docs/releases/release-0.2-focused-workspaces/README.md) | Focused workspaces |
 | [Release 0.3 story map](docs/releases/release-0.3-conversation-model-workflows/README.md) | Conversation model workflows |
 | [Release 0.4 story map](docs/releases/release-0.4-local-experience-polish/README.md) | Local experience polish |
+| [Release 0.5 story map](docs/releases/release-0.5-llamaindex-ragas-evaluation/README.md) | Optional LlamaIndex comparison and local Ragas evaluation |
 
 ## License
 

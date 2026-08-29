@@ -44,7 +44,8 @@ MRA-015's Playwright screenshot suite serves only the real Vite/React applicatio
 MRA-018's focused API tests cover configured and installed model validation, selected/ready/active/model-compatible chunk filtering, bounded loading, stored-embedding and metadata mapping, structured source serialization, explicit no-data behavior, missing optional dependencies, and a real in-memory LlamaIndex retrieval/query-engine flow with fake models. They require neither PostgreSQL nor Ollama:
 
 ```bash
-uv run --directory apps/api --extra framework-evaluation \
+uv run --directory apps/api --python 3.13 --managed-python \
+  --extra framework-evaluation \
   pytest -q tests/test_llamaindex_compare.py
 ```
 
@@ -52,8 +53,27 @@ MRA-019's focused tests cover strict dataset validation, API orchestration, boun
 
 ```bash
 RAGAS_DO_NOT_TRACK=true \
-uv run --directory apps/api --python 3.13 --extra framework-evaluation \
+uv run --directory apps/api --python 3.13 --managed-python \
+  --extra framework-evaluation \
   pytest -q tests/test_ragas_evaluation.py
+```
+
+Release 0.5 verifies the complete optional extra and both focused suites against every supported Python minor. Python 3.14 builds the locked `scikit-network` source distribution, so Linux verification requires a C/C++ compiler and an uv-managed interpreter with headers:
+
+```bash
+uv python install 3.13 3.14
+
+uv sync --directory apps/api --python 3.13 --managed-python \
+  --extra framework-evaluation --group dev --frozen
+RAGAS_DO_NOT_TRACK=true uv run --directory apps/api --python 3.13 --managed-python \
+  --extra framework-evaluation pytest -q \
+  tests/test_llamaindex_compare.py tests/test_ragas_evaluation.py
+
+uv sync --directory apps/api --python 3.14 --managed-python \
+  --extra framework-evaluation --group dev --frozen
+RAGAS_DO_NOT_TRACK=true uv run --directory apps/api --python 3.14 --managed-python \
+  --extra framework-evaluation pytest -q \
+  tests/test_llamaindex_compare.py tests/test_ragas_evaluation.py
 ```
 
 ## Runtime smoke checks
@@ -137,3 +157,5 @@ docker run --rm --init --ipc=host \
 ```
 
 The fixture contains only invented energy, garden, transit, and workshop examples. Keep personal uploads and live API responses out of this suite and review every regenerated PNG before committing it.
+
+Release 0.5 adds no supported visual product state, so its verification does not regenerate or change product screenshots. Its review evidence is limited to sanitized command metadata and aggregate/per-case evaluation fields; local generated artifacts remain ignored.
