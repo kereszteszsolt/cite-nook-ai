@@ -61,8 +61,8 @@ if len(agents) != 3:
     fail(f"Expected 3 Codex agents, found {len(agents)}.")
 if len(skills) != 3:
     fail(f"Expected 3 repository skills, found {len(skills)}.")
-if len(stories) != 20:
-    fail(f"Expected 20 MRA stories, found {len(stories)}.")
+if len(stories) != 21:
+    fail(f"Expected 21 MRA stories, found {len(stories)}.")
 
 story_ids: set[str] = set()
 for path in stories:

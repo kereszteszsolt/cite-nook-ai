@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented
+In progress
 
 Release 0.5 adds one deliberately bounded LlamaIndex comparison path and one reproducible Ragas evaluation harness to CiteNook. The existing direct `OllamaGateway` + SQLAlchemy/pgvector RAG pipeline remains the default, user-facing implementation and the reference behavior. The release demonstrates framework-based querying and local RAG evaluation without replacing ingestion, migrating the database, adding a frontend setting, or requiring a hosted service.
 
@@ -11,6 +11,7 @@ Release 0.5 adds one deliberately bounded LlamaIndex comparison path and one rep
 | [MRA-018](stories/MRA-018-optional-llamaindex-comparison-path.md) | Query existing CiteNook chunks through a local, developer-only LlamaIndex path | Implemented |
 | [MRA-019](stories/MRA-019-local-ragas-evaluation-harness.md) | Evaluate grounded answers locally with a small reproducible Ragas dataset | Implemented |
 | [MRA-020](stories/MRA-020-framework-evaluation-verification-and-presentation.md) | Verify regressions and document the two additions accurately | Implemented |
+| [MRA-021](stories/MRA-021-release-documentation-alignment.md) | Align maintained repository documentation with the verified Release 0.5 behavior | Planned |
 
 ## Delivery order
 
@@ -29,7 +30,7 @@ This release is limited to portfolio-quality, developer-facing framework example
 
 ## Completion conditions
 
-Release 0.5 is complete only when the optional dependency set resolves on the repository's supported Python versions, the LlamaIndex command performs a real local query over existing CiteNook chunk data, the Ragas command produces per-case and aggregate results from a reproducible fixture, all existing product checks remain green, and the documentation states the limitations of both paths without presenting them as production replacements or statistically meaningful benchmarks.
+Release 0.5 is complete only when the optional dependency set resolves on the repository's supported Python versions, the LlamaIndex command performs a real local query over existing CiteNook chunk data, the Ragas command produces per-case and aggregate results from a reproducible fixture, all existing product checks remain green, and the maintained repository documentation consistently states the purpose, operation, and limitations of both paths without presenting them as production replacements or statistically meaningful benchmarks.
 
 If the pinned LlamaIndex packages cannot consume CiteNook's existing chunk metadata and embeddings safely without a database migration or duplicate persistent index, record the no-go evidence instead of changing the production schema. If the pinned Ragas release cannot run with a local Ollama judge without a hosted dependency or broad application refactor, keep the dataset and adapter boundary documented but do not force the integration.
 
