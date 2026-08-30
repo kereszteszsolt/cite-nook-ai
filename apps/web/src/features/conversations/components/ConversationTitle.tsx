@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react';
-import type { Conversation } from '../types';
+import type { Conversation } from '../../../types';
 
 interface ConversationTitleProps {
   conversation: Conversation | null;

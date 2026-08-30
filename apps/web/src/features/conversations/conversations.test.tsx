@@ -7,7 +7,6 @@
 
 import {
   act,
-  cleanup,
   fireEvent,
   render,
   screen,
@@ -15,9 +14,17 @@ import {
   within,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import App from './App';
+import App from '../../App';
+import {
+  cleanupAppTest,
+  configureAppTest,
+  readyDocument,
+  storedConversation,
+  storedMessages,
+  type AppApiMock,
+} from '../../test/appTestSupport';
 
-const apiMock = vi.hoisted(() => ({
+const apiMock = vi.hoisted<AppApiMock>(() => ({
   models: vi.fn(),
   conversations: vi.fn(),
   messages: vi.fn(),
@@ -33,158 +40,10 @@ const apiMock = vi.hoisted(() => ({
   deleteDocument: vi.fn(),
 }));
 
-vi.mock('./api', () => ({ api: apiMock }));
+vi.mock('../../api', () => ({ api: apiMock }));
 
-const storedConversation = {
-  id: 'conversation-1',
-  title: 'New conversation',
-  chatModel: 'qwen3.5:9b',
-  embeddingModel: 'qwen3-embedding:0.6b',
-  createdAt: '2026-08-22T00:00:00Z',
-  updatedAt: '2026-08-22T00:00:00Z',
-};
-
-const readyDocument = {
-  id: 'document-1',
-  fileName: 'notes.md',
-  contentType: 'text/markdown',
-  sizeBytes: 2048,
-  sha256: 'abc123',
-  embeddingModel: 'qwen3-embedding:0.6b',
-  status: 'ready',
-  errorMessage: null,
-  chunkCount: 4,
-  isActive: true,
-  createdAt: '2026-08-22T00:00:00Z',
-};
-
-const storedMessages = [
-  {
-    id: 'message-1',
-    conversationId: 'conversation-1',
-    ordinal: 1,
-    role: 'user',
-    content: 'What does the document say?',
-    chatModel: null,
-    citations: [],
-    responseDurationMs: null,
-    createdAt: '2026-08-22T00:01:00Z',
-  },
-  {
-    id: 'message-2',
-    conversationId: 'conversation-1',
-    ordinal: 2,
-    role: 'assistant',
-    content: 'The persisted answer.',
-    chatModel: 'qwen3.5:9b',
-    citations: [
-      {
-        sourceId: 'S1',
-        documentId: 'document-1',
-        documentName: 'notes.md',
-        pageNumber: 2,
-        chunkId: 'chunk-1',
-        snippet: 'Relevant text',
-        score: 0.91,
-      },
-    ],
-    responseDurationMs: 2345,
-    createdAt: '2026-08-22T00:01:01Z',
-  },
-];
-
-beforeEach(() => {
-  Object.defineProperty(navigator, 'clipboard', {
-    configurable: true,
-    value: { writeText: vi.fn().mockResolvedValue(undefined) },
-  });
-  apiMock.models.mockResolvedValue({
-    chatModels: [
-      { name: 'llama3.1:8b', installed: true },
-      { name: 'qwen3.5:9b', installed: true },
-      { name: 'missing-chat', installed: false },
-    ],
-    embeddingModels: [
-      { name: 'qwen3-embedding:0.6b', installed: true },
-      { name: 'embeddinggemma', installed: false },
-    ],
-    defaultChatModel: 'llama3.1:8b',
-    defaultEmbeddingModel: 'qwen3-embedding:0.6b',
-    ollamaAvailable: true,
-  });
-  apiMock.conversations.mockResolvedValue([storedConversation]);
-  apiMock.messages.mockResolvedValue([]);
-  apiMock.askQuestion.mockResolvedValue({
-    conversation: { ...storedConversation, title: 'What does the document say?' },
-    userMessage: storedMessages[0],
-    assistantMessage: storedMessages[1],
-  });
-  apiMock.documents.mockResolvedValue([]);
-  apiMock.createConversation.mockImplementation(
-    (chatModel: string, embeddingModel: string) =>
-      Promise.resolve({
-        ...storedConversation,
-        id: 'conversation-2',
-        chatModel,
-        embeddingModel,
-      }),
-  );
-  apiMock.updateConversation.mockImplementation(
-    (_id: string, chatModel: string, embeddingModel: string) =>
-      Promise.resolve({ ...storedConversation, chatModel, embeddingModel }),
-  );
-  apiMock.updateConversationTitle.mockImplementation((_id: string, title: string) =>
-    Promise.resolve({ ...storedConversation, title }),
-  );
-  apiMock.deleteConversation.mockResolvedValue(undefined);
-  apiMock.uploadDocument.mockResolvedValue({
-    ...readyDocument,
-    sizeBytes: 7,
-    status: 'queued',
-    chunkCount: 0,
-  });
-  apiMock.documentFileUrl.mockImplementation(
-    (id: string) => `http://localhost:8000/api/documents/${id}/file`,
-  );
-  apiMock.updateDocument.mockImplementation((_id: string, isActive: boolean) =>
-    Promise.resolve({ ...readyDocument, isActive }),
-  );
-  apiMock.deleteDocument.mockResolvedValue(undefined);
-});
-
-afterEach(() => {
-  cleanup();
-  vi.useRealTimers();
-  vi.restoreAllMocks();
-  vi.clearAllMocks();
-});
-
-describe('local API startup recovery', () => {
-  it('replaces a raw fetch failure with API status and recovers through retry', async () => {
-    apiMock.models.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-    render(<App />);
-
-    const alert = await screen.findByRole('alert');
-    expect(alert.textContent).toContain('CiteNook could not reach its API');
-    expect(alert.textContent).not.toContain('Failed to fetch');
-    expect(screen.getByText('CiteNook API unavailable')).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Retry connection' })).toBeDefined();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Retry connection' }));
-
-    expect(await screen.findByText('Ollama connected')).toBeDefined();
-    expect(screen.queryByRole('alert')).toBeNull();
-    expect(apiMock.models).toHaveBeenCalledTimes(2);
-    expect(apiMock.conversations).toHaveBeenCalledTimes(2);
-    expect(apiMock.documents).toHaveBeenCalledTimes(2);
-    await waitFor(() => expect(apiMock.messages).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.queryByText('Loading messages…')).toBeNull());
-    expect(
-      (screen.getByRole('button', { name: 'New conversation' }) as HTMLButtonElement)
-        .disabled,
-    ).toBe(false);
-  });
-});
+beforeEach(() => configureAppTest(apiMock));
+afterEach(() => cleanupAppTest());
 
 describe('conversation model selection', () => {
   it('shows the stored model pair in the conversation header and nowhere in the app header', async () => {
@@ -341,29 +200,6 @@ describe('conversation model selection', () => {
     );
   });
 
-  it('uploads a supported file with the selected embedding model', async () => {
-    render(<App />);
-
-    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
-    const fileInput = (await screen.findByLabelText('Document file')) as HTMLInputElement;
-    await waitFor(() => expect(fileInput.disabled).toBe(false));
-    expect(screen.getByText('Choose file')).toBeDefined();
-    expect(screen.getByText('No file selected')).toBeDefined();
-    const file = new File(['content'], 'notes.md', { type: 'text/markdown' });
-    fireEvent.change(fileInput, { target: { files: [file] } });
-    expect(screen.getByText('notes.md')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
-
-    await waitFor(() =>
-      expect(apiMock.uploadDocument).toHaveBeenCalledWith(
-        file,
-        'qwen3-embedding:0.6b',
-      ),
-    );
-    expect(await screen.findByText(/was stored successfully/)).toBeDefined();
-    expect(screen.getByText('No file selected')).toBeDefined();
-    expect(fileInput.value).toBe('');
-  });
 });
 
 describe('persistent conversation history', () => {
@@ -371,7 +207,9 @@ describe('persistent conversation history', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Edit conversation title' }));
-    const titleInput = screen.getByLabelText('Conversation title') as HTMLInputElement;
+    const titleInput = (await screen.findByLabelText(
+      'Conversation title',
+    )) as HTMLInputElement;
     fireEvent.change(titleInput, { target: { value: 'Project sources' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save title' }));
 
@@ -414,7 +252,9 @@ describe('persistent conversation history', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Edit conversation title' }));
-    const titleInput = screen.getByLabelText('Conversation title') as HTMLInputElement;
+    const titleInput = (await screen.findByLabelText(
+      'Conversation title',
+    )) as HTMLInputElement;
     fireEvent.change(titleInput, { target: { value: 'Saving title' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save title' }));
 
@@ -433,7 +273,7 @@ describe('persistent conversation history', () => {
     render(<App />);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Edit conversation title' }));
-    fireEvent.change(screen.getByLabelText('Conversation title'), {
+    fireEvent.change(await screen.findByLabelText('Conversation title'), {
       target: { value: 'Retry this title' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save title' }));
@@ -540,7 +380,7 @@ describe('persistent conversation history', () => {
         'What does the document say?',
       ),
     );
-    const retrying = screen.getByRole('button', {
+    const retrying = await screen.findByRole('button', {
       name: 'Asking question again for answer 2',
     }) as HTMLButtonElement;
     expect(retrying.disabled).toBe(true);
@@ -739,241 +579,5 @@ describe('persistent conversation history', () => {
         }) as HTMLButtonElement).disabled,
       ).toBe(false),
     );
-  });
-});
-
-describe('document status and management', () => {
-  it('keeps document management out of Chat and exposes it on the Documents tab', async () => {
-    apiMock.documents.mockResolvedValue([readyDocument]);
-    render(<App />);
-
-    await screen.findByRole('tab', { name: 'Documents' });
-    expect(screen.queryByLabelText('Document file')).toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Stored documents' })).toBeNull();
-
-    fireEvent.click(screen.getByRole('tab', { name: 'Documents' }));
-
-    expect(await screen.findByLabelText('Document file')).toBeDefined();
-    expect(screen.getByRole('heading', { name: 'Stored documents' })).toBeDefined();
-    expect(screen.getByText('notes.md')).toBeDefined();
-    expect(screen.getByRole('tab', { name: 'Documents' }).getAttribute('aria-selected')).toBe(
-      'true',
-    );
-  });
-
-  it('lists document metadata, opens the original, and displays bounded failures', async () => {
-    apiMock.documents.mockResolvedValue([
-      readyDocument,
-      {
-        ...readyDocument,
-        id: 'document-2',
-        fileName: 'broken.pdf',
-        status: 'failed',
-        errorMessage: 'The PDF structure is invalid.',
-        chunkCount: 0,
-      },
-    ]);
-
-    render(<App />);
-    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
-
-    expect(await screen.findByText('notes.md')).toBeDefined();
-    expect(screen.getAllByText('2.0 KB')).toHaveLength(2);
-    expect(screen.getAllByText('qwen3-embedding:0.6b').length).toBeGreaterThan(0);
-    expect(screen.getByText('4')).toBeDefined();
-    const failedStatus = screen.getByText('failed');
-    expect(failedStatus.classList.contains('document-status')).toBe(true);
-    expect(failedStatus.classList.contains('failed')).toBe(true);
-    const failure = screen.getByText('The PDF structure is invalid.').closest(
-      '.document-error-message',
-    );
-    expect(failure).not.toBeNull();
-    expect(failure?.querySelector('svg')).not.toBeNull();
-    expect(failure?.closest('tr')?.classList.contains('document-error-row')).toBe(true);
-    const openLink = screen.getAllByRole('link', { name: 'Open' })[0];
-    expect(openLink.getAttribute('href')).toBe(
-      'http://localhost:8000/api/documents/document-1/file',
-    );
-  });
-
-  it('polls while work is active and stops after every document is terminal', async () => {
-    vi.useFakeTimers();
-    apiMock.documents
-      .mockResolvedValueOnce([{ ...readyDocument, status: 'queued', chunkCount: 0 }])
-      .mockResolvedValueOnce([readyDocument]);
-
-    await act(async () => {
-      render(<App />);
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-    expect(apiMock.documents).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(2000);
-    });
-    expect(apiMock.documents).toHaveBeenCalledTimes(2);
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(6000);
-    });
-    expect(apiMock.documents).toHaveBeenCalledTimes(2);
-  });
-
-  it('opens an accessible document deletion dialog and supports safe cancellation', async () => {
-    apiMock.documents.mockResolvedValue([readyDocument]);
-    const browserConfirm = vi.spyOn(window, 'confirm');
-    render(<App />);
-
-    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
-    await screen.findByText('notes.md');
-    fireEvent.click(screen.getByRole('button', { name: 'Delete notes.md' }));
-
-    const dialog = screen.getByRole('alertdialog', { name: 'Delete document?' });
-    expect(within(dialog).getByText('notes.md')).toBeDefined();
-    expect(
-      within(dialog).getByText(/stored file, indexed chunks, and processing record/),
-    ).toBeDefined();
-    expect(within(dialog).getByText(/cannot be undone/i)).toBeDefined();
-    const cancel = within(dialog).getByRole('button', { name: 'Cancel' });
-    expect(document.activeElement).toBe(cancel);
-    expect(apiMock.deleteDocument).not.toHaveBeenCalled();
-    expect(browserConfirm).not.toHaveBeenCalled();
-
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(screen.queryByRole('alertdialog', { name: 'Delete document?' })).toBeNull();
-    expect(apiMock.deleteDocument).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Delete notes.md' }));
-    fireEvent.click(
-      within(screen.getByRole('alertdialog', { name: 'Delete document?' })).getByRole(
-        'button',
-        { name: 'Cancel' },
-      ),
-    );
-    expect(screen.queryByRole('alertdialog', { name: 'Delete document?' })).toBeNull();
-    expect(screen.getByText('notes.md')).toBeDefined();
-  });
-
-  it('deletes only the confirmed document after the API succeeds', async () => {
-    let resolveDelete: (() => void) | undefined;
-    apiMock.documents.mockResolvedValue([
-      readyDocument,
-      { ...readyDocument, id: 'document-2', fileName: 'keep.pdf' },
-    ]);
-    apiMock.deleteDocument.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveDelete = resolve;
-        }),
-    );
-    render(<App />);
-
-    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete notes.md' }));
-    const dialog = screen.getByRole('alertdialog', { name: 'Delete document?' });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete document' }));
-
-    await waitFor(() =>
-      expect(apiMock.deleteDocument).toHaveBeenCalledWith('document-1'),
-    );
-    expect(
-      (within(dialog).getByRole('button', { name: 'Deleting…' }) as HTMLButtonElement)
-        .disabled,
-    ).toBe(true);
-    expect(
-      (within(dialog).getByRole('button', { name: 'Cancel' }) as HTMLButtonElement)
-        .disabled,
-    ).toBe(true);
-    expect(screen.getAllByText('notes.md')).toHaveLength(2);
-    expect(screen.getByText('keep.pdf')).toBeDefined();
-
-    await act(async () => resolveDelete?.());
-    await waitFor(() => expect(screen.queryByText('notes.md')).toBeNull());
-    expect(screen.getByText('keep.pdf')).toBeDefined();
-    expect(screen.queryByRole('alertdialog', { name: 'Delete document?' })).toBeNull();
-  });
-
-  it('keeps document deletion available for retry after an API failure', async () => {
-    apiMock.documents.mockResolvedValue([readyDocument]);
-    apiMock.deleteDocument.mockRejectedValue(new Error('Document deletion failed.'));
-    render(<App />);
-
-    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Delete notes.md' }));
-    const dialog = screen.getByRole('alertdialog', { name: 'Delete document?' });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete document' }));
-
-    expect((await screen.findByRole('alert')).textContent).toContain(
-      'Document deletion failed.',
-    );
-    expect(screen.getByRole('alertdialog', { name: 'Delete document?' })).toBeDefined();
-    expect(screen.getAllByText('notes.md')).toHaveLength(2);
-    await waitFor(() =>
-      expect(
-        (within(dialog).getByRole('button', {
-          name: 'Delete document',
-        }) as HTMLButtonElement).disabled,
-      ).toBe(false),
-    );
-  });
-
-  it('renders each document lifecycle state as its own status badge', async () => {
-    apiMock.documents.mockResolvedValue([
-      { ...readyDocument, id: 'queued', fileName: 'queued.txt', status: 'queued' },
-      { ...readyDocument, id: 'processing', fileName: 'processing.txt', status: 'processing' },
-      readyDocument,
-      { ...readyDocument, id: 'failed', fileName: 'failed.txt', status: 'failed' },
-    ]);
-    render(<App />);
-
-    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
-    for (const status of ['queued', 'processing', 'ready', 'failed']) {
-      const badge = await screen.findByText(status);
-      expect(badge.classList.contains('document-status')).toBe(true);
-      expect(badge.classList.contains(status)).toBe(true);
-    }
-  });
-
-  it('deactivates a stored document without removing its management actions', async () => {
-    apiMock.documents.mockResolvedValue([readyDocument]);
-    render(<App />);
-
-    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
-    const toggle = await screen.findByRole('switch', {
-      name: 'Disable notes.md for answers',
-    });
-    expect(toggle.getAttribute('aria-checked')).toBe('true');
-    fireEvent.click(toggle);
-
-    await waitFor(() =>
-      expect(apiMock.updateDocument).toHaveBeenCalledWith('document-1', false),
-    );
-    const inactiveToggle = await screen.findByRole('switch', {
-      name: 'Enable notes.md for answers',
-    });
-    expect(inactiveToggle.getAttribute('aria-checked')).toBe('false');
-    expect(screen.getByRole('link', { name: 'Open' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Delete notes.md' })).toBeDefined();
-  });
-
-  it('keeps the active state and reports an update failure', async () => {
-    apiMock.documents.mockResolvedValue([readyDocument]);
-    apiMock.updateDocument.mockRejectedValue(new Error('Document update failed.'));
-    render(<App />);
-
-    fireEvent.click(await screen.findByRole('tab', { name: 'Documents' }));
-    fireEvent.click(
-      await screen.findByRole('switch', { name: 'Disable notes.md for answers' }),
-    );
-
-    expect((await screen.findByRole('alert')).textContent).toContain(
-      'Document update failed.',
-    );
-    expect(
-      screen.getByRole('switch', { name: 'Disable notes.md for answers' }).getAttribute(
-        'aria-checked',
-      ),
-    ).toBe('true');
   });
 });

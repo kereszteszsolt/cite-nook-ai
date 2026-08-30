@@ -4,7 +4,7 @@
  */
 
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import type { StoredUpload } from '../types';
+import type { StoredUpload } from '../../../types';
 
 interface DocumentUploadProps {
   embeddingModel: string;

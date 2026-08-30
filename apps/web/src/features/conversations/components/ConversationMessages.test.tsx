@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatResponseDuration } from './ConversationMessages';
 
-describe('response duration formatting', () => {
+describe('conversation response duration formatting', () => {
   it('formats milliseconds, seconds, minutes, and unavailable legacy values', () => {
     expect(formatResponseDuration(650)).toBe('650 ms');
     expect(formatResponseDuration(2345)).toBe('2.3 s');

@@ -10,8 +10,8 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from 'react';
-import { api } from '../api';
-import type { Conversation, ConversationMessage } from '../types';
+import { api } from '../../../api';
+import type { Conversation, ConversationMessage } from '../../../types';
 
 interface ConversationMessagesProps {
   conversation: Conversation | null;

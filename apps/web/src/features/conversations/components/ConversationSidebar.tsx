@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Conversation } from '../types';
+import type { Conversation } from '../../../types';
 
 interface ConversationSidebarProps {
   conversations: Conversation[];

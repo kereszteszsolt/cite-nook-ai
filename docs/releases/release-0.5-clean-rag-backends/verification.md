@@ -2,15 +2,15 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` is committed, and `MRA-019` is implemented and awaits commit approval; later stories remain planned.
+Release 0.5 is in progress. `MRA-018` and `MRA-019` are committed, and `MRA-020` is approved for commit; later stories remain planned.
 
 ## Evidence table
 
 | Story | Implementation approval | Focused checks | Review result | Commit approval | Commit | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | MRA-018 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `98beb09` | Implemented |
-| MRA-019 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
-| MRA-020 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-019 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `e32cbba` | Implemented |
+| MRA-020 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
 | MRA-021 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-022 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-023 | Pending | Pending | Pending | Pending | — | Planned |
@@ -46,6 +46,24 @@ Implementation approval was given on 2026-08-30 when the user asked to start `MR
 - In the Node 26 container, `npm run lint` passed 3/3 tasks; `npm run test` passed 61 API, 48 web, and 1 brand test; `npm run build` passed 3/3 tasks.
 - The host Node command remains unavailable under WSL1, so the documented isolated container path supplied the full gate result.
 - `git diff --check` passed, and review found no application behavior, runtime, dependency, Docker, or data-contract change.
+
+Commit approval was given on 2026-08-30. Commit `e32cbba` contains the implementation.
+
+## MRA-020 evidence
+
+Implementation approval was given on 2026-08-30 after the scope and checks were reviewed.
+
+- Conversation state, API actions, dialogs, views, and tests now live under `apps/web/src/features/conversations`.
+- Document state, polling, upload, active state, delete work, views, and tests now live under `apps/web/src/features/documents`.
+- `App.tsx` is a 136-line shell that calls only the model catalog API and coordinates startup, workspace choice, shared errors, and layout.
+- Static boundary checks found no conversation or document API call in `App.tsx`, no direct `fetch` outside `api.ts`, and no import from a removed component path.
+- The focused startup, conversation, document, and message-format tests passed 36/36 tests across four files.
+- The 24 conversation tests passed in three consecutive runs after async interaction assertions were made timing-safe.
+- The full web suite passed 48/48 tests, TypeScript lint passed, and the production build transformed 32 modules successfully.
+- In the isolated Node 26 container, full monorepo lint passed 3/3 tasks, tests passed 61 API, 48 web, and 1 brand test, and build passed 3/3 tasks.
+- The pinned Playwright screenshot test passed, and a clean repeat matched all four checked desktop and mobile PNG hashes exactly.
+- Package manifests, the lock file, shared HTTP types, the API client, and `styles.css` stayed unchanged.
+- `git diff --check` passed, and review found no backend, HTTP contract, dependency, routing, global state, or UI framework change.
 
 Commit approval was given on 2026-08-30. The resulting hash is reported after the commit succeeds because a commit cannot contain its own hash.
 

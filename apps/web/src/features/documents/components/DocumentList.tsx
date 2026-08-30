@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { api } from '../api';
-import type { DocumentRecord, DocumentStatus } from '../types';
+import { api } from '../../../api';
+import type { DocumentRecord, DocumentStatus } from '../../../types';
 
 interface DocumentListProps {
   documents: DocumentRecord[];

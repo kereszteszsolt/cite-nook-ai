@@ -9,10 +9,10 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
-  type ReactNode,
   type RefObject,
 } from 'react';
-import type { ModelOption } from '../types';
+import { DestructiveConfirmationDialog } from '../../../components/DestructiveConfirmationDialog';
+import type { ModelOption } from '../../../types';
 
 interface ConversationModelDialogProps {
   mode: 'create' | 'edit';
@@ -151,94 +151,6 @@ export function ConversationDeleteDialog(props: ConversationDeleteDialogProps) {
   );
 }
 
-interface DocumentDeleteDialogProps {
-  fileName: string;
-  deleting: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}
-
-export function DocumentDeleteDialog(props: DocumentDeleteDialogProps) {
-  return (
-    <DestructiveConfirmationDialog
-      idPrefix="document-delete"
-      title="Delete document?"
-      description={
-        <>
-          <strong>{props.fileName}</strong>, its stored file, indexed chunks, and processing record
-          will be permanently deleted. This action cannot be undone.
-        </>
-      }
-      confirmLabel="Delete document"
-      busyLabel="Deleting…"
-      busy={props.deleting}
-      onCancel={props.onCancel}
-      onConfirm={props.onConfirm}
-    />
-  );
-}
-
-function DestructiveConfirmationDialog(props: {
-  idPrefix: string;
-  title: string;
-  description: ReactNode;
-  confirmLabel: string;
-  busyLabel: string;
-  busy: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  const titleId = `${props.idPrefix}-title`;
-  const descriptionId = `${props.idPrefix}-description`;
-
-  useEscapeToCancel(props.busy, props.onCancel);
-
-  useEffect(() => {
-    cancelRef.current?.focus();
-  }, []);
-
-  return (
-    <div className="modal-backdrop" role="presentation">
-      <section
-        className="modal-card delete-dialog"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-      >
-        <div className="delete-dialog-icon" aria-hidden="true">
-          <TrashIcon />
-        </div>
-        <div className="modal-heading">
-          <p className="eyebrow danger-eyebrow">Permanent action</p>
-          <h2 id={titleId}>{props.title}</h2>
-          <p id={descriptionId}>{props.description}</p>
-        </div>
-        <div className="modal-actions">
-          <button
-            ref={cancelRef}
-            type="button"
-            className="secondary-button"
-            disabled={props.busy}
-            onClick={props.onCancel}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="modal-danger-button"
-            disabled={props.busy}
-            onClick={props.onConfirm}
-          >
-            {props.busy ? props.busyLabel : props.confirmLabel}
-          </button>
-        </div>
-      </section>
-    </div>
-  );
-}
-
 function ModelSelect(props: {
   inputRef?: RefObject<HTMLSelectElement | null>;
   id: string;
@@ -287,19 +199,4 @@ function useEscapeToCancel(blocked: boolean, onCancel: () => void) {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [blocked, onCancel]);
-}
-
-function TrashIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22">
-      <path
-        d="M8 8v10m4-10v10m4-10v10M5 5h14M9 5V3h6v2m2 0 1 16H6L7 5"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
 }
