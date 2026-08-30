@@ -10,8 +10,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.routers import conversations, documents, system
+from .bootstrap import build_application
 from .core.brand import load_brand
-from .core.settings import get_settings
 from .persistence.database import init_database
 
 
@@ -21,14 +21,16 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     yield
 
 
+application = build_application()
 brand = load_brand()
-settings = get_settings()
+settings = application.settings
 app = FastAPI(
     title=f"{brand['extendedName']} API",
     description=brand["description"],
     version="0.1.0",
     lifespan=lifespan,
 )
+app.state.application = application
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),

@@ -3,19 +3,19 @@
 
 from pathlib import Path
 
-from app.ai.ollama import OllamaUnavailableError
+from app.ai.contracts import ModelProviderUnavailableError
 from app.application.model_catalog import ModelCatalogService
 from app.core.settings import Settings
 
 
-class AvailableGateway:
-    def installed_models(self) -> set[str]:
+class AvailableProvider:
+    def list_models(self) -> set[str]:
         return {"llama3.1:8b", "qwen3-embedding:0.6b"}
 
 
-class UnavailableGateway:
-    def installed_models(self) -> set[str]:
-        raise OllamaUnavailableError("offline")
+class UnavailableProvider:
+    def list_models(self) -> set[str]:
+        raise ModelProviderUnavailableError("offline")
 
 
 def settings() -> Settings:
@@ -32,7 +32,9 @@ def settings() -> Settings:
 
 
 def test_catalog_keeps_configured_models_and_marks_installed_ones() -> None:
-    catalog = ModelCatalogService(gateway=AvailableGateway(), settings=settings()).catalog()
+    catalog = ModelCatalogService(
+        provider=AvailableProvider(), settings=settings()
+    ).catalog()
 
     assert catalog.ollama_available is True
     assert [(model.name, model.installed) for model in catalog.chat_models] == [
@@ -46,7 +48,9 @@ def test_catalog_keeps_configured_models_and_marks_installed_ones() -> None:
 
 
 def test_catalog_remains_visible_when_ollama_is_unreachable() -> None:
-    catalog = ModelCatalogService(gateway=UnavailableGateway(), settings=settings()).catalog()
+    catalog = ModelCatalogService(
+        provider=UnavailableProvider(), settings=settings()
+    ).catalog()
 
     assert catalog.ollama_available is False
     assert all(not model.installed for model in catalog.chat_models)

@@ -8,7 +8,7 @@ from typing import Any, Protocol
 
 from ollama import Client
 
-from ..core.settings import get_settings
+from .contracts import ModelProviderUnavailableError
 
 
 class OllamaClientProtocol(Protocol):
@@ -27,19 +27,23 @@ class OllamaClientProtocol(Protocol):
     ) -> Any: ...
 
 
-class OllamaUnavailableError(RuntimeError):
-    pass
+class OllamaProvider:
+    def __init__(
+        self,
+        host: str | None = None,
+        client: OllamaClientProtocol | None = None,
+    ) -> None:
+        if client is None and host is None:
+            raise ValueError("An Ollama host is required when no client is provided.")
+        self._client = client or Client(host=host)
 
-
-class OllamaGateway:
-    def __init__(self, client: OllamaClientProtocol | None = None) -> None:
-        self._client = client or Client(host=get_settings().ollama_host)
-
-    def installed_models(self) -> set[str]:
+    def list_models(self) -> set[str]:
         try:
             response = self._client.list()
         except Exception as error:
-            raise OllamaUnavailableError("Ollama model discovery failed.") from error
+            raise ModelProviderUnavailableError(
+                "Ollama model discovery failed."
+            ) from error
 
         names: set[str] = set()
         for model in response.models:
@@ -56,11 +60,15 @@ class OllamaGateway:
         try:
             response = self._client.embed(model=model, input=inputs)
         except Exception as error:
-            raise OllamaUnavailableError("Ollama embedding request failed.") from error
+            raise ModelProviderUnavailableError(
+                "Ollama embedding request failed."
+            ) from error
 
         embeddings = [list(vector) for vector in response.embeddings]
         if not embeddings or any(not vector for vector in embeddings):
-            raise OllamaUnavailableError("Ollama returned an empty embedding response.")
+            raise ModelProviderUnavailableError(
+                "Ollama returned an empty embedding response."
+            )
         return embeddings
 
     def chat(self, model: str, messages: Sequence[Mapping[str, str]]) -> str:
@@ -73,10 +81,12 @@ class OllamaGateway:
                 options={"temperature": 0},
             )
         except Exception as error:
-            raise OllamaUnavailableError("Ollama chat request failed.") from error
+            raise ModelProviderUnavailableError("Ollama chat request failed.") from error
 
         content = getattr(getattr(response, "message", None), "content", None)
         answer = str(content or "").strip()
         if not answer:
-            raise OllamaUnavailableError("Ollama returned an empty chat response.")
+            raise ModelProviderUnavailableError(
+                "Ollama returned an empty chat response."
+            )
         return answer

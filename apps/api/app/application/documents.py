@@ -10,13 +10,13 @@ from uuid import UUID, uuid4
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..core.settings import Settings, get_settings
+from ..core.settings import Settings
 from ..persistence.models import Document
 
 
 class DocumentService:
-    def __init__(self, settings: Settings | None = None) -> None:
-        self._settings = settings or get_settings()
+    def __init__(self, settings: Settings) -> None:
+        self._settings = settings
 
     def list(self, session: Session) -> list[Document]:
         return list(

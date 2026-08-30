@@ -8,7 +8,7 @@ import signal
 import threading
 from time import monotonic
 
-from .application.ingestion import IngestionService
+from .bootstrap import build_application
 from .persistence.database import SessionLocal, init_database
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -26,7 +26,7 @@ def main() -> None:
     signal.signal(signal.SIGTERM, _stop)
     signal.signal(signal.SIGINT, _stop)
     init_database()
-    service = IngestionService()
+    service = build_application().ingestion_service
     next_stale_check = 0.0
 
     logger.info("CiteNook ingestion worker started.")

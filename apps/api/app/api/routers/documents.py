@@ -7,24 +7,29 @@ from uuid import UUID
 from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile, status
 from fastapi.responses import FileResponse
 
-from ...application.documents import DocumentService
 from ...application.uploads import (
-    DocumentUploadService,
     EmptyUploadError,
     UnsupportedDocumentTypeError,
     UnsupportedEmbeddingModelError,
     UploadTooLargeError,
 )
 from ...persistence.models import Document
-from ..dependencies import DatabaseSession
+from ..dependencies import (
+    DatabaseSession,
+    DocumentServiceDependency,
+    UploadServiceDependency,
+)
 from ..schemas import DocumentRead, DocumentUpdate
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
 @router.get("", response_model=list[DocumentRead])
-def list_documents(session: DatabaseSession) -> list[Document]:
-    return DocumentService().list(session)
+def list_documents(
+    session: DatabaseSession,
+    service: DocumentServiceDependency,
+) -> list[Document]:
+    return service.list(session)
 
 
 @router.post("", response_model=DocumentRead, status_code=status.HTTP_201_CREATED)
@@ -32,9 +37,10 @@ async def upload_document(
     session: DatabaseSession,
     file: Annotated[UploadFile, File()],
     embedding_model: Annotated[str, Form()],
+    service: UploadServiceDependency,
 ) -> Document:
     try:
-        return await DocumentUploadService().store(
+        return await service.store(
             session,
             file=file,
             embedding_model=embedding_model,
@@ -51,19 +57,23 @@ async def upload_document(
 
 @router.patch("/{document_id}", response_model=DocumentRead)
 def update_document(
-    document_id: UUID, payload: DocumentUpdate, session: DatabaseSession
+    document_id: UUID,
+    payload: DocumentUpdate,
+    session: DatabaseSession,
+    service: DocumentServiceDependency,
 ) -> Document:
-    document = DocumentService().set_active(
-        session, document_id, is_active=payload.is_active
-    )
+    document = service.set_active(session, document_id, is_active=payload.is_active)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found.")
     return document
 
 
 @router.get("/{document_id}/file", response_class=FileResponse)
-def open_document(document_id: UUID, session: DatabaseSession) -> FileResponse:
-    service = DocumentService()
+def open_document(
+    document_id: UUID,
+    session: DatabaseSession,
+    service: DocumentServiceDependency,
+) -> FileResponse:
     document = service.get(session, document_id)
     if document is None:
         raise HTTPException(status_code=404, detail="Document not found.")
@@ -79,7 +89,11 @@ def open_document(document_id: UUID, session: DatabaseSession) -> FileResponse:
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_document(document_id: UUID, session: DatabaseSession) -> Response:
-    if not DocumentService().delete(session, document_id):
+def delete_document(
+    document_id: UUID,
+    session: DatabaseSession,
+    service: DocumentServiceDependency,
+) -> Response:
+    if not service.delete(session, document_id):
         raise HTTPException(status_code=404, detail="Document not found.")
     return Response(status_code=status.HTTP_204_NO_CONTENT)

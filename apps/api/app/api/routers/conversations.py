@@ -7,15 +7,18 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Response, status
 
-from ...ai.ollama import OllamaUnavailableError
-from ...application.answers import AnswerResult, GroundedAnswerError, GroundedAnswerService
+from ...ai.contracts import ModelProviderUnavailableError
+from ...application.answers import AnswerResult, GroundedAnswerError
 from ...application.conversations import (
-    ConversationService,
     InvalidConversationTitleError,
     UnsupportedModelError,
 )
 from ...persistence.models import Conversation, ConversationMessage
-from ..dependencies import DatabaseSession
+from ..dependencies import (
+    AnswerServiceDependency,
+    ConversationServiceDependency,
+    DatabaseSession,
+)
 from ..schemas import (
     AnswerRead,
     ConversationCreate,
@@ -29,17 +32,21 @@ router = APIRouter(prefix="/conversations", tags=["conversations"])
 
 
 @router.get("", response_model=list[ConversationRead])
-def list_conversations(session: DatabaseSession) -> list[Conversation]:
-    return ConversationService().list(session)
+def list_conversations(
+    session: DatabaseSession,
+    service: ConversationServiceDependency,
+) -> list[Conversation]:
+    return service.list(session)
 
 
 @router.post("", response_model=ConversationRead, status_code=status.HTTP_201_CREATED)
 def create_conversation(
     payload: ConversationCreate,
     session: DatabaseSession,
+    service: ConversationServiceDependency,
 ) -> Conversation:
     try:
-        return ConversationService().create(
+        return service.create(
             session,
             chat_model=payload.chat_model,
             embedding_model=payload.embedding_model,
@@ -53,8 +60,8 @@ def update_conversation(
     conversation_id: UUID,
     payload: ConversationUpdate,
     session: DatabaseSession,
+    service: ConversationServiceDependency,
 ) -> Conversation:
-    service = ConversationService()
     try:
         conversation = service.update(
             session,
@@ -72,9 +79,11 @@ def update_conversation(
 
 @router.get("/{conversation_id}/messages", response_model=list[MessageRead])
 def list_messages(
-    conversation_id: UUID, session: DatabaseSession
+    conversation_id: UUID,
+    session: DatabaseSession,
+    service: ConversationServiceDependency,
 ) -> list[ConversationMessage]:
-    messages = ConversationService().list_messages(session, conversation_id)
+    messages = service.list_messages(session, conversation_id)
     if messages is None:
         raise HTTPException(status_code=404, detail="Conversation not found.")
     return messages
@@ -85,14 +94,15 @@ def answer_question(
     conversation_id: UUID,
     payload: QuestionCreate,
     session: DatabaseSession,
+    service: AnswerServiceDependency,
 ) -> AnswerResult:
     try:
-        result = GroundedAnswerService().answer(
+        result = service.answer(
             session, conversation_id=conversation_id, question=payload.question
         )
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
-    except OllamaUnavailableError as error:
+    except ModelProviderUnavailableError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
     except GroundedAnswerError as error:
         raise HTTPException(status_code=502, detail=str(error)) from error
@@ -102,7 +112,11 @@ def answer_question(
 
 
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_conversation(conversation_id: UUID, session: DatabaseSession) -> Response:
-    if not ConversationService().delete(session, conversation_id):
+def delete_conversation(
+    conversation_id: UUID,
+    session: DatabaseSession,
+    service: ConversationServiceDependency,
+) -> Response:
+    if not service.delete(session, conversation_id):
         raise HTTPException(status_code=404, detail="Conversation not found.")
     return Response(status_code=status.HTTP_204_NO_CONTENT)

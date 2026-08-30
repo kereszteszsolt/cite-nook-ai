@@ -11,8 +11,8 @@ from uuid import UUID
 from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
-from ..ai.ollama import OllamaGateway
-from ..core.settings import Settings, get_settings
+from ..ai.contracts import EmbeddingProvider
+from ..core.settings import Settings
 from ..persistence.models import DocumentChunk, IngestionJob, utc_now
 from ..rag.native.chunking import chunk_sections
 from .extraction import extract_sections
@@ -23,12 +23,13 @@ MAX_INGESTION_ERROR_LENGTH = 2000
 class IngestionService:
     def __init__(
         self,
-        gateway: OllamaGateway | None = None,
-        settings: Settings | None = None,
+        *,
+        embedding_provider: EmbeddingProvider,
+        settings: Settings,
         worker_id: str | None = None,
     ) -> None:
-        self._gateway = gateway or OllamaGateway()
-        self._settings = settings or get_settings()
+        self._embedding_provider = embedding_provider
+        self._settings = settings
         self.worker_id = worker_id or socket.gethostname()
 
     def reset_stale_jobs(self, session: Session) -> int:
@@ -100,7 +101,7 @@ class IngestionService:
             for start in range(0, len(chunks), batch_size):
                 batch = chunks[start : start + batch_size]
                 embeddings.extend(
-                    self._gateway.embed(
+                    self._embedding_provider.embed(
                         document.embedding_model,
                         [chunk.content for chunk in batch],
                     )

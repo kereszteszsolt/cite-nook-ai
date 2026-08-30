@@ -175,7 +175,8 @@ def test_answer_uses_conversation_models_ready_compatible_chunks_and_markers() -
         [source_row("first.txt", 0, 0.1), source_row("second.pdf", 1, 0.2)],
     )
     service = GroundedAnswerService(
-        gateway=gateway,  # type: ignore[arg-type]
+        chat_provider=gateway,
+        embedding_provider=gateway,
         settings=settings(),
         conversations=conversation_service,  # type: ignore[arg-type]
         clock=iter([100.0, 102.345]).__next__,
@@ -224,7 +225,8 @@ def test_missing_compatible_sources_returns_explicit_insufficiency_without_chat(
     gateway = FakeGateway()
     session = AnswerSession(stored_conversation, [])
     service = GroundedAnswerService(
-        gateway=gateway,  # type: ignore[arg-type]
+        chat_provider=gateway,
+        embedding_provider=gateway,
         settings=settings(),
         conversations=conversation_service,  # type: ignore[arg-type]
     )
@@ -249,7 +251,8 @@ def test_chat_answer_with_an_unknown_source_marker_is_rejected() -> None:
     gateway = FakeGateway("Unsupported claim [S9].")
     session = AnswerSession(stored_conversation, [source_row("only.txt", 0, 0.1)])
     service = GroundedAnswerService(
-        gateway=gateway,  # type: ignore[arg-type]
+        chat_provider=gateway,
+        embedding_provider=gateway,
         settings=settings(),
         conversations=conversation_service,  # type: ignore[arg-type]
     )
@@ -269,7 +272,8 @@ def test_chat_answer_without_marker_or_insufficiency_is_rejected() -> None:
     conversation_service = FakeConversationService(stored_conversation)
     gateway = FakeGateway("An ungrounded answer.")
     service = GroundedAnswerService(
-        gateway=gateway,  # type: ignore[arg-type]
+        chat_provider=gateway,
+        embedding_provider=gateway,
         settings=settings(),
         conversations=conversation_service,  # type: ignore[arg-type]
     )

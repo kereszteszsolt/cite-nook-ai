@@ -14,8 +14,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..ai.ollama import OllamaGateway
-from ..core.settings import Settings, get_settings
+from ..ai.contracts import ChatProvider, EmbeddingProvider
+from ..core.settings import Settings
 from ..persistence.models import Conversation, ConversationMessage, Document, DocumentChunk
 from .conversations import ConversationService
 
@@ -73,14 +73,17 @@ class AnswerResult:
 class GroundedAnswerService:
     def __init__(
         self,
-        gateway: OllamaGateway | None = None,
-        settings: Settings | None = None,
-        conversations: ConversationService | None = None,
+        *,
+        chat_provider: ChatProvider,
+        embedding_provider: EmbeddingProvider,
+        settings: Settings,
+        conversations: ConversationService,
         clock: Callable[[], float] | None = None,
     ) -> None:
-        self._gateway = gateway or OllamaGateway()
-        self._settings = settings or get_settings()
-        self._conversations = conversations or ConversationService(self._settings)
+        self._chat_provider = chat_provider
+        self._embedding_provider = embedding_provider
+        self._settings = settings
+        self._conversations = conversations
         self._clock = clock or perf_counter
 
     def answer(
@@ -95,7 +98,7 @@ class GroundedAnswerService:
             return None
 
         started_at = self._clock()
-        embeddings = self._gateway.embed(
+        embeddings = self._embedding_provider.embed(
             conversation.embedding_model, normalized_question
         )
         if len(embeddings) != 1:
@@ -110,7 +113,7 @@ class GroundedAnswerService:
         )
         if sources:
             history = self._conversations.recent_history(session, conversation_id)
-            answer = self._gateway.chat(
+            answer = self._chat_provider.chat(
                 conversation.chat_model,
                 build_chat_messages(history, normalized_question, sources),
             )

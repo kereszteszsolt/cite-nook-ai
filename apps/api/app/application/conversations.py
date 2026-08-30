@@ -10,7 +10,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..core.settings import Settings, get_settings
+from ..core.settings import Settings
 from ..persistence.models import Conversation, ConversationMessage, utc_now
 
 CONVERSATION_TITLE_LENGTH = 80
@@ -26,8 +26,8 @@ class InvalidConversationTitleError(ValueError):
 
 
 class ConversationService:
-    def __init__(self, settings: Settings | None = None) -> None:
-        self._settings = settings or get_settings()
+    def __init__(self, settings: Settings) -> None:
+        self._settings = settings
 
     def list(self, session: Session) -> list[Conversation]:
         return list(

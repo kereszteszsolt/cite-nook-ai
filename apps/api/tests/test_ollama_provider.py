@@ -5,7 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.ai.ollama import OllamaGateway, OllamaUnavailableError
+from app.ai.contracts import ModelProviderUnavailableError
+from app.ai.ollama import OllamaProvider
 
 
 class FakeClient:
@@ -48,8 +49,8 @@ class EmptyClient(FakeClient):
         return SimpleNamespace(message=SimpleNamespace(content="  "))
 
 
-def test_installed_models_normalize_the_latest_tag() -> None:
-    assert OllamaGateway(client=FakeClient()).installed_models() == {
+def test_list_models_normalizes_the_latest_tag() -> None:
+    assert OllamaProvider(client=FakeClient()).list_models() == {
         "embeddinggemma:latest",
         "embeddinggemma",
         "llama3.1:8b",
@@ -57,24 +58,24 @@ def test_installed_models_normalize_the_latest_tag() -> None:
 
 
 def test_provider_connection_errors_are_wrapped() -> None:
-    with pytest.raises(OllamaUnavailableError, match="model discovery failed"):
-        OllamaGateway(client=UnavailableClient()).installed_models()
+    with pytest.raises(ModelProviderUnavailableError, match="model discovery failed"):
+        OllamaProvider(client=UnavailableClient()).list_models()
 
 
 def test_embeddings_are_requested_in_one_official_client_call() -> None:
-    assert OllamaGateway(client=FakeClient()).embed(
+    assert OllamaProvider(client=FakeClient()).embed(
         "embeddinggemma", ["first", "second"]
     ) == [[0.1, 0.2], [0.1, 0.2]]
 
 
 def test_embedding_connection_errors_are_wrapped() -> None:
-    with pytest.raises(OllamaUnavailableError, match="embedding request failed"):
-        OllamaGateway(client=UnavailableClient()).embed("embeddinggemma", ["text"])
+    with pytest.raises(ModelProviderUnavailableError, match="embedding request failed"):
+        OllamaProvider(client=UnavailableClient()).embed("embeddinggemma", ["text"])
 
 
 def test_empty_embedding_response_is_rejected() -> None:
-    with pytest.raises(OllamaUnavailableError, match="empty embedding response"):
-        OllamaGateway(client=EmptyClient()).embed("embeddinggemma", ["text"])
+    with pytest.raises(ModelProviderUnavailableError, match="empty embedding response"):
+        OllamaProvider(client=EmptyClient()).embed("embeddinggemma", ["text"])
 
 
 def test_chat_uses_one_deterministic_official_client_call() -> None:
@@ -84,7 +85,7 @@ def test_chat_uses_one_deterministic_official_client_call() -> None:
         {"role": "user", "content": "Question and [S1]."},
     ]
 
-    assert OllamaGateway(client=client).chat("llama3.1:8b", messages) == (
+    assert OllamaProvider(client=client).chat("llama3.1:8b", messages) == (
         "Grounded answer [S1]."
     )
     assert client.chat_request == {
@@ -97,14 +98,14 @@ def test_chat_uses_one_deterministic_official_client_call() -> None:
 
 
 def test_chat_connection_errors_are_wrapped() -> None:
-    with pytest.raises(OllamaUnavailableError, match="chat request failed"):
-        OllamaGateway(client=UnavailableClient()).chat(
+    with pytest.raises(ModelProviderUnavailableError, match="chat request failed"):
+        OllamaProvider(client=UnavailableClient()).chat(
             "llama3.1:8b", [{"role": "user", "content": "Question"}]
         )
 
 
 def test_empty_chat_response_is_rejected() -> None:
-    with pytest.raises(OllamaUnavailableError, match="empty chat response"):
-        OllamaGateway(client=EmptyClient()).chat(
+    with pytest.raises(ModelProviderUnavailableError, match="empty chat response"):
+        OllamaProvider(client=EmptyClient()).chat(
             "llama3.1:8b", [{"role": "user", "content": "Question"}]
         )

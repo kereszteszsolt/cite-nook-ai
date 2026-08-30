@@ -5,8 +5,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..ai.ollama import OllamaGateway, OllamaUnavailableError
-from ..core.settings import Settings, get_settings
+from ..ai.contracts import ModelCatalogProvider, ModelProviderUnavailableError
+from ..core.settings import Settings
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,17 +27,18 @@ class ModelCatalog:
 class ModelCatalogService:
     def __init__(
         self,
-        gateway: OllamaGateway | None = None,
-        settings: Settings | None = None,
+        *,
+        provider: ModelCatalogProvider,
+        settings: Settings,
     ) -> None:
-        self._gateway = gateway or OllamaGateway()
-        self._settings = settings or get_settings()
+        self._provider = provider
+        self._settings = settings
 
     def catalog(self) -> ModelCatalog:
         try:
-            installed = self._gateway.installed_models()
+            installed = self._provider.list_models()
             ollama_available = True
-        except OllamaUnavailableError:
+        except ModelProviderUnavailableError:
             installed = set()
             ollama_available = False
 

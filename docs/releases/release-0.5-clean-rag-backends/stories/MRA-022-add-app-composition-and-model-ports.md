@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+Implemented
 
 ## User story
 
@@ -18,14 +18,14 @@ Build services in one place. Keep the Ollama client out of app use cases.
 
 ## Acceptance criteria
 
-- [ ] Small `ChatProvider`, `EmbeddingProvider`, and `ModelCatalogProvider` ports define model work.
-- [ ] One Ollama adapter implements the model ports and is the only app module that imports the Ollama client.
-- [ ] One composition root reads settings and builds the shared provider and app services.
-- [ ] FastAPI dependencies return built services instead of routers creating them.
-- [ ] The worker uses the same composition root as the API.
-- [ ] App services do not call `get_settings()` or create a concrete model provider.
-- [ ] Unit tests can pass small fake providers without network access.
-- [ ] Current model discovery, ingestion, answer, error, and retry behavior stays the same.
+- [x] Small `ChatProvider`, `EmbeddingProvider`, and `ModelCatalogProvider` ports define model work.
+- [x] One Ollama adapter implements the model ports and is the only app module that imports the Ollama client.
+- [x] One composition root reads settings and builds the shared provider and app services.
+- [x] FastAPI dependencies return built services instead of routers creating them.
+- [x] The worker uses the same composition root as the API.
+- [x] App services do not call `get_settings()` or create a concrete model provider.
+- [x] Unit tests can pass small fake providers without network access.
+- [x] Current model discovery, ingestion, answer, error, and retry behavior stays the same.
 
 ## Out of scope
 

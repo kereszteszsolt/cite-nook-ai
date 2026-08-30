@@ -11,7 +11,7 @@ from uuid import uuid4
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
-from ..core.settings import Settings, get_settings
+from ..core.settings import Settings
 from ..persistence.models import Document, IngestionJob
 
 SUPPORTED_DOCUMENT_SUFFIXES = frozenset({".pdf", ".docx", ".txt", ".md", ".markdown"})
@@ -39,8 +39,8 @@ class UploadTooLargeError(UploadValidationError):
 
 
 class DocumentUploadService:
-    def __init__(self, settings: Settings | None = None) -> None:
-        self._settings = settings or get_settings()
+    def __init__(self, settings: Settings) -> None:
+        self._settings = settings
 
     async def store(
         self,

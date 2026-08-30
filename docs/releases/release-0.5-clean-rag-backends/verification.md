@@ -2,7 +2,7 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` through `MRA-020` are committed, and `MRA-021` is implemented and awaits commit approval; later stories remain planned.
+Release 0.5 is in progress. `MRA-018` through `MRA-021` are committed, and `MRA-022` is implemented and awaits commit approval; later stories remain planned.
 
 ## Evidence table
 
@@ -11,8 +11,8 @@ Release 0.5 is in progress. `MRA-018` through `MRA-020` are committed, and `MRA-
 | MRA-018 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `98beb09` | Implemented |
 | MRA-019 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `e32cbba` | Implemented |
 | MRA-020 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `33d1f50` | Implemented |
-| MRA-021 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
-| MRA-022 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-021 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `1b2ace3` | Implemented |
+| MRA-022 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
 | MRA-023 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-024 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-025 | Pending | Pending | Pending | Pending | — | Planned |
@@ -81,6 +81,23 @@ Implementation approval was given on 2026-08-30 after the scope and checks were 
 - Full monorepo lint passed 3/3 tasks; the sequential test run passed 64 API, 48 web, and 1 brand test; and build passed 3/3 tasks.
 - The first parallel full test exposed one timing-sensitive web retry failure after 47/48 web tests, then its focused rerun and the complete sequential suite passed.
 - Both current Compose configuration commands, repository verification, and `git diff --check` passed.
+
+Commit approval was given on 2026-08-30. Commit `1b2ace3` contains the implementation.
+
+## MRA-022 evidence
+
+Implementation approval was given on 2026-08-30 after the scope and checks were reviewed.
+
+- `ChatProvider`, `EmbeddingProvider`, and `ModelCatalogProvider` define the three small model boundaries, with one combined type for composition.
+- `OllamaProvider` implements all model work, receives its host from composition, and `app/ai/ollama.py` is the only app module that imports the Ollama SDK.
+- `build_application()` reads settings, creates one shared provider, and builds the conversation, answer, document, upload, model catalog, and ingestion services.
+- FastAPI dependencies return services from the application container stored on `app.state`, so routers no longer construct services.
+- Both `app.main` and `app.worker` call the same composition root, and the worker receives the composed ingestion service.
+- Static boundary checks found no `get_settings()` call or concrete model provider reference under `app/application`, and no early MRA-023 RAG port or LlamaIndex import.
+- Fake-provider tests cover composition without network access, while focused tests preserve model discovery, grounded answers, ingestion failure state, public 503 mapping, and worker retry delay.
+- In the isolated Python 3.14 container, Ruff passed and all 70 API tests passed.
+- Full monorepo lint passed 3/3 tasks, tests passed 70 API, 48 web, and 1 brand test, and build passed 3/3 tasks.
+- Both current Compose configuration commands, repository verification, import compilation, and `git diff --check` passed.
 
 Commit approval was given on 2026-08-30. The resulting hash is reported after the commit succeeds because a commit cannot contain its own hash.
 

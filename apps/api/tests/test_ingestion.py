@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
+from app.ai.contracts import ModelProviderUnavailableError
 from app.application.ingestion import IngestionService
 from app.core.settings import Settings
 from app.persistence.models import Document, DocumentChunk, IngestionJob, utc_now
@@ -21,6 +22,11 @@ class FakeGateway:
         assert model == "embed-a"
         self.batches.append(inputs)
         return [[float(len(value)), 0.5, 1.0] for value in inputs]
+
+
+class UnavailableEmbeddingProvider:
+    def embed(self, model: str, inputs: list[str]) -> list[list[float]]:
+        raise ModelProviderUnavailableError("Ollama embedding request failed.")
 
 
 class ProcessSession:
@@ -135,7 +141,7 @@ def test_claim_uses_skip_locked_and_marks_the_worker() -> None:
     session = ClaimSession(job_id)
 
     claimed = IngestionService(
-        gateway=FakeGateway(),
+        embedding_provider=FakeGateway(),
         settings=settings(Path("uploads")),
         worker_id="worker-a",
     ).claim_next_job(session)  # type: ignore[arg-type]
@@ -152,7 +158,10 @@ def test_processing_extracts_batches_and_builds_persistent_chunks(tmp_path: Path
     document, job = document_and_job(path)
     session = ProcessSession(job)
     gateway = FakeGateway()
-    service = IngestionService(gateway=gateway, settings=settings(tmp_path, batch_size=2))
+    service = IngestionService(
+        embedding_provider=gateway,
+        settings=settings(tmp_path, batch_size=2),
+    )
 
     assert service.process_job(session, job.id) is True  # type: ignore[arg-type]
 
@@ -170,6 +179,26 @@ def test_processing_extracts_batches_and_builds_persistent_chunks(tmp_path: Path
     assert session.commits == 2
 
 
+def test_embedding_failure_keeps_the_existing_failed_job_behavior(tmp_path: Path) -> None:
+    path = tmp_path / "notes.txt"
+    path.write_text("Readable content.", encoding="utf-8")
+    document, job = document_and_job(path)
+    session = ProcessSession(job)
+    service = IngestionService(
+        embedding_provider=UnavailableEmbeddingProvider(),
+        settings=settings(tmp_path),
+    )
+
+    assert service.process_job(session, job.id) is False  # type: ignore[arg-type]
+
+    assert session.rollbacks == 1
+    assert session.commits == 2
+    assert job.status == "failed"
+    assert job.error_message == "Ollama embedding request failed."
+    assert document.status == "failed"
+    assert document.error_message == "Ollama embedding request failed."
+
+
 def test_stale_processing_jobs_are_requeued_after_the_configured_interval(
     tmp_path: Path,
 ) -> None:
@@ -181,7 +210,7 @@ def test_stale_processing_jobs_are_requeued_after_the_configured_interval(
     session = StaleSession([job])
 
     reset = IngestionService(
-        gateway=FakeGateway(),
+        embedding_provider=FakeGateway(),
         settings=settings(tmp_path, stale_minutes=15),
     ).reset_stale_jobs(session)  # type: ignore[arg-type]
 
