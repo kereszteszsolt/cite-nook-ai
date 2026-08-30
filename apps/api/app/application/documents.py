@@ -12,11 +12,13 @@ from sqlalchemy.orm import Session
 
 from ..core.settings import Settings
 from ..persistence.models import Document
+from ..rag.contracts import DocumentIndexer
 
 
 class DocumentService:
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, *, settings: Settings, indexer: DocumentIndexer) -> None:
         self._settings = settings
+        self._indexer = indexer
 
     def list(self, session: Session) -> list[Document]:
         return list(
@@ -57,11 +59,11 @@ class DocumentService:
 
         directory = _document_directory(document, self._settings.upload_dir)
         quarantine: Path | None = None
-        if directory is not None and directory.is_dir():
-            quarantine = directory.with_name(f".{directory.name}.{uuid4()}.deleting")
-            directory.replace(quarantine)
-
         try:
+            self._indexer.delete_document(session, document.id)
+            if directory is not None and directory.is_dir():
+                quarantine = directory.with_name(f".{directory.name}.{uuid4()}.deleting")
+                directory.replace(quarantine)
             session.delete(document)
             session.commit()
         except Exception:

@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -15,51 +15,45 @@ from app.application.answers import (
     GroundedAnswerError,
     GroundedAnswerService,
 )
-from app.core.settings import Settings
-from app.persistence.models import Conversation, ConversationMessage, Document, DocumentChunk
+from app.persistence.models import Conversation, ConversationMessage
+from app.rag.contracts import RetrievedSource
 
 
-class FakeGateway:
+class FakeChatProvider:
     def __init__(self, answer: str = "The answer is supported [S1].") -> None:
         self.answer = answer
-        self.embed_calls: list[tuple[str, str]] = []
-        self.chat_calls: list[tuple[str, list[dict[str, str]]]] = []
+        self.calls: list[tuple[str, list[dict[str, str]]]] = []
 
-    def embed(self, model: str, inputs: str) -> list[list[float]]:
-        self.embed_calls.append((model, inputs))
-        return [[0.1, 0.2, 0.3]]
-
-    def chat(self, model: str, messages: list[dict[str, str]]) -> str:
-        self.chat_calls.append((model, messages))
+    def chat(self, model: str, messages: Sequence[Mapping[str, str]]) -> str:
+        self.calls.append((model, [dict(message) for message in messages]))
         return self.answer
 
 
-class FakeRows:
-    def __init__(self, rows: list[tuple[DocumentChunk, Document, float]]) -> None:
-        self._rows = rows
+class FakeRetriever:
+    def __init__(self, sources: list[RetrievedSource]) -> None:
+        self.sources = sources
+        self.calls: list[tuple[Any, str, str, int]] = []
 
-    def all(self) -> list[tuple[DocumentChunk, Document, float]]:
-        return self._rows
+    def retrieve(
+        self,
+        session: Any,
+        *,
+        question: str,
+        embedding_model: str,
+        top_k: int,
+    ) -> list[RetrievedSource]:
+        self.calls.append((session, question, embedding_model, top_k))
+        return self.sources
 
 
 class AnswerSession:
-    def __init__(
-        self,
-        conversation: Conversation,
-        rows: list[tuple[DocumentChunk, Document, float]],
-    ) -> None:
+    def __init__(self, conversation: Conversation) -> None:
         self.conversation = conversation
-        self.rows = rows
-        self.statement: Any | None = None
         self.refreshed: list[Any] = []
 
     def get(self, model: type[Any], identifier: UUID) -> Conversation | None:
         assert model is Conversation
         return self.conversation if identifier == self.conversation.id else None
-
-    def execute(self, statement: Any) -> FakeRows:
-        self.statement = statement
-        return FakeRows(self.rows)
 
     def refresh(self, value: Any) -> None:
         self.refreshed.append(value)
@@ -106,20 +100,6 @@ class FakeConversationService:
         return user_message, assistant_message
 
 
-def settings(*, top_k: int = 2) -> Settings:
-    return Settings(
-        database_url="postgresql+psycopg://unused",
-        ollama_host="http://ollama.test",
-        chat_models=("chat-a",),
-        embedding_models=("embed-a",),
-        default_chat_model="chat-a",
-        default_embedding_model="embed-a",
-        brand_config_path=Path("brand.json"),
-        cors_origins=("http://localhost:5173",),
-        rag_top_k=top_k,
-    )
-
-
 def conversation() -> Conversation:
     return Conversation(
         id=uuid4(),
@@ -129,33 +109,19 @@ def conversation() -> Conversation:
     )
 
 
-def source_row(name: str, ordinal: int, distance: float):
-    document_id = uuid4()
-    document = Document(
-        id=document_id,
-        file_name=name,
-        content_type="text/plain",
-        file_path=f"/uploads/{document_id}/{name}",
-        size_bytes=100,
-        sha256="0" * 64,
-        status="ready",
-        chunk_count=1,
-        is_active=True,
-        embedding_model="embed-a",
-    )
-    chunk = DocumentChunk(
-        id=uuid4(),
-        document_id=document_id,
-        ordinal=ordinal,
+def source(name: str, ordinal: int, score: float) -> RetrievedSource:
+    return RetrievedSource(
+        source_id=f"S{ordinal + 1}",
+        document_id=uuid4(),
+        document_name=name,
         page_number=ordinal + 1,
-        content=f"Grounded passage from {name}.",
-        embedding_model="embed-a",
-        embedding=[0.1, 0.2, 0.3],
+        chunk_id=uuid4(),
+        snippet=f"Grounded passage from {name}.",
+        score=score,
     )
-    return chunk, document, distance
 
 
-def test_answer_uses_conversation_models_ready_compatible_chunks_and_markers() -> None:
+def test_answer_uses_retrieved_sources_and_keeps_grounding_rules() -> None:
     stored_conversation = conversation()
     history = [
         ConversationMessage(
@@ -169,15 +135,17 @@ def test_answer_uses_conversation_models_ready_compatible_chunks_and_markers() -
         )
     ]
     conversation_service = FakeConversationService(stored_conversation, history)
-    gateway = FakeGateway("The second passage supports this statement [S2].")
-    session = AnswerSession(
-        stored_conversation,
-        [source_row("first.txt", 0, 0.1), source_row("second.pdf", 1, 0.2)],
+    chat_provider = FakeChatProvider(
+        "The second passage supports this statement [S2]."
     )
+    retriever = FakeRetriever(
+        [source("first.txt", 0, 0.9), source("second.pdf", 1, 0.8)]
+    )
+    session = AnswerSession(stored_conversation)
     service = GroundedAnswerService(
-        chat_provider=gateway,
-        embedding_provider=gateway,
-        settings=settings(),
+        chat_provider=chat_provider,
+        retriever=retriever,
+        top_k=2,
         conversations=conversation_service,  # type: ignore[arg-type]
         clock=iter([100.0, 102.345]).__next__,
     )
@@ -189,9 +157,9 @@ def test_answer_uses_conversation_models_ready_compatible_chunks_and_markers() -
     )
 
     assert result is not None
-    assert gateway.embed_calls == [("embed-a", "What is supported?")]
-    assert gateway.chat_calls[0][0] == "chat-a"
-    chat_messages = gateway.chat_calls[0][1]
+    assert retriever.calls == [(session, "What is supported?", "embed-a", 2)]
+    assert chat_provider.calls[0][0] == "chat-a"
+    chat_messages = chat_provider.calls[0][1]
     assert chat_messages[0] == {"role": "system", "content": GROUNDING_SYSTEM_PROMPT}
     assert chat_messages[1]["content"] == "Earlier question"
     assert '"source": "S1"' in chat_messages[-1]["content"]
@@ -206,28 +174,18 @@ def test_answer_uses_conversation_models_ready_compatible_chunks_and_markers() -
     assert citations[0]["score"] == 0.8
     assert conversation_service.record_call["response_duration_ms"] == 2345
     assert result.assistant_message.response_duration_ms == 2345
-    assert session.statement is not None
-    sql = str(session.statement)
-    assert "documents.status" in sql
-    assert "documents.is_active IS true" in sql
-    assert "documents.embedding_model" in sql
-    assert "document_chunks.embedding_model" in sql
-    assert "<=>" in sql
-    parameters = session.statement.compile().params.values()
-    assert "ready" in parameters
-    assert list(parameters).count("embed-a") == 2
-    assert settings().rag_top_k in session.statement.compile().params.values()
 
 
-def test_missing_compatible_sources_returns_explicit_insufficiency_without_chat() -> None:
+def test_missing_sources_returns_explicit_insufficiency_without_chat() -> None:
     stored_conversation = conversation()
     conversation_service = FakeConversationService(stored_conversation)
-    gateway = FakeGateway()
-    session = AnswerSession(stored_conversation, [])
+    chat_provider = FakeChatProvider()
+    retriever = FakeRetriever([])
+    session = AnswerSession(stored_conversation)
     service = GroundedAnswerService(
-        chat_provider=gateway,
-        embedding_provider=gateway,
-        settings=settings(),
+        chat_provider=chat_provider,
+        retriever=retriever,
+        top_k=3,
         conversations=conversation_service,  # type: ignore[arg-type]
     )
 
@@ -238,8 +196,8 @@ def test_missing_compatible_sources_returns_explicit_insufficiency_without_chat(
     )
 
     assert result is not None
-    assert gateway.embed_calls == [("embed-a", "Unknown topic?")]
-    assert gateway.chat_calls == []
+    assert retriever.calls == [(session, "Unknown topic?", "embed-a", 3)]
+    assert chat_provider.calls == []
     assert conversation_service.record_call is not None
     assert conversation_service.record_call["answer"] == INSUFFICIENT_ANSWER
     assert conversation_service.record_call["citations"] == []
@@ -248,18 +206,16 @@ def test_missing_compatible_sources_returns_explicit_insufficiency_without_chat(
 def test_chat_answer_with_an_unknown_source_marker_is_rejected() -> None:
     stored_conversation = conversation()
     conversation_service = FakeConversationService(stored_conversation)
-    gateway = FakeGateway("Unsupported claim [S9].")
-    session = AnswerSession(stored_conversation, [source_row("only.txt", 0, 0.1)])
     service = GroundedAnswerService(
-        chat_provider=gateway,
-        embedding_provider=gateway,
-        settings=settings(),
+        chat_provider=FakeChatProvider("Unsupported claim [S9]."),
+        retriever=FakeRetriever([source("only.txt", 0, 0.9)]),
+        top_k=2,
         conversations=conversation_service,  # type: ignore[arg-type]
     )
 
     with pytest.raises(GroundedAnswerError, match="unavailable source markers: S9"):
         service.answer(
-            session,  # type: ignore[arg-type]
+            AnswerSession(stored_conversation),  # type: ignore[arg-type]
             conversation_id=stored_conversation.id,
             question="Question",
         )
@@ -270,19 +226,16 @@ def test_chat_answer_with_an_unknown_source_marker_is_rejected() -> None:
 def test_chat_answer_without_marker_or_insufficiency_is_rejected() -> None:
     stored_conversation = conversation()
     conversation_service = FakeConversationService(stored_conversation)
-    gateway = FakeGateway("An ungrounded answer.")
     service = GroundedAnswerService(
-        chat_provider=gateway,
-        embedding_provider=gateway,
-        settings=settings(),
+        chat_provider=FakeChatProvider("An ungrounded answer."),
+        retriever=FakeRetriever([source("only.txt", 0, 0.9)]),
+        top_k=2,
         conversations=conversation_service,  # type: ignore[arg-type]
     )
 
     with pytest.raises(GroundedAnswerError, match="without a source marker"):
         service.answer(
-            AnswerSession(  # type: ignore[arg-type]
-                stored_conversation, [source_row("only.txt", 0, 0.1)]
-            ),
+            AnswerSession(stored_conversation),  # type: ignore[arg-type]
             conversation_id=stored_conversation.id,
             question="Question",
         )

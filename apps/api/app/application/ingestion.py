@@ -8,13 +8,12 @@ from datetime import timedelta
 from pathlib import Path
 from uuid import UUID
 
-from sqlalchemy import delete, select, text
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from ..ai.contracts import EmbeddingProvider
 from ..core.settings import Settings
-from ..persistence.models import DocumentChunk, IngestionJob, utc_now
-from ..rag.native.chunking import chunk_sections
+from ..persistence.models import IngestionJob, utc_now
+from ..rag.contracts import DocumentIndexer, IndexDocument
 from .extraction import extract_sections
 
 MAX_INGESTION_ERROR_LENGTH = 2000
@@ -24,11 +23,11 @@ class IngestionService:
     def __init__(
         self,
         *,
-        embedding_provider: EmbeddingProvider,
+        indexer: DocumentIndexer,
         settings: Settings,
         worker_id: str | None = None,
     ) -> None:
-        self._embedding_provider = embedding_provider
+        self._indexer = indexer
         self._settings = settings
         self.worker_id = worker_id or socket.gethostname()
 
@@ -92,40 +91,17 @@ class IngestionService:
         session.commit()
 
         try:
-            chunks = chunk_sections(extract_sections(Path(document.file_path)))
-            if not chunks:
-                raise ValueError("No readable text was found in the document.")
-
-            embeddings: list[list[float]] = []
-            batch_size = self._settings.embedding_batch_size
-            for start in range(0, len(chunks), batch_size):
-                batch = chunks[start : start + batch_size]
-                embeddings.extend(
-                    self._embedding_provider.embed(
-                        document.embedding_model,
-                        [chunk.content for chunk in batch],
-                    )
-                )
-            _validate_embeddings(embeddings, len(chunks))
-
-            session.execute(
-                delete(DocumentChunk).where(DocumentChunk.document_id == document.id)
-            )
-            session.add_all(
-                [
-                    DocumentChunk(
-                        document_id=document.id,
-                        ordinal=chunk.ordinal,
-                        page_number=chunk.page_number,
-                        content=chunk.content,
-                        embedding_model=document.embedding_model,
-                        embedding=embedding,
-                    )
-                    for chunk, embedding in zip(chunks, embeddings, strict=True)
-                ]
+            chunk_count = self._indexer.replace_document(
+                session,
+                IndexDocument(
+                    document_id=document.id,
+                    document_name=document.file_name,
+                    embedding_model=document.embedding_model,
+                ),
+                extract_sections(Path(document.file_path)),
             )
             document.status = "ready"
-            document.chunk_count = len(chunks)
+            document.chunk_count = chunk_count
             document.error_message = None
             job.status = "completed"
             job.error_message = None
@@ -145,14 +121,6 @@ class IngestionService:
             failed_job.document.error_message = message
             session.commit()
             return False
-
-
-def _validate_embeddings(embeddings: list[list[float]], expected_count: int) -> None:
-    if len(embeddings) != expected_count:
-        raise RuntimeError("The embedding model returned an unexpected number of vectors.")
-    dimensions = {len(embedding) for embedding in embeddings}
-    if not dimensions or 0 in dimensions or len(dimensions) != 1:
-        raise RuntimeError("The embedding model returned inconsistent vector dimensions.")
 
 
 def _bounded_error(error: Exception) -> str:

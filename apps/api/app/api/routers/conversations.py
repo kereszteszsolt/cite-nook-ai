@@ -14,6 +14,7 @@ from ...application.conversations import (
     UnsupportedModelError,
 )
 from ...persistence.models import Conversation, ConversationMessage
+from ...rag.contracts import SourceRetrievalError
 from ..dependencies import (
     AnswerServiceDependency,
     ConversationServiceDependency,
@@ -104,7 +105,7 @@ def answer_question(
         raise HTTPException(status_code=422, detail=str(error)) from error
     except ModelProviderUnavailableError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
-    except GroundedAnswerError as error:
+    except (GroundedAnswerError, SourceRetrievalError) as error:
         raise HTTPException(status_code=502, detail=str(error)) from error
     if result is None:
         raise HTTPException(status_code=404, detail="Conversation not found.")

@@ -2,7 +2,7 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` through `MRA-021` are committed, and `MRA-022` is implemented and awaits commit approval; later stories remain planned.
+Release 0.5 is in progress. `MRA-018` through `MRA-022` are committed, and `MRA-023` is implemented and awaits commit approval; later stories remain planned.
 
 ## Evidence table
 
@@ -12,8 +12,8 @@ Release 0.5 is in progress. `MRA-018` through `MRA-021` are committed, and `MRA-
 | MRA-019 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `e32cbba` | Implemented |
 | MRA-020 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `33d1f50` | Implemented |
 | MRA-021 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `1b2ace3` | Implemented |
-| MRA-022 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
-| MRA-023 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-022 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `4aa1003` | Implemented |
+| MRA-023 | Approved 2026-08-30 | Passed | Passed | Pending | This commit | Implemented |
 | MRA-024 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-025 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-026 | Pending | Pending | Pending | Pending | — | Planned |
@@ -100,6 +100,24 @@ Implementation approval was given on 2026-08-30 after the scope and checks were 
 - Both current Compose configuration commands, repository verification, import compilation, and `git diff --check` passed.
 
 Commit approval was given on 2026-08-30. The resulting hash is reported after the commit succeeds because a commit cannot contain its own hash.
+
+## MRA-023 evidence
+
+Implementation approval was given on 2026-08-30 after the scope and checks were reviewed.
+
+- `DocumentIndexer` and `SourceRetriever` expose backend-neutral index documents, text sections, and retrieved sources while keeping SQLAlchemy rows inside adapters.
+- `NativeDocumentIndexer` owns unchanged chunking, embedding batches, vector validation, replacement writes, and explicit index deletion without committing the application transaction.
+- `NativeSourceRetriever` owns query embedding, ready and active filters, embedding-model matching, pgvector cosine order, stable source IDs, and the Release 0.4 score calculation.
+- Ingestion now owns extraction and job state only, while grounded answers retain the common prompt, chat, citation, timing, and message flow.
+- Document deletion calls the selected indexer before app-record and file cleanup, and rollback tests prove that an index failure preserves both app data and the stored file.
+- Contract tests preserve the 14 public method and route pairs, five database table names, citation JSON fields, native `S1` ordering and scores, and the existing HTTP error mappings.
+- An isolated `pgvector/pgvector:pg17` smoke test read an existing Release 0.4-style row as `S1` with score `1.0`, replaced its native chunks, and deleted them with no schema migration.
+- Static boundary scans found no ORM, pgvector, or embedding implementation in the ingestion and answer services, and no LlamaIndex import in the native API build.
+- In the isolated Python 3.14 container, Ruff passed, all 76 API tests passed, and the API build passed.
+- In the isolated Node 26 container, TypeScript lint passed, 48 web and 1 brand test passed, and both production builds passed.
+- Both current Compose configuration commands, repository verification, import compilation, and `git diff --check` passed.
+
+Commit approval is pending. The resulting hash is reported after the approved commit succeeds because a commit cannot contain its own hash.
 
 ## Required release checks
 

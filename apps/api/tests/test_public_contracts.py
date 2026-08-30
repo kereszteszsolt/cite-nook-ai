@@ -13,6 +13,7 @@ from app.api.schemas import QuestionCreate
 from app.application.model_catalog import ModelCatalog, ModelOption
 from app.main import app
 from app.persistence.database import Base
+from app.rag.contracts import SourceRetrievalError
 
 
 def test_public_routes_are_unchanged() -> None:
@@ -75,6 +76,13 @@ class UnavailableAnswerService:
         raise ModelProviderUnavailableError("Ollama chat request failed.")
 
 
+class FailedRetrievalService:
+    def answer(self, session, *, conversation_id, question):
+        raise SourceRetrievalError(
+            "The embedding model returned an unexpected number of vectors."
+        )
+
+
 def test_model_provider_failure_keeps_the_public_503_error() -> None:
     with pytest.raises(HTTPException) as raised:
         answer_question(
@@ -86,3 +94,18 @@ def test_model_provider_failure_keeps_the_public_503_error() -> None:
 
     assert raised.value.status_code == 503
     assert raised.value.detail == "Ollama chat request failed."
+
+
+def test_native_retrieval_failure_keeps_the_public_502_error() -> None:
+    with pytest.raises(HTTPException) as raised:
+        answer_question(
+            uuid4(),
+            QuestionCreate(question="Question"),
+            object(),  # type: ignore[arg-type]
+            FailedRetrievalService(),  # type: ignore[arg-type]
+        )
+
+    assert raised.value.status_code == 502
+    assert raised.value.detail == (
+        "The embedding model returned an unexpected number of vectors."
+    )

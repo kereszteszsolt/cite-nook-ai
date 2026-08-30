@@ -3,16 +3,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
+
+from ..contracts import TextSection
 
 DEFAULT_CHUNK_SIZE = 1200
 DEFAULT_CHUNK_OVERLAP = 160
-
-
-@dataclass(frozen=True, slots=True)
-class TextSection:
-    text: str
-    page_number: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,7 +20,7 @@ class TextChunk:
 
 
 def chunk_sections(
-    sections: list[TextSection],
+    sections: Sequence[TextSection],
     *,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     overlap: int = DEFAULT_CHUNK_OVERLAP,

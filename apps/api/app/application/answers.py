@@ -8,15 +8,13 @@ import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..ai.contracts import ChatProvider, EmbeddingProvider
-from ..core.settings import Settings
-from ..persistence.models import Conversation, ConversationMessage, Document, DocumentChunk
+from ..ai.contracts import ChatProvider
+from ..persistence.models import Conversation, ConversationMessage
+from ..rag.contracts import RetrievedSource, SourceRetriever
 from .conversations import ConversationService
 
 INSUFFICIENT_ANSWER = "The provided sources are insufficient to answer this question."
@@ -42,28 +40,6 @@ class GroundedAnswerError(RuntimeError):
 
 
 @dataclass(frozen=True, slots=True)
-class RetrievedSource:
-    source_id: str
-    document_id: UUID
-    document_name: str
-    page_number: int | None
-    chunk_id: UUID
-    snippet: str
-    score: float
-
-    def citation(self) -> dict[str, Any]:
-        return {
-            "source_id": self.source_id,
-            "document_id": self.document_id,
-            "document_name": self.document_name,
-            "page_number": self.page_number,
-            "chunk_id": self.chunk_id,
-            "snippet": self.snippet,
-            "score": self.score,
-        }
-
-
-@dataclass(frozen=True, slots=True)
 class AnswerResult:
     conversation: Conversation
     user_message: ConversationMessage
@@ -75,14 +51,14 @@ class GroundedAnswerService:
         self,
         *,
         chat_provider: ChatProvider,
-        embedding_provider: EmbeddingProvider,
-        settings: Settings,
+        retriever: SourceRetriever,
+        top_k: int,
         conversations: ConversationService,
         clock: Callable[[], float] | None = None,
     ) -> None:
         self._chat_provider = chat_provider
-        self._embedding_provider = embedding_provider
-        self._settings = settings
+        self._retriever = retriever
+        self._top_k = top_k
         self._conversations = conversations
         self._clock = clock or perf_counter
 
@@ -98,18 +74,11 @@ class GroundedAnswerService:
             return None
 
         started_at = self._clock()
-        embeddings = self._embedding_provider.embed(
-            conversation.embedding_model, normalized_question
-        )
-        if len(embeddings) != 1:
-            raise GroundedAnswerError(
-                "The embedding model returned an unexpected number of vectors."
-            )
-
-        sources = self.retrieve(
+        sources = self._retriever.retrieve(
             session,
+            question=normalized_question,
             embedding_model=conversation.embedding_model,
-            question_embedding=embeddings[0],
+            top_k=self._top_k,
         )
         if sources:
             history = self._conversations.recent_history(session, conversation_id)
@@ -141,42 +110,6 @@ class GroundedAnswerService:
             user_message=user_message,
             assistant_message=assistant_message,
         )
-
-    def retrieve(
-        self,
-        session: Session,
-        *,
-        embedding_model: str,
-        question_embedding: Sequence[float],
-    ) -> list[RetrievedSource]:
-        distance = DocumentChunk.embedding.cosine_distance(question_embedding).label(
-            "distance"
-        )
-        statement = (
-            select(DocumentChunk, Document, distance)
-            .join(Document, Document.id == DocumentChunk.document_id)
-            .where(
-                Document.status == "ready",
-                Document.is_active.is_(True),
-                Document.embedding_model == embedding_model,
-                DocumentChunk.embedding_model == embedding_model,
-            )
-            .order_by(distance.asc(), DocumentChunk.id.asc())
-            .limit(self._settings.rag_top_k)
-        )
-        rows = session.execute(statement).all()
-        return [
-            RetrievedSource(
-                source_id=f"S{index}",
-                document_id=document.id,
-                document_name=document.file_name,
-                page_number=chunk.page_number,
-                chunk_id=chunk.id,
-                snippet=chunk.content,
-                score=round(max(-1.0, min(1.0, 1.0 - float(row_distance))), 6),
-            )
-            for index, (chunk, document, row_distance) in enumerate(rows, start=1)
-        ]
 
 
 def build_chat_messages(

@@ -12,6 +12,27 @@ import pytest
 from app.application.documents import DocumentService
 from app.core.settings import Settings
 from app.persistence.models import Document
+from app.rag.contracts import IndexDocument, TextSection
+
+
+class FakeIndexer:
+    def __init__(self, *, error: Exception | None = None) -> None:
+        self.error = error
+        self.deleted_ids: list[UUID] = []
+
+    def replace_document(
+        self,
+        session: Any,
+        document: IndexDocument,
+        sections: list[TextSection],
+    ) -> int:
+        return 0
+
+    def delete_document(self, session: Any, document_id: UUID) -> None:
+        session.events.append("index")
+        self.deleted_ids.append(document_id)
+        if self.error is not None:
+            raise self.error
 
 
 class DocumentSession:
@@ -23,6 +44,7 @@ class DocumentSession:
         self.committed = False
         self.rolled_back = False
         self.refreshed: list[Document] = []
+        self.events: list[str] = []
 
     def scalars(self, statement: Any) -> list[Document]:
         self.statement = str(statement)
@@ -33,14 +55,17 @@ class DocumentSession:
         return next((item for item in self.documents if item.id == document_id), None)
 
     def delete(self, document: Document) -> None:
+        self.events.append("app")
         self.deleted.append(document)
 
     def commit(self) -> None:
         if self.fail_commit:
             raise RuntimeError("database unavailable")
+        self.events.append("commit")
         self.committed = True
 
     def rollback(self) -> None:
+        self.events.append("rollback")
         self.rolled_back = True
 
     def refresh(self, document: Document) -> None:
@@ -81,6 +106,17 @@ def stored_document(upload_dir: Path, *, file_name: str = "notes.txt") -> Docume
     )
 
 
+def document_service(
+    upload_dir: Path,
+    *,
+    indexer: FakeIndexer | None = None,
+) -> DocumentService:
+    return DocumentService(
+        settings=document_settings(upload_dir),
+        indexer=indexer or FakeIndexer(),
+    )
+
+
 def test_lists_documents_newest_first() -> None:
     documents = [
         Document(id=uuid4(), file_name="new.txt", embedding_model="embed-a"),
@@ -88,14 +124,12 @@ def test_lists_documents_newest_first() -> None:
     ]
     session = DocumentSession(documents)
 
-    assert DocumentService(document_settings(Path("uploads"))).list(  # type: ignore[arg-type]
-        session
-    ) == documents
+    assert document_service(Path("uploads")).list(session) == documents  # type: ignore[arg-type]
     assert "documents.created_at DESC" in session.statement
 
 
 def test_original_file_is_limited_to_the_document_uuid_directory(tmp_path: Path) -> None:
-    service = DocumentService(document_settings(tmp_path))
+    service = document_service(tmp_path)
     document = stored_document(tmp_path)
 
     assert service.original_file(document) == Path(document.file_path)
@@ -111,7 +145,7 @@ def test_set_active_persists_only_the_retrieval_selection(tmp_path: Path) -> Non
     original_path = document.file_path
     session = DocumentSession([document])
 
-    updated = DocumentService(document_settings(tmp_path)).set_active(  # type: ignore[arg-type]
+    updated = document_service(tmp_path).set_active(  # type: ignore[arg-type]
         session, document.id, is_active=False
     )
 
@@ -128,7 +162,7 @@ def test_set_active_persists_only_the_retrieval_selection(tmp_path: Path) -> Non
 def test_set_active_returns_none_for_an_unknown_document(tmp_path: Path) -> None:
     session = DocumentSession([])
 
-    updated = DocumentService(document_settings(tmp_path)).set_active(  # type: ignore[arg-type]
+    updated = document_service(tmp_path).set_active(  # type: ignore[arg-type]
         session, uuid4(), is_active=False
     )
 
@@ -142,7 +176,7 @@ def test_set_active_rolls_back_when_the_database_commit_fails(tmp_path: Path) ->
     session = DocumentSession([document], fail_commit=True)
 
     with pytest.raises(RuntimeError, match="database unavailable"):
-        DocumentService(document_settings(tmp_path)).set_active(  # type: ignore[arg-type]
+        document_service(tmp_path).set_active(  # type: ignore[arg-type]
             session, document.id, is_active=False
         )
 
@@ -154,14 +188,17 @@ def test_delete_removes_the_database_record_and_stored_directory(tmp_path: Path)
     document = stored_document(tmp_path)
     directory = Path(document.file_path).parent
     session = DocumentSession([document])
+    indexer = FakeIndexer()
 
-    deleted = DocumentService(document_settings(tmp_path)).delete(  # type: ignore[arg-type]
+    deleted = document_service(tmp_path, indexer=indexer).delete(  # type: ignore[arg-type]
         session, document.id
     )
 
     assert deleted is True
     assert session.deleted == [document]
     assert session.committed is True
+    assert session.events == ["index", "app", "commit"]
+    assert indexer.deleted_ids == [document.id]
     assert directory.exists() is False
 
 
@@ -171,13 +208,33 @@ def test_delete_restores_the_directory_when_the_database_commit_fails(
     document = stored_document(tmp_path)
     path = Path(document.file_path)
     session = DocumentSession([document], fail_commit=True)
+    indexer = FakeIndexer()
 
     with pytest.raises(RuntimeError, match="database unavailable"):
-        DocumentService(document_settings(tmp_path)).delete(  # type: ignore[arg-type]
+        document_service(tmp_path, indexer=indexer).delete(  # type: ignore[arg-type]
             session, document.id
         )
 
     assert session.rolled_back is True
+    assert session.events == ["index", "app", "rollback"]
+    assert indexer.deleted_ids == [document.id]
+    assert path.read_text(encoding="utf-8") == "document content"
+
+
+def test_delete_keeps_app_data_and_file_when_index_delete_fails(tmp_path: Path) -> None:
+    document = stored_document(tmp_path)
+    path = Path(document.file_path)
+    session = DocumentSession([document])
+    indexer = FakeIndexer(error=RuntimeError("index unavailable"))
+
+    with pytest.raises(RuntimeError, match="index unavailable"):
+        document_service(tmp_path, indexer=indexer).delete(  # type: ignore[arg-type]
+            session, document.id
+        )
+
+    assert session.deleted == []
+    assert session.rolled_back is True
+    assert session.events == ["index", "rollback"]
     assert path.read_text(encoding="utf-8") == "document content"
 
 
@@ -185,9 +242,7 @@ def test_delete_returns_false_for_an_unknown_document(tmp_path: Path) -> None:
     session = DocumentSession([])
 
     assert (
-        DocumentService(document_settings(tmp_path)).delete(  # type: ignore[arg-type]
-            session, uuid4()
-        )
+        document_service(tmp_path).delete(session, uuid4())  # type: ignore[arg-type]
         is False
     )
     assert session.committed is False

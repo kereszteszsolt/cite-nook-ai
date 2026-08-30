@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
@@ -11,41 +12,47 @@ from uuid import UUID, uuid4
 from app.ai.contracts import ModelProviderUnavailableError
 from app.application.ingestion import IngestionService
 from app.core.settings import Settings
-from app.persistence.models import Document, DocumentChunk, IngestionJob, utc_now
+from app.persistence.models import Document, IngestionJob, utc_now
+from app.rag.contracts import IndexDocument, TextSection
 
 
-class FakeGateway:
-    def __init__(self) -> None:
-        self.batches: list[list[str]] = []
+class FakeIndexer:
+    def __init__(
+        self,
+        *,
+        item_count: int = 3,
+        error: Exception | None = None,
+    ) -> None:
+        self.item_count = item_count
+        self.error = error
+        self.replace_calls: list[
+            tuple[Any, IndexDocument, list[TextSection]]
+        ] = []
 
-    def embed(self, model: str, inputs: list[str]) -> list[list[float]]:
-        assert model == "embed-a"
-        self.batches.append(inputs)
-        return [[float(len(value)), 0.5, 1.0] for value in inputs]
+    def replace_document(
+        self,
+        session: Any,
+        document: IndexDocument,
+        sections: Sequence[TextSection],
+    ) -> int:
+        self.replace_calls.append((session, document, list(sections)))
+        if self.error is not None:
+            raise self.error
+        return self.item_count
 
-
-class UnavailableEmbeddingProvider:
-    def embed(self, model: str, inputs: list[str]) -> list[list[float]]:
-        raise ModelProviderUnavailableError("Ollama embedding request failed.")
+    def delete_document(self, session: Any, document_id: UUID) -> None:
+        pass
 
 
 class ProcessSession:
     def __init__(self, job: IngestionJob) -> None:
         self.job = job
-        self.added: list[Any] = []
-        self.executed: list[Any] = []
         self.commits = 0
         self.rollbacks = 0
 
     def get(self, model: type[Any], identifier: UUID) -> IngestionJob | None:
         assert model is IngestionJob
         return self.job if identifier == self.job.id else None
-
-    def execute(self, statement: Any) -> None:
-        self.executed.append(statement)
-
-    def add_all(self, objects: list[Any]) -> None:
-        self.added.extend(objects)
 
     def commit(self) -> None:
         self.commits += 1
@@ -98,7 +105,7 @@ class StaleSession:
         self.committed = True
 
 
-def settings(upload_dir: Path, *, batch_size: int = 2, stale_minutes: int = 15) -> Settings:
+def settings(upload_dir: Path, *, stale_minutes: int = 15) -> Settings:
     return Settings(
         database_url="postgresql+psycopg://unused",
         ollama_host="http://ollama.test",
@@ -109,7 +116,6 @@ def settings(upload_dir: Path, *, batch_size: int = 2, stale_minutes: int = 15) 
         brand_config_path=Path("brand.json"),
         cors_origins=("http://localhost:5173",),
         upload_dir=upload_dir,
-        embedding_batch_size=batch_size,
         ingestion_stale_minutes=stale_minutes,
     )
 
@@ -141,7 +147,7 @@ def test_claim_uses_skip_locked_and_marks_the_worker() -> None:
     session = ClaimSession(job_id)
 
     claimed = IngestionService(
-        embedding_provider=FakeGateway(),
+        indexer=FakeIndexer(),
         settings=settings(Path("uploads")),
         worker_id="worker-a",
     ).claim_next_job(session)  # type: ignore[arg-type]
@@ -152,40 +158,40 @@ def test_claim_uses_skip_locked_and_marks_the_worker() -> None:
     assert session.committed is True
 
 
-def test_processing_extracts_batches_and_builds_persistent_chunks(tmp_path: Path) -> None:
+def test_processing_extracts_text_and_delegates_index_work(tmp_path: Path) -> None:
     path = tmp_path / "notes.txt"
-    path.write_text(" ".join(f"content-{index}." for index in range(600)), encoding="utf-8")
+    path.write_text("Readable document content.", encoding="utf-8")
     document, job = document_and_job(path)
     session = ProcessSession(job)
-    gateway = FakeGateway()
-    service = IngestionService(
-        embedding_provider=gateway,
-        settings=settings(tmp_path, batch_size=2),
-    )
+    indexer = FakeIndexer(item_count=4)
+    service = IngestionService(indexer=indexer, settings=settings(tmp_path))
 
     assert service.process_job(session, job.id) is True  # type: ignore[arg-type]
 
-    chunks = [item for item in session.added if isinstance(item, DocumentChunk)]
-    assert len(chunks) > 2
-    assert all(len(batch) <= 2 for batch in gateway.batches)
-    assert sum(len(batch) for batch in gateway.batches) == len(chunks)
-    assert [chunk.ordinal for chunk in chunks] == list(range(len(chunks)))
-    assert all(chunk.embedding_model == "embed-a" for chunk in chunks)
-    assert all(chunk.page_number is None for chunk in chunks)
-    assert all(len(chunk.embedding) == 3 for chunk in chunks)
+    assert len(indexer.replace_calls) == 1
+    called_session, index_document, sections = indexer.replace_calls[0]
+    assert called_session is session
+    assert index_document == IndexDocument(
+        document_id=document.id,
+        document_name="notes.txt",
+        embedding_model="embed-a",
+    )
+    assert sections == [TextSection("Readable document content.")]
     assert document.status == "ready"
-    assert document.chunk_count == len(chunks)
+    assert document.chunk_count == 4
     assert job.status == "completed"
     assert session.commits == 2
 
 
-def test_embedding_failure_keeps_the_existing_failed_job_behavior(tmp_path: Path) -> None:
+def test_index_failure_keeps_the_existing_failed_job_behavior(tmp_path: Path) -> None:
     path = tmp_path / "notes.txt"
     path.write_text("Readable content.", encoding="utf-8")
     document, job = document_and_job(path)
     session = ProcessSession(job)
     service = IngestionService(
-        embedding_provider=UnavailableEmbeddingProvider(),
+        indexer=FakeIndexer(
+            error=ModelProviderUnavailableError("Ollama embedding request failed.")
+        ),
         settings=settings(tmp_path),
     )
 
@@ -210,7 +216,7 @@ def test_stale_processing_jobs_are_requeued_after_the_configured_interval(
     session = StaleSession([job])
 
     reset = IngestionService(
-        embedding_provider=FakeGateway(),
+        indexer=FakeIndexer(),
         settings=settings(tmp_path, stale_minutes=15),
     ).reset_stale_jobs(session)  # type: ignore[arg-type]
 

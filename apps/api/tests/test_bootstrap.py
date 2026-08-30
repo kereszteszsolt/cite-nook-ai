@@ -53,9 +53,12 @@ def test_composition_root_shares_settings_and_model_provider(tmp_path: Path) -> 
     assert application.settings is configured_settings
     assert application.conversation_service._settings is configured_settings
     assert application.answer_service._chat_provider is provider
-    assert application.answer_service._embedding_provider is provider
+    assert application.answer_service._retriever is application.source_retriever
     assert application.model_catalog_service._provider is provider
-    assert application.ingestion_service._embedding_provider is provider
+    assert application.ingestion_service._indexer is application.document_indexer
+    assert application.document_service._indexer is application.document_indexer
+    assert application.document_indexer._embedding_provider is provider
+    assert application.source_retriever._embedding_provider is provider
     assert application.ingestion_service.worker_id == "worker-a"
     assert application.model_catalog_service.catalog().ollama_available is True
     assert provider.list_calls == 1

@@ -3,7 +3,8 @@
 
 import pytest
 
-from app.rag.native.chunking import TextSection, chunk_sections
+from app.rag.contracts import TextSection
+from app.rag.native.chunking import chunk_sections
 
 
 def test_chunking_is_deterministic_overlapping_and_preserves_page_numbers() -> None:
