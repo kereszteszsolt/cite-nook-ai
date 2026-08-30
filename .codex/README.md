@@ -1,9 +1,9 @@
 # Codex project setup
 
-This repository intentionally keeps its Codex setup small:
+This repository keeps three focused Codex roles:
 
-- `architect` plans cross-cutting changes;
-- `implementation_worker` owns one bounded write task;
-- `reviewer` checks behavior, retrieval grounding, persistence, and evidence.
+- `architect` plans one cross-cutting story;
+- `implementation_worker` implements one approved story;
+- `reviewer` checks that story, its proof, and its scope.
 
-Reusable workflows live in `.agents/skills/`. Root `AGENTS.md` is the source of truth for scope and working agreements.
+`AGENTS.md` and `docs/story-workflow.md` are the source of truth. Codex must ask before implementation, ask again before commit, and ask before the next story. Acceptance criteria are handled in order, and source comments stay short.

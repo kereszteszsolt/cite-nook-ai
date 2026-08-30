@@ -1,28 +1,32 @@
 ---
 name: rag-pipeline
-description: Implement or review CiteNook document ingestion and grounded answering. Use for upload persistence, worker jobs, extraction, chunking, Ollama embeddings/chat, pgvector retrieval, prompts, references, or document status changes.
+description: Implement or review one approved CiteNook indexing, retrieval, model, grounding, citation, or RAG deployment story.
 ---
 
 # RAG pipeline
 
-## Ingestion invariants
+## Shared rules
 
-- Save the original file before queueing work.
-- Keep queued, processing, ready, and failed states explicit.
-- Extract only supported PDF, DOCX, TXT, and Markdown files.
-- Chunk deterministically and retain page numbers when the format provides them.
-- Store the embedding model on documents and chunks.
-- Never mix vector dimensions/models in one retrieval query.
-- Make failed jobs visible and keep their error message bounded.
+- Save the original file before its job is committed.
+- Keep queued, processing, ready, and failed states clear.
+- Keep common extraction page-aware when the file supports pages.
+- Keep the embedding model on the document and index items.
+- Never mix incompatible embedding models or vector sizes.
+- Number sources in a stable order as `S1`, `S2`, and so on.
+- Use only current sources as proof for the answer.
+- Reject missing or invalid source markers.
+- Store the answer and its source proof together.
+- Keep failure text short and useful.
 
-## Answering invariants
+## Release 0.5 backend rules
 
-- Embed the question with the conversation's embedding model.
-- Retrieve only ready chunks embedded with that same model.
-- Number sources deterministically as `S1`, `S2`, and so on.
-- Tell the chat model to use only supplied sources and cite them.
-- Return structured citations with document, page, chunk, snippet, and score.
-- Persist the selected chat/embedding models on the conversation.
-- If sources are missing or insufficient, fail clearly or state insufficiency; never invent a citation.
+- One deployment builds one `DocumentIndexer` and one `SourceRetriever`.
+- Native stays the default and keeps Release 0.4 data compatible.
+- LlamaIndex owns node work, vector storage, delete, and retrieval only.
+- The common answer service owns prompt, chat, citation, timing, and message storage.
+- Do not use a LlamaIndex query engine for final answers in this release.
+- Do not import LlamaIndex from common or native modules.
+- Do not add dual writes, dual queries, hot switching, or silent fallback.
+- Delete selected index data before common document cleanup finishes.
 
-Prefer the official Ollama Python client and direct pgvector/SQLAlchemy operations. Do not introduce LangChain or another orchestration framework unless a later story requires behavior that the current small services cannot express cleanly.
+Ask before implementation and ask again before commit. Follow the story criteria in order. Keep code comments brief and move long reasons to the architecture docs.

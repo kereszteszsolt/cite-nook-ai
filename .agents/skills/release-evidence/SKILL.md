@@ -1,28 +1,32 @@
 ---
 name: release-evidence
-description: Maintain CiteNook MRA user stories and release evidence. Use when adding or reconciling acceptance criteria, implementation status, architecture links, verification commands, or release ZIP contents.
+description: Maintain CiteNook story format, approval records, verification proof, release maps, documentation links, and release archives.
 ---
 
 # Release evidence
 
-Run the dependency-free repository audit first:
+Run the repository audit first:
 
 ```bash
 python3 .agents/skills/release-evidence/scripts/verify_repository.py
 ```
 
-For each changed story record:
+For one active story:
 
-- observable acceptance criteria;
-- implementation files;
-- focused tests;
-- commands run and exact outcomes;
-- known environment limitations;
-- status: `Planned`, `In progress`, or `Implemented`.
+1. Confirm the story is the next valid item.
+2. Ask for implementation approval before implementation work.
+3. Keep four to eight short criteria and follow them in order.
+4. Record focused commands and short results in the release `verification.md`.
+5. Keep large logs outside the story and link them when needed.
+6. Propose a commit message and ask for commit approval.
+7. Record the approved commit hash after it succeeds.
+8. Ask before the next story starts.
 
 Rules:
 
-- `Implemented` is a claim about behavior, not intent.
-- Keep criteria at user/system outcome level rather than listing every code task.
-- Keep out-of-scope features explicit so the mini application stays small.
-- Keep documentation focused on product behavior, architecture, and verification evidence.
+- `Implemented` is a claim about tested behavior.
+- Story prose blocks use at most five sentences.
+- `User story` plus `Goal` aims for Flesch Reading Ease 80 or more.
+- Story files do not use issue or limitation sections.
+- Past shipped facts must not change during cleanup.
+- Source comments stay short and do not hold release proof.

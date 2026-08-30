@@ -1,14 +1,28 @@
 # CiteNook documentation
 
+## Product and use
+
 - [User guide](user-guide.md)
-- [Interface design handoff](design/README.md)
-- [Architecture](architecture.md)
-- [Brand configuration](brand-configuration.md)
-- [Development](development.md)
-- [RAG pipeline roadmap](rag-pipeline.md)
-- [Testing](testing.md)
 - [Screenshot gallery](screenshots/README.md)
+- [Interface design handoff](design/README.md)
+- [Brand configuration](brand-configuration.md)
+
+## Engineering
+
+- [Architecture](architecture.md)
+- [RAG pipeline](rag-pipeline.md)
+- [Development](development.md)
+- [Testing](testing.md)
+- [Technology stack](technology-stack.md)
+- [Story and Codex workflow](story-workflow.md)
+- [Roadmap](roadmap.md)
+
+## Releases
+
 - [Release 0.1 stories](releases/release-0.1-mini-rag/README.md)
 - [Release 0.2 stories](releases/release-0.2-focused-workspaces/README.md)
 - [Release 0.3 stories](releases/release-0.3-conversation-model-workflows/README.md)
 - [Release 0.4 stories](releases/release-0.4-local-experience-polish/README.md)
+- [Release 0.5 plan](releases/release-0.5-clean-rag-backends/README.md)
+
+Release 0.5 is planned. Its folder contains the cleanup, architecture, deployment, story, and verification plans, but no Release 0.5 application implementation.

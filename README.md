@@ -33,7 +33,7 @@ CiteNook is developed through independently verifiable MRA stories. The [release
 
 ## Documentation
 
-[User guide](docs/user-guide.md) · [Architecture](docs/architecture.md) · [RAG pipeline](docs/rag-pipeline.md) · [Development](docs/development.md) · [Testing](docs/testing.md) · [Design handoff](docs/design/README.md) · [All documentation](docs/README.md)
+[User guide](docs/user-guide.md) · [Architecture](docs/architecture.md) · [RAG pipeline](docs/rag-pipeline.md) · [Development](docs/development.md) · [Testing](docs/testing.md) · [Technology stack](docs/technology-stack.md) · [Roadmap](docs/roadmap.md) · [Design handoff](docs/design/README.md) · [All documentation](docs/README.md)
 
 ## Architecture
 
@@ -51,6 +51,19 @@ flowchart TD
 ```
 
 See the [detailed architecture](docs/architecture.md) and [RAG pipeline](docs/rag-pipeline.md) documentation.
+
+## Release 0.5 plan: one RAG backend per deployment
+
+The current Release 0.4 code always starts the native CiteNook RAG path. The planned Release 0.5 keeps `native` as the default and adds `llamaindex` as a separate deploy choice. One API and worker pair will build one backend only; there will be no UI switch, dual indexing, dual retrieval, or silent fallback.
+
+| Planned deployment | Backend that starts | Model runtime |
+| --- | --- | --- |
+| Base Compose | Native | External Ollama |
+| Base + Ollama override | Native | Compose-managed Ollama |
+| Base + LlamaIndex override | LlamaIndex | External Ollama |
+| Base + LlamaIndex + Ollama overrides | LlamaIndex | Compose-managed Ollama |
+
+The exact planned commands, data isolation rules, cleanup work, and story order are in the [Release 0.5 plan](docs/releases/release-0.5-clean-rag-backends/README.md). Those LlamaIndex commands become supported only after `MRA-026` is implemented and tested.
 
 ## Quick start
 
@@ -149,6 +162,7 @@ docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
 | [Release 0.2 story map](docs/releases/release-0.2-focused-workspaces/README.md) | Focused workspaces |
 | [Release 0.3 story map](docs/releases/release-0.3-conversation-model-workflows/README.md) | Conversation model workflows |
 | [Release 0.4 story map](docs/releases/release-0.4-local-experience-polish/README.md) | Local experience polish |
+| [Release 0.5 plan](docs/releases/release-0.5-clean-rag-backends/README.md) | Cleanup, architecture refactor, and selectable RAG backends |
 
 ## License
 

@@ -1,5 +1,41 @@
 # Testing
 
+## Release 0.5 test plan
+
+Release 0.5 must keep the Release 0.4 native behavior while it adds a separate LlamaIndex deployment. Each story runs focused checks before commit approval. The final release runs the full matrix below.
+
+| Check | Native | LlamaIndex |
+| --- | --- | --- |
+| Repository story and comment audit | Required | Required |
+| Web startup, conversation, and document tests | Required | Required |
+| Python unit tests with fake model providers | Required | Required |
+| Document index replace and delete | `document_chunks` | LlamaIndex PostgreSQL nodes |
+| Ready, active, and embedding model filters | Required | Required |
+| Shared answer and citation checks | Required | Required |
+| Restart persistence | Required | Required |
+| External Ollama Compose config and smoke | Required | Required |
+| Compose-managed Ollama config and smoke | Required | Required |
+| Wrong database backend marker | Required | Required |
+| Native import without LlamaIndex installed | Required | Not applicable |
+
+The final Compose checks will be:
+
+```bash
+docker compose config
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml config
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml config
+```
+
+The last two commands are planned until `MRA-026` adds the LlamaIndex override. Runtime smoke tests must check `/api/health` and confirm its `ragBackend` value before document work starts.
+
+## Story proof
+
+Short story proof belongs in each release `verification.md`. Large logs should be saved as files and linked. Stories must not contain long command output or issue and limitation sections.
+
+## Current Release 0.4 checks
+
+
 ## Automated checks
 
 ```bash
