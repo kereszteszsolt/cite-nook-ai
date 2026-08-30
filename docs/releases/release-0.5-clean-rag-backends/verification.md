@@ -2,14 +2,14 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` is implemented and awaits commit approval; later stories remain planned.
+Release 0.5 is in progress. `MRA-018` is committed, and `MRA-019` is implemented and awaits commit approval; later stories remain planned.
 
 ## Evidence table
 
 | Story | Implementation approval | Focused checks | Review result | Commit approval | Commit | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| MRA-018 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
-| MRA-019 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-018 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `98beb09` | Implemented |
+| MRA-019 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
 | MRA-020 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-021 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-022 | Pending | Pending | Pending | Pending | — | Planned |
@@ -30,6 +30,22 @@ Implementation approval was given on 2026-08-30 when the user asked to start imp
 - The historical release-link audit resolved 21 local Markdown targets across four release maps.
 - `git diff --check` passed.
 - Review found no application, runtime, dependency, Docker, or data-contract change.
+
+Commit approval was given on 2026-08-30. Commit `98beb09` contains the implementation.
+
+## MRA-019 evidence
+
+Implementation approval was given on 2026-08-30 when the user asked to start `MRA-019`.
+
+- The comment inventory reviewed 59 hand-written Python, TypeScript, TSX, JavaScript, shell, and SQL source files.
+- The only retained prose notes are two one-sentence repository-script docstrings and one one-sentence TypeScript comment that explains a non-JSON error fallback.
+- No comment repeats code, records old work, or stores plans, history, logs, or release proof.
+- SPDX headers, `noqa`, `type: ignore`, lint, coverage, TypeScript, and Vitest directives remain excluded from prose limits.
+- `python3 .agents/skills/release-evidence/scripts/test_comment_rules.py` passed all 7 focused tests, including grouped line comments, file-line errors, directives, and a mixed license/prose block.
+- `python3 .agents/skills/release-evidence/scripts/verify_repository.py` passed with 3 agents, 3 skills, and 27 stories, including the source-comment audit.
+- In the Node 26 container, `npm run lint` passed 3/3 tasks; `npm run test` passed 61 API, 48 web, and 1 brand test; `npm run build` passed 3/3 tasks.
+- The host Node command remains unavailable under WSL1, so the documented isolated container path supplied the full gate result.
+- `git diff --check` passed, and review found no application behavior, runtime, dependency, Docker, or data-contract change.
 
 Commit approval was given on 2026-08-30. The resulting hash is reported after the commit succeeds because a commit cannot contain its own hash.
 

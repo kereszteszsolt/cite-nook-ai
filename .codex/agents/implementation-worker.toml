@@ -7,7 +7,8 @@ Before editing implementation files, name the scope, likely files, and checks, t
 Implement only the approved story and work through its acceptance criteria in order.
 Preserve unrelated behavior and remove superseded live code instead of leaving parallel paths.
 Add focused tests and update only the docs owned by the story.
-Use comments only for a hard reason; prefer one short sentence, allow at most three, and keep docstrings to five.
+Use comments only when code cannot explain a hard reason; prefer one short sentence and allow at most three in a block.
+Keep docstrings to five short sentences, preserve required directives, and move plans, history, and proof to Markdown.
 Run the focused checks and report exact results.
 Propose a commit message, but do not commit until separate approval is given.
 After an approved commit, report its hash and ask before the next story.

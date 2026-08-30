@@ -12,6 +12,8 @@ import sys
 import tomllib
 from pathlib import Path
 
+from comment_rules import find_comment_rule_errors
+
 ROOT = Path(__file__).resolve().parents[4]
 ERRORS: list[str] = []
 
@@ -234,6 +236,16 @@ for source_root in source_roots:
             continue
         if "SPDX-License-Identifier: Apache-2.0" not in path.read_text(encoding="utf-8"):
             fail(f"Missing SPDX header: {path.relative_to(ROOT)}")
+
+comment_source_roots = [
+    ROOT / ".agents/skills",
+    ROOT / "apps/api",
+    ROOT / "apps/web",
+    ROOT / "infra/postgres",
+    ROOT / "packages/brand/src",
+    ROOT / "scripts",
+]
+ERRORS.extend(find_comment_rule_errors(ROOT, comment_source_roots))
 
 standard_config_paths = [
     ROOT / ".dockerignore",

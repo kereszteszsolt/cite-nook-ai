@@ -29,4 +29,6 @@ Rules:
 - `User story` plus `Goal` aims for Flesch Reading Ease 80 or more.
 - Story files do not use issue or limitation sections.
 - Past shipped facts must not change during cleanup.
-- Source comments stay short and do not hold release proof.
+- Source comments explain only a hard reason, prefer one short sentence, and use at most three in a block.
+- Docstrings use at most five short sentences.
+- Required directives stay unchanged, and plans, history, and proof stay in Markdown.

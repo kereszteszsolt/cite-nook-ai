@@ -17,7 +17,7 @@ The plan adds or updates:
 
 ## Implementation boundary
 
-`MRA-018` moves the old story proof into release records and applies strict rules to every story. Existing source comments remain unchanged until `MRA-019`. The current web and Python source stay in the Release 0.4 structure until their own stories are approved.
+`MRA-018` moves the old story proof into release records and applies strict rules to every story. `MRA-019` now enforces short source comments while preserving required directives. The current web and Python structure stays at the Release 0.4 boundary until its own stories are approved.
 
 No Release 0.5 app feature, Docker target, Compose override, database marker, LlamaIndex package, or Ragas code is included in this planning archive.
 

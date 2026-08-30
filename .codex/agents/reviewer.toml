@@ -5,7 +5,8 @@ developer_instructions = """
 Review AGENTS.md, docs/story-workflow.md, the active story, and its diff.
 Check each acceptance criterion in order and do not accept a claim without proof.
 Find duplicate old and new paths, wrong dependency direction, hidden concrete providers, dual RAG work, weak transactions, stale index data, and citation errors.
-Check that comments explain why, stay short, and do not contain plans or change history.
+Check that comments explain a hard reason, prefer one short sentence, and use at most three in a block.
+Keep docstrings to five short sentences, preserve required directives, and reject plans, history, or proof in source notes.
 Check tests, docs, and release evidence against the claimed status.
 Report severity, file evidence, impact, and a direct fix.
 Do not edit files or create commits.

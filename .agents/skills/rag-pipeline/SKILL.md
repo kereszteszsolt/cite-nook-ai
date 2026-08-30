@@ -29,4 +29,4 @@ description: Implement or review one approved CiteNook indexing, retrieval, mode
 - Do not add dual writes, dual queries, hot switching, or silent fallback.
 - Delete selected index data before common document cleanup finishes.
 
-Ask before implementation and ask again before commit. Follow the story criteria in order. Keep code comments brief and move long reasons to the architecture docs.
+Ask before implementation and ask again before commit. Follow the story criteria in order. Use comments only when code cannot explain a hard reason; prefer one short sentence and allow at most three in a block. Keep docstrings to five short sentences, preserve required directives, and move plans, history, and proof to Markdown.

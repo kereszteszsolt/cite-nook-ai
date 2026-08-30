@@ -26,7 +26,7 @@ Clean the current story records, source comments, web structure, and Python stru
 | Order | Story | Title | Main result | Status |
 | ---: | --- | --- | --- | --- |
 | 1 | [MRA-018](stories/MRA-018-clean-historical-story-records.md) | Clean the historical story records | Short old stories and release-level proof | Implemented |
-| 2 | [MRA-019](stories/MRA-019-enforce-short-source-comments.md) | Enforce short source comments | Clean comments and a lasting guard | Planned |
+| 2 | [MRA-019](stories/MRA-019-enforce-short-source-comments.md) | Enforce short source comments | Clean comments and a lasting guard | Implemented |
 | 3 | [MRA-020](stories/MRA-020-split-the-web-app-by-feature.md) | Split the web app by feature | Small app shell and focused feature modules | Planned |
 | 4 | [MRA-021](stories/MRA-021-reorganize-the-python-packages.md) | Reorganize the Python packages | Clear final package roles | Planned |
 | 5 | [MRA-022](stories/MRA-022-add-app-composition-and-model-ports.md) | Add app composition and model ports | Explicit dependencies and one composition root | Planned |
