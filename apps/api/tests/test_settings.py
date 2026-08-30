@@ -3,7 +3,7 @@
 
 import pytest
 
-from app.settings import get_settings
+from app.core.settings import get_settings
 
 
 def test_ollama_host_can_point_to_an_external_instance(monkeypatch) -> None:

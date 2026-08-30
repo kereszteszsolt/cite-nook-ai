@@ -10,8 +10,8 @@ from uuid import UUID, uuid4
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..models import Document
-from ..settings import Settings, get_settings
+from ..core.settings import Settings, get_settings
+from ..persistence.models import Document
 
 
 class DocumentService:

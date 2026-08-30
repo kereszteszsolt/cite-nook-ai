@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.ollama_gateway import OllamaGateway, OllamaUnavailableError
+from app.ai.ollama import OllamaGateway, OllamaUnavailableError
 
 
 class FakeClient:

@@ -2,7 +2,7 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` and `MRA-019` are committed, and `MRA-020` is approved for commit; later stories remain planned.
+Release 0.5 is in progress. `MRA-018` through `MRA-020` are committed, and `MRA-021` is implemented and awaits commit approval; later stories remain planned.
 
 ## Evidence table
 
@@ -10,8 +10,8 @@ Release 0.5 is in progress. `MRA-018` and `MRA-019` are committed, and `MRA-020`
 | --- | --- | --- | --- | --- | --- | --- |
 | MRA-018 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `98beb09` | Implemented |
 | MRA-019 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `e32cbba` | Implemented |
-| MRA-020 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
-| MRA-021 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-020 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `33d1f50` | Implemented |
+| MRA-021 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
 | MRA-022 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-023 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-024 | Pending | Pending | Pending | Pending | — | Planned |
@@ -64,6 +64,23 @@ Implementation approval was given on 2026-08-30 after the scope and checks were 
 - The pinned Playwright screenshot test passed, and a clean repeat matched all four checked desktop and mobile PNG hashes exactly.
 - Package manifests, the lock file, shared HTTP types, the API client, and `styles.css` stayed unchanged.
 - `git diff --check` passed, and review found no backend, HTTP contract, dependency, routing, global state, or UI framework change.
+
+Commit approval was given on 2026-08-30. Commit `33d1f50` contains the implementation.
+
+## MRA-021 evidence
+
+Implementation approval was given on 2026-08-30 after the scope and checks were reviewed.
+
+- HTTP routers, schemas, and request dependencies now live under `app/api`, while use cases and extraction live under `app/application`.
+- Settings and brand loading now live under `app/core`, and SQLAlchemy setup and ORM models live under `app/persistence`.
+- The Ollama adapter now lives under `app/ai`, and native chunking lives under `app/rag/native` without adding later-story ports or backends.
+- The application model catalog uses its own result data classes, so `app/application` has no dependency on `app/api`.
+- Static package checks found no old import path, compatibility module, application-to-API import, empty forwarding layer, or early `bootstrap` or contract module.
+- New contract tests preserve all 14 public method and route pairs, the model catalog JSON keys, and the five database table names.
+- In the isolated Python 3.14 container, Ruff passed, all 64 API tests passed, the API build passed, and both `app.main` and `app.worker` imported successfully.
+- Full monorepo lint passed 3/3 tasks; the sequential test run passed 64 API, 48 web, and 1 brand test; and build passed 3/3 tasks.
+- The first parallel full test exposed one timing-sensitive web retry failure after 47/48 web tests, then its focused rerun and the complete sequential suite passed.
+- Both current Compose configuration commands, repository verification, and `git diff --check` passed.
 
 Commit approval was given on 2026-08-30. The resulting hash is reported after the commit succeeds because a commit cannot contain its own hash.
 

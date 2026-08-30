@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Keresztes Zsolt <https://kereszteszsolt.hu>
 # SPDX-License-Identifier: Apache-2.0
 
-from app.brand import load_brand
-from app.settings import get_settings
+from app.core.brand import load_brand
+from app.core.settings import get_settings
 
 
 def test_brand_contains_public_and_technical_identity() -> None:

@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
-from app.models import Document, DocumentChunk, IngestionJob, utc_now
-from app.services.ingestion import IngestionService
-from app.settings import Settings
+from app.application.ingestion import IngestionService
+from app.core.settings import Settings
+from app.persistence.models import Document, DocumentChunk, IngestionJob, utc_now
 
 
 class FakeGateway:

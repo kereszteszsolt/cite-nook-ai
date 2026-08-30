@@ -9,14 +9,14 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.models import Conversation, ConversationMessage, Document, DocumentChunk
-from app.services.answers import (
+from app.application.answers import (
     GROUNDING_SYSTEM_PROMPT,
     INSUFFICIENT_ANSWER,
     GroundedAnswerError,
     GroundedAnswerService,
 )
-from app.settings import Settings
+from app.core.settings import Settings
+from app.persistence.models import Conversation, ConversationMessage, Document, DocumentChunk
 
 
 class FakeGateway:

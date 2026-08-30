@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+Implemented
 
 ## User story
 
@@ -18,14 +18,14 @@ Split web input, app work, model calls, RAG work, settings, and data code. Keep 
 
 ## Acceptance criteria
 
-- [ ] HTTP routers, schemas, and request dependencies live under `app/api`.
-- [ ] Use-case services and common document extraction live under `app/application`.
-- [ ] Settings and brand loading live under `app/core`.
-- [ ] SQLAlchemy setup and ORM models live under `app/persistence`.
-- [ ] Model access lives under `app/ai`, and RAG code lives under `app/rag`.
-- [ ] All imports and tests use the final package paths with no duplicate compatibility modules.
-- [ ] Public HTTP routes, JSON shapes, database tables, and runtime behavior stay the same.
-- [ ] The final tree has no empty layer that only forwards a call.
+- [x] HTTP routers, schemas, and request dependencies live under `app/api`.
+- [x] Use-case services and common document extraction live under `app/application`.
+- [x] Settings and brand loading live under `app/core`.
+- [x] SQLAlchemy setup and ORM models live under `app/persistence`.
+- [x] Model access lives under `app/ai`, and RAG code lives under `app/rag`.
+- [x] All imports and tests use the final package paths with no duplicate compatibility modules.
+- [x] Public HTTP routes, JSON shapes, database tables, and runtime behavior stay the same.
+- [x] The final tree has no empty layer that only forwards a call.
 
 ## Out of scope
 

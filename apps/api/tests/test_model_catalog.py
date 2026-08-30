@@ -3,9 +3,9 @@
 
 from pathlib import Path
 
-from app.ollama_gateway import OllamaUnavailableError
-from app.services.model_catalog import ModelCatalogService
-from app.settings import Settings
+from app.ai.ollama import OllamaUnavailableError
+from app.application.model_catalog import ModelCatalogService
+from app.core.settings import Settings
 
 
 class AvailableGateway:

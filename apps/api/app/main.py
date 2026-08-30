@@ -5,15 +5,14 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .brand import load_brand
-from .database import init_database
-from .routers import conversations, documents, system
-from .settings import get_settings
+from .api.routers import conversations, documents, system
+from .core.brand import load_brand
+from .core.settings import get_settings
+from .persistence.database import init_database
 
 
 @asynccontextmanager
@@ -37,16 +36,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
-
-
-@app.get("/api/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "appId": brand["technical"]["appId"]}
-
-
-@app.get("/api/brand")
-def get_brand() -> dict[str, Any]:
-    return brand
 
 
 app.include_router(system.router, prefix="/api")

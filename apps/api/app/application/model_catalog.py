@@ -3,9 +3,25 @@
 
 from __future__ import annotations
 
-from ..ollama_gateway import OllamaGateway, OllamaUnavailableError
-from ..schemas import ModelCatalog, ModelOption
-from ..settings import Settings, get_settings
+from dataclasses import dataclass
+
+from ..ai.ollama import OllamaGateway, OllamaUnavailableError
+from ..core.settings import Settings, get_settings
+
+
+@dataclass(frozen=True, slots=True)
+class ModelOption:
+    name: str
+    installed: bool
+
+
+@dataclass(frozen=True, slots=True)
+class ModelCatalog:
+    chat_models: list[ModelOption]
+    embedding_models: list[ModelOption]
+    default_chat_model: str
+    default_embedding_model: str
+    ollama_available: bool
 
 
 class ModelCatalogService:

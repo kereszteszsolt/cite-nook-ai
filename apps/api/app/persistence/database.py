@@ -8,7 +8,7 @@ from collections.abc import Generator
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from .settings import get_settings
+from ..core.settings import get_settings
 
 
 class Base(DeclarativeBase):

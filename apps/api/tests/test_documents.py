@@ -9,9 +9,9 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.models import Document
-from app.services.documents import DocumentService
-from app.settings import Settings
+from app.application.documents import DocumentService
+from app.core.settings import Settings
+from app.persistence.models import Document
 
 
 class DocumentSession:

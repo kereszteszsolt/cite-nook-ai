@@ -14,9 +14,9 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..models import Conversation, ConversationMessage, Document, DocumentChunk
-from ..ollama_gateway import OllamaGateway
-from ..settings import Settings, get_settings
+from ..ai.ollama import OllamaGateway
+from ..core.settings import Settings, get_settings
+from ..persistence.models import Conversation, ConversationMessage, Document, DocumentChunk
 from .conversations import ConversationService
 
 INSUFFICIENT_ANSWER = "The provided sources are insufficient to answer this question."

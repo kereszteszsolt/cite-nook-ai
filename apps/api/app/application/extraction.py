@@ -8,7 +8,7 @@ from pathlib import Path
 from docx import Document as DocxDocument
 from pypdf import PdfReader
 
-from .chunking import TextSection
+from ..rag.native.chunking import TextSection
 
 SUPPORTED_EXTRACTION_SUFFIXES = frozenset({".pdf", ".docx", ".txt", ".md", ".markdown"})
 

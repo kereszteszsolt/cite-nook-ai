@@ -8,7 +8,7 @@ from typing import Any, Protocol
 
 from ollama import Client
 
-from .settings import get_settings
+from ..core.settings import get_settings
 
 
 class OllamaClientProtocol(Protocol):

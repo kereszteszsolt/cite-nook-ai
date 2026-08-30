@@ -10,15 +10,15 @@ from typing import Any
 
 import pytest
 
-from app.models import Document, IngestionJob
-from app.services.uploads import (
+from app.application.uploads import (
     DocumentUploadService,
     EmptyUploadError,
     UnsupportedDocumentTypeError,
     UploadTooLargeError,
     safe_file_name,
 )
-from app.settings import Settings
+from app.core.settings import Settings
+from app.persistence.models import Document, IngestionJob
 
 
 class RecordingSession:

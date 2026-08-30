@@ -7,17 +7,17 @@ from uuid import UUID
 from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile, status
 from fastapi.responses import FileResponse
 
-from ..dependencies import DatabaseSession
-from ..models import Document
-from ..schemas import DocumentRead, DocumentUpdate
-from ..services.documents import DocumentService
-from ..services.uploads import (
+from ...application.documents import DocumentService
+from ...application.uploads import (
     DocumentUploadService,
     EmptyUploadError,
     UnsupportedDocumentTypeError,
     UnsupportedEmbeddingModelError,
     UploadTooLargeError,
 )
+from ...persistence.models import Document
+from ..dependencies import DatabaseSession
+from ..schemas import DocumentRead, DocumentUpdate
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 

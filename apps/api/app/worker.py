@@ -8,8 +8,8 @@ import signal
 import threading
 from time import monotonic
 
-from .database import SessionLocal, init_database
-from .services.ingestion import IngestionService
+from .application.ingestion import IngestionService
+from .persistence.database import SessionLocal, init_database
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("citenook-worker")

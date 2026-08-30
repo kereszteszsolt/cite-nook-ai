@@ -9,13 +9,13 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from app.models import Conversation, ConversationMessage
-from app.services.conversations import (
+from app.application.conversations import (
     ConversationService,
     InvalidConversationTitleError,
     deterministic_title,
 )
-from app.settings import Settings
+from app.core.settings import Settings
+from app.persistence.models import Conversation, ConversationMessage
 
 
 class MessageSession:

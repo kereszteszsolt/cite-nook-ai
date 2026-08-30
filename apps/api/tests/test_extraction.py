@@ -8,7 +8,7 @@ from docx import Document as DocxDocument
 from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
-from app.services.extraction import extract_sections
+from app.application.extraction import extract_sections
 
 
 @pytest.mark.parametrize("suffix", [".txt", ".md", ".markdown"])

@@ -11,8 +11,8 @@ from uuid import uuid4
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
-from ..models import Document, IngestionJob
-from ..settings import Settings, get_settings
+from ..core.settings import Settings, get_settings
+from ..persistence.models import Document, IngestionJob
 
 SUPPORTED_DOCUMENT_SUFFIXES = frozenset({".pdf", ".docx", ".txt", ".md", ".markdown"})
 UPLOAD_CHUNK_BYTES = 1024 * 1024

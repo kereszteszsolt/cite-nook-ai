@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from app.services.conversations import ConversationService, UnsupportedModelError
-from app.settings import Settings
+from app.application.conversations import ConversationService, UnsupportedModelError
+from app.core.settings import Settings
 
 
 def service() -> ConversationService:

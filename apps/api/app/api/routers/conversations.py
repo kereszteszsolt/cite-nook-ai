@@ -7,9 +7,15 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Response, status
 
+from ...ai.ollama import OllamaUnavailableError
+from ...application.answers import AnswerResult, GroundedAnswerError, GroundedAnswerService
+from ...application.conversations import (
+    ConversationService,
+    InvalidConversationTitleError,
+    UnsupportedModelError,
+)
+from ...persistence.models import Conversation, ConversationMessage
 from ..dependencies import DatabaseSession
-from ..models import Conversation, ConversationMessage
-from ..ollama_gateway import OllamaUnavailableError
 from ..schemas import (
     AnswerRead,
     ConversationCreate,
@@ -17,12 +23,6 @@ from ..schemas import (
     ConversationUpdate,
     MessageRead,
     QuestionCreate,
-)
-from ..services.answers import AnswerResult, GroundedAnswerError, GroundedAnswerService
-from ..services.conversations import (
-    ConversationService,
-    InvalidConversationTitleError,
-    UnsupportedModelError,
 )
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])

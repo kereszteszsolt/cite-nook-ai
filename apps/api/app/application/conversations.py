@@ -10,8 +10,8 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..models import Conversation, ConversationMessage, utc_now
-from ..settings import Settings, get_settings
+from ..core.settings import Settings, get_settings
+from ..persistence.models import Conversation, ConversationMessage, utc_now
 
 CONVERSATION_TITLE_LENGTH = 80
 CONVERSATION_TITLE_MAX_LENGTH = 120

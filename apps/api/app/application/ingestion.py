@@ -11,10 +11,10 @@ from uuid import UUID
 from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
-from ..models import DocumentChunk, IngestionJob, utc_now
-from ..ollama_gateway import OllamaGateway
-from ..settings import Settings, get_settings
-from .chunking import chunk_sections
+from ..ai.ollama import OllamaGateway
+from ..core.settings import Settings, get_settings
+from ..persistence.models import DocumentChunk, IngestionJob, utc_now
+from ..rag.native.chunking import chunk_sections
 from .extraction import extract_sections
 
 MAX_INGESTION_ERROR_LENGTH = 2000
