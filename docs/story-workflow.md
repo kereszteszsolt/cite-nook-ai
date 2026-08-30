@@ -2,7 +2,7 @@
 
 ## Scope
 
-This guide is the source of truth for all new CiteNook stories. Release 0.5 stories already use this format. `MRA-018` will move `MRA-001` through `MRA-017` to the same format, then the strict checks will apply to every story.
+This guide is the source of truth for all CiteNook stories. `MRA-018` moved `MRA-001` through `MRA-017` to this format, so the strict checks now apply to every story.
 
 ## Story sections
 
@@ -67,4 +67,4 @@ The release `verification.md` file stores short proof for each story. It records
 
 ## Transition rule
 
-Until `MRA-018` is implemented, the repository check uses compatibility mode for `MRA-001` through `MRA-017` and strict mode for `MRA-018` and later. `MRA-018` removes compatibility mode after the old records pass the new rules.
+The repository check applies the same strict format, status, criterion, sentence, reading, and release-link rules to every story. There is no compatibility mode for old records.

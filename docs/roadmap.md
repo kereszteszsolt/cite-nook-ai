@@ -16,4 +16,4 @@ Release 0.6 story IDs will be created only after its scope is reviewed and appro
 
 ## Later options
 
-Possible later work includes an OpenAI-compatible model provider, hybrid search, reranking, retrieval tracing, and a citation inspector. These items are not part of Release 0.5 or Release 0.6.
+Possible later work includes an OpenAI-compatible model provider, hybrid search, reranking, retrieval tracing, and a citation inspector. Other options include authentication, OCR, streaming answers, agent workflows, per-conversation source sets, conversation search, and retryable ingestion. These items are not part of Release 0.5 or Release 0.6.

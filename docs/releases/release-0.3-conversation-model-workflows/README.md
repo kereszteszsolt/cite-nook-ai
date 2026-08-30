@@ -12,9 +12,13 @@ Keep model selection attached to each conversation while making conversation cre
 
 | Story | Title | Status |
 | --- | --- | --- |
-| MRA-010 | Configure models and controls per conversation | Implemented |
-| MRA-011 | Refine document safety and status feedback | Implemented |
-| MRA-012 | Widen messages and add answer actions | Implemented |
+| [MRA-010](stories/MRA-010-conversation-model-workflows.md) | Configure models and controls per conversation | Implemented |
+| [MRA-011](stories/MRA-011-document-safety-and-status-polish.md) | Refine document safety and status feedback | Implemented |
+| [MRA-012](stories/MRA-012-message-actions-and-response-time.md) | Widen messages and add answer actions | Implemented |
+
+## Verification
+
+See the [Release 0.3 verification record](verification.md).
 
 ## Release boundary
 

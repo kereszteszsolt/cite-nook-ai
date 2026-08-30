@@ -2,13 +2,13 @@
 
 ## Status
 
-Planned. Results are added only after an approved story implementation and an approved commit.
+Release 0.5 is in progress. `MRA-018` is implemented and awaits commit approval; later stories remain planned.
 
 ## Evidence table
 
 | Story | Implementation approval | Focused checks | Review result | Commit approval | Commit | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| MRA-018 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-018 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | This commit | Implemented |
 | MRA-019 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-020 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-021 | Pending | Pending | Pending | Pending | — | Planned |
@@ -18,6 +18,20 @@ Planned. Results are added only after an approved story implementation and an ap
 | MRA-025 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-026 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-027 | Pending | Pending | Pending | Pending | — | Planned |
+
+## MRA-018 evidence
+
+Implementation approval was given on 2026-08-30 when the user asked to start implementing `MRA-018`.
+
+- `python3 .agents/skills/release-evidence/scripts/verify_repository.py` passed with 3 agents, 3 skills, and 27 stories under one strict rule set.
+- The focused historical audit found 17 implemented stories with the exact section order and four to eight checked criteria each.
+- The proof audit found `MRA-001` through `MRA-017` once and in order across the four historical release verification files.
+- The heading audit found no issue or limitation section in any story.
+- The historical release-link audit resolved 21 local Markdown targets across four release maps.
+- `git diff --check` passed.
+- Review found no application, runtime, dependency, Docker, or data-contract change.
+
+Commit approval was given on 2026-08-30. The resulting hash is reported after the commit succeeds because a commit cannot contain its own hash.
 
 ## Required release checks
 

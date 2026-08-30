@@ -8,16 +8,16 @@ The plan starts from the supplied Release 0.4 `develop` archive. No file under `
 
 The plan adds or updates:
 
-- ten planned stories, `MRA-018` through `MRA-027`;
+- ten implementation stories, `MRA-018` through `MRA-027`;
 - the release map, cleanup plan, implementation plan, and verification table;
 - the root README and documentation index;
 - architecture, RAG, development, testing, technology, workflow, and roadmap docs;
 - `AGENTS.md`, Codex agent rules, and repository skills;
-- the repository audit so new stories use strict rules without a fixed story total.
+- the repository audit so all stories use strict rules without a fixed story total.
 
-## Deferred implementation
+## Implementation boundary
 
-The old story files still contain their original long proof and sections until `MRA-018` is approved and implemented. Existing source comments remain unchanged until `MRA-019`. The current web and Python source stay in the Release 0.4 structure until their own stories are approved.
+`MRA-018` moves the old story proof into release records and applies strict rules to every story. Existing source comments remain unchanged until `MRA-019`. The current web and Python source stay in the Release 0.4 structure until their own stories are approved.
 
 No Release 0.5 app feature, Docker target, Compose override, database marker, LlamaIndex package, or Ragas code is included in this planning archive.
 

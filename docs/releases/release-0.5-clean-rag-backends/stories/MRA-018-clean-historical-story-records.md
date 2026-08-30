@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+Implemented
 
 ## User story
 
@@ -18,13 +18,13 @@ None.
 
 ## Acceptance criteria
 
-- [ ] Stories `MRA-001` through `MRA-017` use the current story sections and keep their implemented status.
-- [ ] Each old story has four to eight short, checked criteria that preserve its shipped result.
-- [ ] Long commands, test totals, and proof move to a `verification.md` file for the matching release.
-- [ ] Issue and limitation sections are removed from every story file.
-- [ ] Useful future work moves to the roadmap without changing the scope of a past release.
-- [ ] Each release map links to its stories and its verification file.
-- [ ] The repository check applies the same format and reading rules to every story.
+- [x] Stories `MRA-001` through `MRA-017` use the current story sections and keep their implemented status.
+- [x] Each old story has four to eight short, checked criteria that preserve its shipped result.
+- [x] Long commands, test totals, and proof move to a `verification.md` file for the matching release.
+- [x] Issue and limitation sections are removed from every story file.
+- [x] Useful future work moves to the roadmap without changing the scope of a past release.
+- [x] Each release map links to its stories and its verification file.
+- [x] The repository check applies the same format and reading rules to every story.
 
 ## Out of scope
 

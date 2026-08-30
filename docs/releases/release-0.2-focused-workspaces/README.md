@@ -12,8 +12,12 @@ Give documents and conversations focused workspaces while making source selectio
 
 | Story | Title | Status |
 | --- | --- | --- |
-| MRA-008 | Manage document availability in a dedicated workspace | Implemented |
-| MRA-009 | Refine chat interaction and conversation controls | Implemented |
+| [MRA-008](stories/MRA-008-document-workspace-and-activation.md) | Manage document availability in a dedicated workspace | Implemented |
+| [MRA-009](stories/MRA-009-refined-chat-experience.md) | Refine chat interaction and conversation controls | Implemented |
+
+## Verification
+
+See the [Release 0.2 verification record](verification.md).
 
 ## Release boundary
 

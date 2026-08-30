@@ -6,7 +6,15 @@ Implemented
 
 ## User story
 
-As a CiteNook maintainer, I want a portable interface plan synchronized to the project Penpot file and exported back into the repository so that product intent, current implementation, and reviewable design documentation stay connected.
+As a maintainer, I want the app design saved in the repo and Penpot.
+
+## Goal
+
+Keep the design plan easy to view and share.
+
+## Dependencies
+
+`MRA-015` and `MRA-016`.
 
 ## Acceptance criteria
 
@@ -19,24 +27,3 @@ As a CiteNook maintainer, I want a portable interface plan synchronized to the p
 ## Out of scope
 
 Changing the implemented React interface, replacing the central brand contract, publishing personal application data, designing unimplemented features, or claiming a Penpot edit without a connected plugin is out of scope.
-
-## Implementation evidence
-
-- `docs/design/citenook-interface-plan.svg` is the portable, importable source board derived from `packages/brand/brand.json`, the implemented React interface, and the privacy-safe screenshot baseline.
-- `docs/design/citenook-interface-plan.png` is a Chromium render of the complete vector board and was visually inspected after correcting inverse text colors.
-- `docs/design/citenook-interface-plan.penpot.png` is the fresh export from Penpot board `5cc6ef41-e335-8023-8008-8692985e4d8d`, kept separate from the portable source preview.
-- `docs/design/citenook-chat-workspace.penpot.png`, `docs/design/citenook-documents-workspace.penpot.png`, and `docs/design/citenook-new-conversation.penpot.png` are exports from three separate detailed screen boards synchronized from the privacy-safe product captures.
-- `docs/design/README.md` links the repository and Penpot formats, identifies the implementation and workflow source contracts, and records the exact team, project, file, page, board name, and board ID.
-
-## Verification evidence
-
-- Chromium rendered the SVG at 1800×1050 without load errors, and the final PNG was visually inspected at full-board scale.
-- The connected Penpot plugin confirmed the configured file and page, created the named 1800×1050 board, and exported a complete 1800×1050 PNG that was visually inspected after synchronization.
-- The same plugin created and re-exported the Chat workspace at 1440×960, Documents workspace at 1326×526, and New conversation dialog at 1440×960; all three boards have no containment violations and their exports are byte-identical to the checked privacy-safe sources.
-- The privacy-safe screenshot workflow passed with 1 Playwright test and generated all four gallery images, including the new-conversation state.
-- The repository audit passed with 17 stories, and the supplementary handoff diff passed `git diff --check`.
-- In a Node 26 container, all 3 lint tasks, all 61 API tests, 48 web tests, 1 brand test, and all 3 build tasks passed; both base and optional Ollama Compose configurations also validated.
-
-## Known limitation
-
-Penpot's SVG importer did not render the two decorative drop-shadow filters. The synchronized board therefore omits those shadows, but retains the complete desktop and mobile hierarchy, tokens, user flow, design principles, and privacy boundary. The host `npm` wrapper cannot start under WSL1, so the same repository scripts ran in the available Node 26 container with the existing uv runtime mounted for API tasks.

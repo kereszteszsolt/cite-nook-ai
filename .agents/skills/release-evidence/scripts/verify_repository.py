@@ -14,7 +14,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 ERRORS: list[str] = []
-STRICT_STORY_START = 18
 
 
 def fail(message: str) -> None:
@@ -119,25 +118,21 @@ if story_ids:
         missing = ", ".join(f"MRA-{value:03d}" for value in missing_ids)
         fail(f"Missing story IDs: {missing}")
 
-required_headings = {
+required_headings = [
     "## Status",
     "## User story",
     "## Goal",
     "## Dependencies",
     "## Acceptance criteria",
     "## Out of scope",
-}
+]
 for story_number, path in sorted(story_ids.items()):
-    if story_number < STRICT_STORY_START:
-        continue
-
     text = path.read_text(encoding="utf-8")
-    headings = {line.strip() for line in text.splitlines() if line.startswith("## ")}
-    missing_headings = sorted(required_headings.difference(headings))
-    if missing_headings:
+    headings = [line.strip() for line in text.splitlines() if line.startswith("## ")]
+    if headings != required_headings:
         fail(
-            f"Missing story headings in {path.relative_to(ROOT)}: "
-            + ", ".join(missing_headings)
+            f"Invalid story headings in {path.relative_to(ROOT)}: "
+            + ", ".join(headings)
         )
 
     if re.search(
@@ -194,10 +189,17 @@ for story_number, path in sorted(story_ids.items()):
             fail(f"Story prose block exceeds five sentences: {path.relative_to(ROOT)}")
 
     release_map = path.parent.parent / "README.md"
+    verification = path.parent.parent / "verification.md"
     if not release_map.exists():
         fail(f"Missing release map for {path.relative_to(ROOT)}")
     elif f"stories/{path.name}" not in release_map.read_text(encoding="utf-8"):
         fail(f"Story is not linked from its release map: {path.relative_to(ROOT)}")
+    if not verification.exists():
+        fail(f"Missing release verification for {path.relative_to(ROOT)}")
+    elif release_map.exists() and "(verification.md)" not in release_map.read_text(
+        encoding="utf-8"
+    ):
+        fail(f"Verification is not linked from its release map: {path.relative_to(ROOT)}")
 
 required_services = {"web", "api", "worker", "postgres"}
 compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")

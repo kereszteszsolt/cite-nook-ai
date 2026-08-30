@@ -6,7 +6,15 @@ Implemented
 
 ## User story
 
-As a local CiteNook user, I want the browser tab to carry the same restrained visual identity as the application so that CiteNook is recognizable among other local tools.
+As a local user, I want to spot CiteNook by its browser icon.
+
+## Goal
+
+Use the same small mark in the app and browser tab.
+
+## Dependencies
+
+`MRA-013`.
 
 ## Acceptance criteria
 
@@ -18,21 +26,3 @@ As a local CiteNook user, I want the browser tab to carry the same restrained vi
 ## Out of scope
 
 Changing the wordmark, product name, technical identifiers, app icons for native platforms, a dark-mode icon set, or a broader visual redesign is out of scope.
-
-## Implementation evidence
-
-- `apps/web/public/favicon.svg` combines an open-book silhouette with a citation mark using the existing accent, surface, and soft-accent colors.
-- `packages/brand/brand.json` declares `assets.favicon`; the TypeScript brand interface and both brand test suites cover it.
-- `apps/web/index.html` supplies the initial SVG favicon link, and `apps/web/src/main.tsx` updates that link from the central brand configuration.
-- `docs/brand-configuration.md` documents the source asset and its public brand path.
-
-## Verification
-
-Run the API and brand tests, the web lint/build, the repository audit, and `git diff --check`. Inspect `apps/web/dist/favicon.svg` after the production build and load the app once in Chromium to confirm the linked SVG returns successfully.
-
-## Verification evidence
-
-- The focused API brand test passed, and Ruff passed for the changed API brand files.
-- The brand package test passed; web TypeScript lint and the Vite production build passed in the Linux Node project image.
-- The production build contained `dist/favicon.svg`.
-- The repository audit passed with 14 stories, and the MRA-014 staged diff passed `git diff --check`.

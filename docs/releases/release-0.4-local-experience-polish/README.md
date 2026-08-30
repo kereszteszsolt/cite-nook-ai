@@ -12,11 +12,15 @@ Polish the supported local experience with reliable startup behavior and complet
 
 | Story | Title | Status |
 | --- | --- | --- |
-| MRA-013 | Recover local API connectivity | Implemented |
-| MRA-014 | Add browser favicon identity | Implemented |
-| MRA-015 | Capture privacy-safe product screenshots | Implemented |
-| MRA-016 | Publish a linked user guide | Implemented |
-| MRA-017 | Document the interface design in Penpot | Implemented |
+| [MRA-013](stories/MRA-013-recover-local-api-connectivity.md) | Recover local API connectivity | Implemented |
+| [MRA-014](stories/MRA-014-add-browser-favicon-identity.md) | Add browser favicon identity | Implemented |
+| [MRA-015](stories/MRA-015-capture-privacy-safe-product-screenshots.md) | Capture privacy-safe product screenshots | Implemented |
+| [MRA-016](stories/MRA-016-publish-linked-user-guide.md) | Publish a linked user guide | Implemented |
+| [MRA-017](stories/MRA-017-document-interface-design-in-penpot.md) | Document the interface design in Penpot | Implemented |
+
+## Verification
+
+See the [Release 0.4 verification record](verification.md).
 
 ## Release boundary
 
