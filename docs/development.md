@@ -42,6 +42,8 @@ uv sync --directory apps/api --python 3.14 --managed-python \
 
 The release verification used clean uv-managed Python 3.13.14 and 3.14.6 environments. Both resolved the same lock and passed the combined 43 focused framework/evaluation tests.
 
+The direct host command below requires PostgreSQL to be reachable through `DATABASE_URL`. The default Compose stack does not publish PostgreSQL to WSL; use the verified, disposable network-attached container in [Optional LlamaIndex comparison](llamaindex-comparison.md#english-example-from-wsl2) for the current WSL2 + Compose layout.
+
 The configured chat and embedding models must already be installed in the Ollama instance selected by `OLLAMA_HOST`. Choose one or more existing CiteNook document UUIDs explicitly, then run:
 
 ```bash
@@ -59,6 +61,8 @@ uv run --directory apps/api --python 3.13 --managed-python \
 Repeat `--document-id` to include another document. The command reads at most `--max-chunks` rows and accepts a maximum of 1,000. It uses only chunks from selected documents that are active, `ready`, and match the selected embedding model. An empty or incompatible selection produces a structured `no_data` result.
 
 The command maps the stored CiteNook text and embeddings into an in-memory LlamaIndex `VectorStoreIndex`, embeds only the question through the selected local Ollama embedding model, and queries a `RetrieverQueryEngine` with the selected local chat model. It emits the answer, elapsed time, eligible chunk count, and the metadata and score of the source nodes returned by LlamaIndex. It does not re-ingest content, persist a LlamaIndex index, write embeddings, create a conversation, change document state, expose a public API route, or claim compatibility with CiteNook's exact `[S1]` citation contract.
+
+The dedicated comparison guide also explains when this developer tool is appropriate, how to compare it with the browser workflow, and why it is not a user-selectable product backend.
 
 ## Local Ragas evaluation
 

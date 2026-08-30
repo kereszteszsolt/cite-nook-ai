@@ -34,13 +34,13 @@ CiteNook is developed through independently verifiable MRA stories. The [release
 
 ## Documentation
 
-[User guide](docs/user-guide.md) · [Architecture](docs/architecture.md) · [RAG pipeline](docs/rag-pipeline.md) · [Development](docs/development.md) · [Testing](docs/testing.md) · [Design handoff](docs/design/README.md) · [All documentation](docs/README.md)
+[User guide](docs/user-guide.md) · [Architecture](docs/architecture.md) · [RAG pipeline](docs/rag-pipeline.md) · [LlamaIndex comparison](docs/llamaindex-comparison.md) · [Development](docs/development.md) · [Testing](docs/testing.md) · [Design handoff](docs/design/README.md) · [All documentation](docs/README.md)
 
 ## Optional framework and evaluation tools
 
 Release 0.5 adds two developer-only commands behind the `framework-evaluation` dependency extra. `citenook-llamaindex` performs a bounded comparison query over selected chunks already stored by CiteNook; `citenook-ragas` runs an invented eight-case fixture through the local public API and scores cited contexts with a local Ollama judge. Neither command is required to run CiteNook, replaces the direct Ollama + pgvector RAG path, adds a product UI mode, or provides a production benchmark.
 
-See the [Release 0.5 story map](docs/releases/release-0.5-llamaindex-ragas-evaluation/README.md) for verified evidence and the [development guide](docs/development.md) for exact local commands.
+See the [LlamaIndex comparison guide](docs/llamaindex-comparison.md) for a complete English WSL2 example, the [development guide](docs/development.md) for optional-environment and Ragas commands, and the [Release 0.5 story map](docs/releases/release-0.5-llamaindex-ragas-evaluation/README.md) for dated verification evidence.
 
 ## Architecture
 

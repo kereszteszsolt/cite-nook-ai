@@ -40,3 +40,5 @@ For each case, the harness builds a Ragas `SingleTurnSample` from the user quest
 The result is non-production review evidence. Scores vary with answer and evaluator models, generation settings, and repeated runs. The eight invented cases are too small for statistical conclusions, no human-judge alignment study has been performed, and using the same model for answering and judging may correlate the results. CiteNook's public response exposes cited snippets rather than every raw top-k candidate, so the harness does not measure full retriever recall, ranking quality, or evidence that was retrieved but not cited.
 
 Timestamped per-case JSON and CSV files remain ignored under `evals/experiments/`. A successful smoke run requires all cases, `0..1` metric values, matching artifact coverage, and cleanup of the run-owned document and conversations; it deliberately has no CI score threshold.
+
+For a step-by-step English comparison over the committed Mosslight fixture, including WSL2 execution, output interpretation, no-data behavior, and cleanup, see [Optional LlamaIndex comparison](llamaindex-comparison.md).

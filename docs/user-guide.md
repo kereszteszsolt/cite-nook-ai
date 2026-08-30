@@ -4,6 +4,8 @@ CiteNook is a local document question-answering application. It stores documents
 
 > CiteNook has no accounts in the current release. Anyone who can open the local application can use the same stored workspace. Do not expose its ports to an untrusted network.
 
+Release 0.5's optional LlamaIndex comparison and Ragas evaluation commands are developer tools, not browser features or alternative user-selectable RAG backends. Contributors can start with the [English LlamaIndex comparison guide](llamaindex-comparison.md); the user workflow below continues to use CiteNook's direct Ollama + pgvector path.
+
 ## 1. Start the application
 
 Create `.env` from the checked example, configure an Ollama endpoint and installed models, then start either the external-Ollama stack or the optional Ollama Compose stack as described in the [README quick start](../README.md#quick-start).

@@ -49,6 +49,8 @@ uv run --directory apps/api --python 3.13 --managed-python \
   pytest -q tests/test_llamaindex_compare.py
 ```
 
+The [Optional LlamaIndex comparison guide](llamaindex-comparison.md) contains the verified English WSL2 + Compose command, a privacy-safe Mosslight example, expected structured fields, explicit no-data verification, and cleanup instructions.
+
 MRA-019's focused tests cover strict dataset validation, API orchestration, bounded ingestion polling, cited-context sample mapping, answer and evaluator failures, keyboard-interrupt cleanup, explicit resource retention, score ranges, and matching JSON/CSV serialization through fake API and evaluator boundaries. They require neither Docker nor a running Ollama server:
 
 ```bash

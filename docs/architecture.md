@@ -53,3 +53,5 @@ The dashed boundary in the diagram is not part of request-time CiteNook operatio
 `citenook-ragas` deliberately exercises the shipped public API. It uploads the committed invented fixture, waits for the normal worker, creates one tagged conversation per single-turn case, collects each grounded answer and its public citation snippets, and evaluates those snippets through a separately configured local Ollama judge. Its temporary API resources are deleted in a final cleanup path, and its JSON/CSV output remains under ignored `evals/experiments/`.
 
 These tools do not add routes, change the database schema, alter worker ownership, expose a frontend selector, or branch the direct grounded-answer and `[S1]` citation contract. They are removable comparison and review surfaces around the primary custom Ollama + pgvector implementation.
+
+See [Optional LlamaIndex comparison](llamaindex-comparison.md) for a complete English WSL2 execution example that preserves this boundary.

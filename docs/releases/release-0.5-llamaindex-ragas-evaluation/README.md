@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress
+Implemented
 
 Release 0.5 adds one deliberately bounded LlamaIndex comparison path and one reproducible Ragas evaluation harness to CiteNook. The existing direct `OllamaGateway` + SQLAlchemy/pgvector RAG pipeline remains the default, user-facing implementation and the reference behavior. The release demonstrates framework-based querying and local RAG evaluation without replacing ingestion, migrating the database, adding a frontend setting, or requiring a hosted service.
 
@@ -11,7 +11,7 @@ Release 0.5 adds one deliberately bounded LlamaIndex comparison path and one rep
 | [MRA-018](stories/MRA-018-optional-llamaindex-comparison-path.md) | Query existing CiteNook chunks through a local, developer-only LlamaIndex path | Implemented |
 | [MRA-019](stories/MRA-019-local-ragas-evaluation-harness.md) | Evaluate grounded answers locally with a small reproducible Ragas dataset | Implemented |
 | [MRA-020](stories/MRA-020-framework-evaluation-verification-and-presentation.md) | Verify regressions and document the two additions accurately | Implemented |
-| [MRA-021](stories/MRA-021-release-documentation-alignment.md) | Align maintained repository documentation with the verified Release 0.5 behavior | Planned |
+| [MRA-021](stories/MRA-021-release-documentation-alignment.md) | Align maintained repository documentation with the verified Release 0.5 behavior | Implemented |
 
 ## Delivery order
 
@@ -44,5 +44,6 @@ If the pinned LlamaIndex packages cannot consume CiteNook's existing chunk metad
 | Ragas smoke | Run `mra019-20260828T144238Z` scored all 8 invented cases: Faithfulness `0.8`, Factual Correctness `0.82375`. JSON/CSV coverage and all 16 score ranges agreed. |
 | Cleanup and privacy | The dedicated smoke resources left zero documents, chunks, jobs, conversations, messages, or uploaded files. Generated experiment files remain ignored, no screenshots changed, and the committed diff contains no model output or private document. |
 | Regression gates | Repository audit, lock check, Ruff, 104 API tests, 1 brand test, 48 web tests, root lint/test/build, and both Compose configuration checks passed. Native Windows Node cannot run from WSL1, so npm gates ran in an isolated Node 26 Linux container. |
+| Documentation alignment | The maintained non-release documentation now links to one English LlamaIndex comparison guide with a verified WSL2 + Compose command and Mosslight example. Changed local links and heading fragments passed dependency-free validation, and the documentation-only diff contains no product, schema, Compose, fixture, screenshot, or generated-artifact change. |
 
 These results are local reproducibility evidence, not a quality leaderboard. The fixture is intentionally small, the recorded answer and evaluator roles use the same model, scores may vary, no human-judge alignment study exists, and the public API exposes cited snippets rather than a complete raw top-k retrieval trace.
