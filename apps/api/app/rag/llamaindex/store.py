@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 from hashlib import sha256
-from typing import Protocol
+from typing import Any, Protocol
 
 from llama_index.core.schema import BaseNode
+from llama_index.core.vector_stores.types import BasePydanticVectorStore
 from llama_index.vector_stores.postgres import PGVectorStore
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
@@ -30,6 +31,15 @@ class NodeStoreFactory(Protocol):
         session: Session,
         embedding_model: str,
     ) -> list[NodeStore]: ...
+
+
+class RetrievalStoreFactory(Protocol):
+    def read_store(
+        self,
+        session: Session,
+        embedding_model: str,
+        dimension: int,
+    ) -> BasePydanticVectorStore | None: ...
 
 
 class PostgresNodeStoreFactory:
@@ -82,6 +92,33 @@ class PostgresNodeStoreFactory:
             )
         return stores
 
+    def read_store(
+        self,
+        session: Session,
+        embedding_model: str,
+        dimension: int,
+    ) -> PGVectorStore | None:
+        persisted_name = f"data_{table_name(embedding_model, dimension)}"
+        exists = session.scalar(
+            text(
+                "SELECT EXISTS ("
+                "SELECT 1 FROM pg_catalog.pg_tables "
+                "WHERE schemaname = :schema_name AND tablename = :table_name"
+                ")"
+            ),
+            {
+                "schema_name": LLAMAINDEX_SCHEMA,
+                "table_name": persisted_name,
+            },
+        )
+        if not exists:
+            return None
+        return self._store(
+            table_name=persisted_name.removeprefix("data_"),
+            dimension=dimension,
+            perform_setup=False,
+        )
+
     def _store(
         self,
         *,
@@ -104,7 +141,15 @@ class PostgresNodeStoreFactory:
                 ("embedding_model", "text"),
                 ("ordinal", "integer"),
             },
+            customize_query_fn=_stable_query_order,
         )
+
+
+def _stable_query_order(statement: Any, table: Any, **_: Any) -> Any:
+    return statement.order_by(
+        text("(metadata_->>'ordinal')::integer ASC"),
+        table.node_id.asc(),
+    )
 
 
 def table_prefix(embedding_model: str) -> str:

@@ -2,7 +2,7 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` through `MRA-023` are committed, and `MRA-024` is implemented and awaits commit approval; later stories remain planned.
+Release 0.5 is in progress. `MRA-018` through `MRA-024` are committed, and `MRA-025` is implemented and awaits commit approval; later stories remain planned.
 
 ## Evidence table
 
@@ -14,8 +14,8 @@ Release 0.5 is in progress. `MRA-018` through `MRA-023` are committed, and `MRA-
 | MRA-021 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `1b2ace3` | Implemented |
 | MRA-022 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `4aa1003` | Implemented |
 | MRA-023 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `e5e2ce1` | Implemented |
-| MRA-024 | Approved 2026-08-31 | Passed | Passed | Pending | This commit | Implemented |
-| MRA-025 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-024 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `f9987ef` | Implemented |
+| MRA-025 | Approved 2026-08-31 | Passed | Passed | Pending | This commit | Implemented |
 | MRA-026 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-027 | Pending | Pending | Pending | Pending | — | Planned |
 
@@ -137,6 +137,24 @@ Implementation approval was given on 2026-08-31 after the scope and checks were 
 - Web lint, 48 web tests, 1 brand test, both web builds, both current Compose configurations, and `git diff --check` passed.
 - Initial isolated attempts stopped before application tests because of copied local environment data or a missing brand mount; the corrected minimal runners produced the results above.
 - Static scans found no LlamaIndex import outside its optional adapter and tests, and no retriever, query engine, backend switch, Docker target, or Compose override was added.
+
+Commit approval was given on 2026-08-31. Commit `f9987ef` contains the implementation.
+
+## MRA-025 evidence
+
+Implementation approval was given on 2026-08-31 after the scope and checks were reviewed.
+
+- The adapter first selects ready, active documents for the conversation embedding model and returns no source or model call when none are eligible.
+- The common embedding bridge creates one query vector, and its dimension selects an existing model-specific PostgreSQL store without creating a table during read.
+- `VectorStoreIndex.from_vector_store()` and its retriever apply eligible document IDs plus the embedding model as LlamaIndex metadata filters.
+- Retrieved node text, document data, optional page, stable node UUID, and similarity map to the backend-neutral source record.
+- PostgreSQL adds node order and UUID after vector distance, and the adapter repeats that stable tie order before assigning `S1`, `S2`, and later markers.
+- The unchanged common answer service still builds the grounded prompt, calls chat, rejects bad markers, stores only cited sources, and uses the fixed insufficient answer with no citation for no result.
+- Twenty-two focused tests passed across LlamaIndex indexing and retrieval, native retrieval, and grounded answers.
+- An isolated `pgvector/pgvector:pg17` run passed 2 integration tests, excluding inactive, failed, missing, and model-mismatched data while preserving two equal-score nodes in stable order.
+- The full Python 3.13 and clean Python 3.14 runs each passed 90 API tests with the 2 PostgreSQL tests skipped when `TEST_DATABASE_URL` was absent.
+- Full API Ruff and import compilation passed, and static scans found LlamaIndex imports only in its optional adapter with no query engine, prompt, chat, message storage, backend switch, Docker, or Compose change.
+- Initial isolated invocations stopped before application tests because of a capture temp file, an unsupported coverage flag, a root-relative brand path, or a read-only editable build; the corrected runs produced the results above.
 
 Commit approval is pending. The resulting hash is reported after the approved commit succeeds because a commit cannot contain its own hash.
 

@@ -279,6 +279,18 @@ class TableSession:
         return TableRows(self.values)
 
 
+class StoreLookupSession:
+    def __init__(self, exists: bool) -> None:
+        self.exists = exists
+        self.statement: Any | None = None
+        self.parameters: dict[str, Any] = {}
+
+    def scalar(self, statement: Any, parameters: dict[str, Any]) -> bool:
+        self.statement = statement
+        self.parameters = parameters
+        return self.exists
+
+
 class CapturingPostgresFactory(PostgresNodeStoreFactory):
     def __init__(self) -> None:
         super().__init__("postgresql+psycopg://user:password@postgres.test/citenook")
@@ -318,6 +330,35 @@ def test_store_factory_discovers_only_model_and_dimension_tables() -> None:
         "prefix": f"data_{model_prefix}",
         "prefix_length": len(f"data_{model_prefix}"),
     }
+
+
+def test_store_factory_opens_only_an_existing_dimension_table_for_read() -> None:
+    factory = CapturingPostgresFactory()
+    missing_session = StoreLookupSession(False)
+
+    missing = factory.read_store(
+        missing_session,  # type: ignore[arg-type]
+        "embed-a",
+        3,
+    )
+
+    assert missing is None
+    assert factory.created == []
+    expected_table = f"data_{table_name('embed-a', 3)}"
+    assert missing_session.parameters == {
+        "schema_name": LLAMAINDEX_SCHEMA,
+        "table_name": expected_table,
+    }
+
+    existing_session = StoreLookupSession(True)
+    existing = factory.read_store(
+        existing_session,  # type: ignore[arg-type]
+        "embed-a",
+        3,
+    )
+
+    assert existing is not None
+    assert factory.created == [(table_name("embed-a", 3), 3, False)]
 
 
 def test_table_name_is_stable_and_separates_models_and_dimensions() -> None:
