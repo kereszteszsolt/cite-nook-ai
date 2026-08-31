@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented. `MRA-018` through `MRA-027` are implemented, with the final story awaiting commit approval.
+Implemented through `MRA-028`. The answer-feedback fix is awaiting commit approval.
 
 ## Objective
 
@@ -35,6 +35,7 @@ The release cleans the story records, source comments, web structure, and Python
 | 8 | [MRA-025](stories/MRA-025-add-llamaindex-source-retrieval.md) | Add LlamaIndex source retrieval | Common answers over LlamaIndex sources | Implemented |
 | 9 | [MRA-026](stories/MRA-026-deploy-one-rag-backend.md) | Deploy one RAG backend | Native or LlamaIndex at deploy time | Implemented |
 | 10 | [MRA-027](stories/MRA-027-complete-release-guides-and-diagrams.md) | Complete the release guides and diagrams | Final, tested, linked documentation | Implemented |
+| 11 | [MRA-028](stories/MRA-028-stabilize-answer-request-feedback.md) | Stabilize answer request feedback | Bounded waits and immediate pending feedback | Implemented |
 
 ## Delivery order and approvals
 

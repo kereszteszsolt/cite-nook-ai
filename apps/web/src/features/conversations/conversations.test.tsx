@@ -449,6 +449,13 @@ describe('persistent conversation history', () => {
   });
 
   it('asks a grounded question and renders the returned linked references', async () => {
+    let resolveAnswer: ((turn: unknown) => void) | undefined;
+    apiMock.askQuestion.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveAnswer = resolve;
+        }),
+    );
     render(<App />);
 
     const input = (await screen.findByLabelText('Ask your documents')) as HTMLTextAreaElement;
@@ -463,9 +470,34 @@ describe('persistent conversation history', () => {
         'What does the document say?',
       ),
     );
+    expect(input.value).toBe('');
+    expect(input.disabled).toBe(true);
+    const messages = screen.getByLabelText('Conversation messages');
+    expect(
+      within(messages).getByRole('status', {
+        name: 'CiteNook is preparing an answer',
+      }),
+    ).toBeDefined();
+    expect(within(messages).getAllByText('What does the document say?')).toHaveLength(1);
+
+    await act(async () =>
+      resolveAnswer?.({
+        conversation: { ...storedConversation, title: 'What does the document say?' },
+        userMessage: storedMessages[0],
+        assistantMessage: storedMessages[1],
+      }),
+    );
+
     expect(await screen.findByText('The persisted answer.')).toBeDefined();
     expect(screen.getByRole('link', { name: /\[S1\] notes.md/ })).toBeDefined();
+    expect(
+      within(messages).queryByRole('status', {
+        name: 'CiteNook is preparing an answer',
+      }),
+    ).toBeNull();
+    expect(within(messages).getAllByText('What does the document say?')).toHaveLength(1);
     expect(input.value).toBe('');
+    expect(input.disabled).toBe(false);
   });
 
   it('sends with Enter but keeps Shift+Enter available for a new line', async () => {
@@ -505,15 +537,39 @@ describe('persistent conversation history', () => {
   });
 
   it('preserves the question when answer generation fails', async () => {
-    apiMock.askQuestion.mockRejectedValue(new Error('Answer failed.'));
+    let rejectAnswer: ((cause: Error) => void) | undefined;
+    apiMock.askQuestion.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectAnswer = reject;
+        }),
+    );
     render(<App />);
 
     const input = (await screen.findByLabelText('Ask your documents')) as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: 'Please retry this question' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send question' }));
 
+    await waitFor(() =>
+      expect(apiMock.askQuestion).toHaveBeenCalledWith(
+        'conversation-1',
+        'Please retry this question',
+      ),
+    );
+    expect(input.value).toBe('');
+    expect(input.disabled).toBe(true);
+    expect(
+      screen.getByRole('status', { name: 'CiteNook is preparing an answer' }),
+    ).toBeDefined();
+
+    await act(async () => rejectAnswer?.(new Error('Answer failed.')));
+
     expect((await screen.findByRole('alert')).textContent).toContain('Answer failed.');
     expect(input.value).toBe('Please retry this question');
+    expect(input.disabled).toBe(false);
+    expect(
+      screen.queryByRole('status', { name: 'CiteNook is preparing an answer' }),
+    ).toBeNull();
   });
 
   it('deletes through the custom confirmation dialog without a browser confirm', async () => {

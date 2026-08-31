@@ -15,6 +15,23 @@ def test_ollama_host_can_point_to_an_external_instance(monkeypatch) -> None:
     get_settings.cache_clear()
 
 
+def test_ollama_request_timeout_is_finite_and_configurable(monkeypatch) -> None:
+    monkeypatch.delenv("OLLAMA_REQUEST_TIMEOUT_SECONDS", raising=False)
+    get_settings.cache_clear()
+    assert get_settings().ollama_request_timeout_seconds == 300
+
+    monkeypatch.setenv("OLLAMA_REQUEST_TIMEOUT_SECONDS", "45")
+    get_settings.cache_clear()
+    assert get_settings().ollama_request_timeout_seconds == 45
+
+    monkeypatch.setenv("OLLAMA_REQUEST_TIMEOUT_SECONDS", "0")
+    get_settings.cache_clear()
+    with pytest.raises(RuntimeError, match="positive integer"):
+        get_settings()
+
+    get_settings.cache_clear()
+
+
 def test_rag_backend_defaults_to_native_and_accepts_llamaindex(monkeypatch) -> None:
     monkeypatch.delenv("RAG_BACKEND", raising=False)
     get_settings.cache_clear()

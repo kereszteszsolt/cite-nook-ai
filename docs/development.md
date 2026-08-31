@@ -26,6 +26,7 @@ For host-run API and worker processes, `RAG_BACKEND` selects `native` or `llamai
 | --- | --- |
 | `DATABASE_URL` | PostgreSQL connection |
 | `OLLAMA_HOST` | Reachable Ollama URL |
+| `OLLAMA_REQUEST_TIMEOUT_SECONDS` | Positive timeout for each Ollama call |
 | `CHAT_MODELS` | Chat models shown by CiteNook |
 | `EMBEDDING_MODELS` | Embedding models shown by CiteNook |
 | `DEFAULT_CHAT_MODEL` | Default chat choice |

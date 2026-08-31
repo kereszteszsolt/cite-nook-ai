@@ -35,7 +35,10 @@ def build_application(
     worker_id: str | None = None,
 ) -> ApplicationContainer:
     resolved_settings = settings or get_settings()
-    provider = model_provider or OllamaProvider(host=resolved_settings.ollama_host)
+    provider = model_provider or OllamaProvider(
+        host=resolved_settings.ollama_host,
+        request_timeout_seconds=resolved_settings.ollama_request_timeout_seconds,
+    )
     conversations = ConversationService(resolved_settings)
     indexer, retriever = _build_rag_backend(resolved_settings, provider)
     return ApplicationContainer(

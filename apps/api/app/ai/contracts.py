@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Protocol
 
 
@@ -9,14 +10,28 @@ class ModelProviderUnavailableError(RuntimeError):
     pass
 
 
+class ModelResponseError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class ChatResult:
+    content: str
+    source_ids: tuple[str, ...]
+
+
 class ChatProvider(Protocol):
-    def chat(self, model: str, messages: Sequence[Mapping[str, str]]) -> str: ...
+    def chat(
+        self,
+        model: str,
+        messages: Sequence[Mapping[str, str]],
+        *,
+        allowed_source_ids: Sequence[str],
+    ) -> ChatResult: ...
 
 
 class EmbeddingProvider(Protocol):
-    def embed(
-        self, model: str, inputs: str | Sequence[str]
-    ) -> list[list[float]]: ...
+    def embed(self, model: str, inputs: str | Sequence[str]) -> list[list[float]]: ...
 
 
 class ModelCatalogProvider(Protocol):

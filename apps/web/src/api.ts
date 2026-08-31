@@ -14,6 +14,9 @@ import type {
 export const API_URL = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/+$/, '');
 export const API_CONNECTION_ERROR_MESSAGE =
   'CiteNook could not reach its API. Check that the Docker services are running, then retry.';
+export const ANSWER_REQUEST_TIMEOUT_MS = 620_000;
+export const ANSWER_TIMEOUT_MESSAGE =
+  'CiteNook stopped waiting for the answer. Check Ollama, then try again.';
 
 export interface HealthResponse {
   status: string;
@@ -25,11 +28,20 @@ export async function getHealth(): Promise<HealthResponse> {
   return request<HealthResponse>('/health');
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  timeout?: { milliseconds: number; message: string },
+): Promise<T> {
   const url = `${API_URL}${path}`;
+  const controller = timeout ? new AbortController() : null;
+  const timer = timeout
+    ? setTimeout(() => controller?.abort(), timeout.milliseconds)
+    : null;
   const requestInit = init
     ? {
         ...init,
+        ...(controller ? { signal: controller.signal } : {}),
         headers: {
           ...(init.body && !(init.body instanceof FormData)
             ? { 'Content-Type': 'application/json' }
@@ -42,13 +54,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     response = requestInit ? await fetch(url, requestInit) : await fetch(url);
   } catch (cause) {
+    if (controller?.signal.aborted && timeout) throw new Error(timeout.message, { cause });
     throw new Error(API_CONNECTION_ERROR_MESSAGE, { cause });
-  }
-  if (response.status === 502 || response.status === 503 || response.status === 504) {
-    throw new Error(API_CONNECTION_ERROR_MESSAGE);
+  } finally {
+    if (timer !== null) clearTimeout(timer);
   }
   if (!response.ok) {
-    let message = `Request failed with status ${response.status}.`;
+    let message =
+      response.status === 502 || response.status === 503 || response.status === 504
+        ? API_CONNECTION_ERROR_MESSAGE
+        : `Request failed with status ${response.status}.`;
     try {
       const payload = (await response.json()) as { detail?: string };
       if (payload.detail) message = payload.detail;
@@ -74,6 +89,10 @@ export const api = {
       {
         method: 'POST',
         body: JSON.stringify({ question }),
+      },
+      {
+        milliseconds: ANSWER_REQUEST_TIMEOUT_MS,
+        message: ANSWER_TIMEOUT_MESSAGE,
       },
     ),
   documents: () => request<DocumentRecord[]>('/documents'),

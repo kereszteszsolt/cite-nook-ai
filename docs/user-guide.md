@@ -74,5 +74,6 @@ The responsive layout keeps the same stored data and actions on narrow screens:
 - **Model disabled in a dialog:** install that exact model name or choose another configured installed model, then reload CiteNook.
 - **Document stays queued:** confirm the worker is running and can reach PostgreSQL, the upload volume, and Ollama.
 - **No grounded answer:** confirm at least one compatible document is both `ready` and active, then ask a question supported by its content.
+- **Answer times out:** confirm Ollama is responsive, then retry or raise `OLLAMA_REQUEST_TIMEOUT_SECONDS` for slower local hardware.
 
 See the [testing guide](testing.md) for verification commands and the [architecture guide](architecture.md) for service boundaries.

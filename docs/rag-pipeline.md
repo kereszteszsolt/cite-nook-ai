@@ -89,7 +89,7 @@ The answer service keeps these steps:
 3. Load the recent conversation history.
 4. Build the same grounded prompt for either backend.
 5. Call the selected chat provider.
-6. Reject missing or invalid source markers.
+6. Constrain chat citations to current source IDs, normalize duplicates, and reject missing or invalid proof.
 7. Store the question, answer, source JSON, model name, and response time.
 
 When retrieval returns no source, the service uses the existing fixed insufficient-source answer.

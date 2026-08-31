@@ -4,10 +4,19 @@
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { API_CONNECTION_ERROR_MESSAGE, api, getHealth } from './api';
+import {
+  ANSWER_REQUEST_TIMEOUT_MS,
+  ANSWER_TIMEOUT_MESSAGE,
+  API_CONNECTION_ERROR_MESSAGE,
+  api,
+  getHealth,
+} from './api';
 
 describe('API client', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
   it('loads health through the configured API boundary', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
@@ -35,6 +44,22 @@ describe('API client', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 502 })));
 
     await expect(getHealth()).rejects.toThrow(API_CONNECTION_ERROR_MESSAGE);
+  });
+
+  it('keeps a structured provider timeout from a reachable API', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ detail: 'Ollama chat request timed out.' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+
+    await expect(
+      api.askQuestion('conversation-1', 'Grounded question?'),
+    ).rejects.toThrow('Ollama chat request timed out.');
   });
 
   it('uploads multipart data without overriding its content type boundary', async () => {
@@ -203,11 +228,32 @@ describe('API client', () => {
     );
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/conversations/conversation-1/messages',
-      {
+      expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ question: 'Grounded question?' }),
         headers: { 'Content-Type': 'application/json' },
-      },
+        signal: expect.any(AbortSignal),
+      }),
     );
+  });
+
+  it('stops waiting for a stalled answer request with a clear message', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () =>
+          reject(new DOMException('Aborted', 'AbortError')),
+        );
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const request = expect(
+      api.askQuestion('conversation-1', 'Grounded question?'),
+    ).rejects.toThrow(ANSWER_TIMEOUT_MESSAGE);
+    await vi.advanceTimersByTimeAsync(ANSWER_REQUEST_TIMEOUT_MS);
+
+    await request;
+    vi.useRealTimers();
   });
 });

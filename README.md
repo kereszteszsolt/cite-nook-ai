@@ -72,7 +72,7 @@ Choose one backend and one Ollama mode. Use the same file list for later `docker
 
 ### Native with an existing Ollama instance (default)
 
-Ollama is not installed in the API, worker, or web containers. By default the application connects to `http://host.docker.internal:11434`. Set `OLLAMA_HOST` in `.env` to use another URL that is reachable from Docker.
+Ollama is not installed in the API, worker, or web containers. By default the application connects to `http://host.docker.internal:11434`. Set `OLLAMA_HOST` in `.env` to use another URL that is reachable from Docker. `OLLAMA_REQUEST_TIMEOUT_SECONDS` bounds each embedding, chat, and model-list call and defaults to 300 seconds.
 
 ```bash
 docker compose up --build

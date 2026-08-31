@@ -2,7 +2,7 @@
 
 ## Status
 
-Release 0.5 is implemented. `MRA-018` through `MRA-026` are committed, and implemented `MRA-027` is awaiting commit approval.
+Release 0.5 is implemented through `MRA-028`. The answer-feedback fix is awaiting commit approval.
 
 ## Evidence table
 
@@ -17,7 +17,8 @@ Release 0.5 is implemented. `MRA-018` through `MRA-026` are committed, and imple
 | MRA-024 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `f9987ef` | Implemented |
 | MRA-025 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `e470532` | Implemented |
 | MRA-026 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `163aa11` | Implemented |
-| MRA-027 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | This commit | Implemented |
+| MRA-027 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `7ac406a` | Implemented |
+| MRA-028 | Approved 2026-08-31 | Passed | Passed | Pending | Pending | Implemented |
 
 ## MRA-018 evidence
 
@@ -200,7 +201,35 @@ Implementation approval was given on 2026-08-31 after the release documentation 
 - An initial native chat attempt with installed `qwen3:4b` returned a long answer without a valid source marker and was correctly rejected with HTTP 502; the clean proof used `llama3.1:8b` and passed both backends.
 - Host Node was unavailable and the root Ruff cache was read-only, so the isolated Node copy and direct no-cache Ruff run supplied the complete checks.
 
-Commit approval was given on 2026-08-31. The resulting hash is reported after the approved commit succeeds because a commit cannot contain its own hash.
+Commit approval was given on 2026-08-31. Commit `7ac406a` contains the implementation.
+
+## MRA-028 evidence
+
+Implementation approval was given on 2026-08-31 after the answer timeout and pending-feedback scope was reviewed.
+
+- Baseline repository verification passed with 3 agents, 3 skills, 27 stories, and 107 valid local Markdown links before the story was added.
+- Runtime diagnosis found one ready and active LlamaIndex document with 266 stored nodes, one compatible conversation, and no persisted turn after the stalled request.
+- Two live browser requests reached the answer endpoint and ended with HTTP 502 rather than persisting a turn.
+- A content-free diagnostic proved that LlamaIndex retrieval returned 5 valid sources, while `llama3.1:8b` produced a 1,137-character answer with no source marker.
+- The existing web flow kept the question in the disabled input and appended both messages only after the full HTTP response.
+- The existing web request and composed Ollama client had no explicit finite answer timeout.
+- Settings, provider, and composition tests passed 27/27 checks for the positive timeout, explicit timeout errors, and concrete client wiring.
+- The common chat port now receives the current source allowlist, and the Ollama adapter requests one JSON-schema-constrained answer with structured citations.
+- The adapter rejects unknown source IDs, normalizes duplicate allowed IDs in stable order, and the common answer service still validates and stores the final markers with their proof.
+- Grounded-answer, Ollama-provider, and composition checks passed 23/23 focused tests for structured output, allowlisting, duplicate normalization, safe insufficiency, and concrete wiring.
+- Focused API-client and conversation tests passed 36/36 checks for browser timeout, structured backend errors, immediate pending bubbles, spinner state, exact success replacement, and failure restoration.
+- Full API tests passed 111 tests with 3 PostgreSQL tests skipped in the no-database run; Ruff and import compilation passed.
+- Full web tests passed 50/50, the brand test passed 1/1, TypeScript lint passed, and both production builds passed.
+- All four Compose configurations resolved with the 300-second Ollama timeout for API and worker while preserving native and LlamaIndex selection.
+- Native and LlamaIndex production images built successfully with 47 and 94 locked packages, and image smoke checks read custom timeout `7` under the correct backend.
+- An isolated LlamaIndex runtime stored one synthetic node, returned one grounded `[S1]` citation in 58 ms, and persisted exactly two messages.
+- The installed `llama3.1:8b` returned a 947-character structured answer; duplicate `S5` values normalized to one citation and passed the common source check.
+- A temporary live HTTP conversation returned 200 with a 953-character answer and one citation, then deletion returned 204.
+- The isolated smoke records were deleted, its empty test volumes and containers were removed, and the original workspace kept one ready 266-node document, one conversation, and zero messages.
+- The live LlamaIndex stack now runs the fresh images, reports `ragBackend: llamaindex`, reads timeout `300`, and retained the same workspace counts after recreation.
+- Repository verification passed with 3 agents, 3 skills, 28 stories, and 108 links; the 7 comment-rule tests passed.
+
+Commit approval has not been given. The proposed commit is created only after approval.
 
 ## Required release checks
 

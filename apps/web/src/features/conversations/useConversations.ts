@@ -14,6 +14,10 @@ import type {
 
 type ModelDialogMode = 'create' | 'edit';
 type SetError = (message: string | null) => void;
+interface PendingQuestion {
+  conversationId: string;
+  content: string;
+}
 
 export function useConversations(catalog: ModelCatalog | null, setError: SetError) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -24,6 +28,7 @@ export function useConversations(catalog: ModelCatalog | null, setError: SetErro
   const [saving, setSaving] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [asking, setAsking] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState<PendingQuestion | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [modelDialog, setModelDialog] = useState<ModelDialogMode | null>(null);
@@ -193,6 +198,7 @@ export function useConversations(catalog: ModelCatalog | null, setError: SetErro
     const conversationId = activeConversation.id;
     const requestId = messageRequestId.current;
     setAsking(true);
+    setPendingQuestion({ conversationId, content: question });
     setError(null);
     try {
       const turn = await api.askQuestion(conversationId, question);
@@ -208,6 +214,9 @@ export function useConversations(catalog: ModelCatalog | null, setError: SetErro
       setError(errorMessage(cause));
       return false;
     } finally {
+      setPendingQuestion((pending) =>
+        pending?.conversationId === conversationId ? null : pending,
+      );
       setAsking(false);
     }
   }
@@ -222,6 +231,7 @@ export function useConversations(catalog: ModelCatalog | null, setError: SetErro
     saving,
     loadingMessages,
     asking,
+    pendingQuestion,
     deleting,
     renaming,
     modelDialog,

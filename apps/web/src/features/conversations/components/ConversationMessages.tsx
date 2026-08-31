@@ -18,6 +18,7 @@ interface ConversationMessagesProps {
   messages: ConversationMessage[];
   loading: boolean;
   asking: boolean;
+  pendingQuestion: string | null;
   onAsk: (question: string) => Promise<boolean>;
 }
 
@@ -35,7 +36,7 @@ export function ConversationMessages(props: ConversationMessagesProps) {
   useEffect(() => {
     const history = historyRef.current;
     if (history) history.scrollTop = history.scrollHeight;
-  }, [props.messages]);
+  }, [props.messages, props.pendingQuestion]);
 
   useEffect(() => {
     const input = questionRef.current;
@@ -59,7 +60,8 @@ export function ConversationMessages(props: ConversationMessagesProps) {
     event.preventDefault();
     const normalized = question.trim();
     if (!normalized || !props.conversation || props.asking) return;
-    if (await props.onAsk(normalized)) setQuestion('');
+    setQuestion('');
+    if (!(await props.onAsk(normalized))) setQuestion(normalized);
   }
 
   function handleQuestionKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -108,7 +110,7 @@ export function ConversationMessages(props: ConversationMessagesProps) {
           <p className="messages-state">Create or select a conversation to view its history.</p>
         ) : props.loading ? (
           <p className="messages-state" role="status">Loading messages…</p>
-        ) : props.messages.length === 0 ? (
+        ) : props.messages.length === 0 && !props.pendingQuestion ? (
           <p className="messages-state">
             Ask a question after at least one compatible document is ready.
           </p>
@@ -200,6 +202,29 @@ export function ConversationMessages(props: ConversationMessagesProps) {
                 </article>
               );
             })}
+            {props.pendingQuestion && (
+              <>
+                <article className="message-bubble user pending">
+                  <div className="message-meta">
+                    <strong>You</strong>
+                  </div>
+                  <p>{props.pendingQuestion}</p>
+                </article>
+                <article
+                  className="message-bubble assistant pending"
+                  role="status"
+                  aria-label="CiteNook is preparing an answer"
+                >
+                  <div className="message-meta">
+                    <strong>CiteNook</strong>
+                  </div>
+                  <div className="pending-answer">
+                    <SpinnerIcon />
+                    <span>Preparing answer…</span>
+                  </div>
+                </article>
+              </>
+            )}
           </div>
         )}
         <p className="visually-hidden" role="status" aria-live="polite">
@@ -318,6 +343,29 @@ function RetryIcon({ active }: { active: boolean }) {
     >
       <path d="M20 7v5h-5M4 17v-5h5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
       <path d="M6.1 9A7 7 0 0 1 18.7 7.5L20 12M4 12l1.3 4.5A7 7 0 0 0 17.9 15" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+function SpinnerIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="spinning"
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="8"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+        strokeDasharray="34 16"
+      />
     </svg>
   );
 }

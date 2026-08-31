@@ -439,6 +439,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 .message-bubble.user { justify-self: end; border-color: var(--brand-accent); background: var(--brand-accent-soft); }
 .message-bubble.assistant { justify-self: start; }
+.message-bubble.pending { opacity: .82; }
 .message-bubble p { margin: 0; line-height: 1.6; white-space: pre-wrap; }
 .message-bubble small, .message-meta span { color: var(--brand-text-muted); }
 .message-meta { display: flex; justify-content: space-between; gap: 16px; font-size: .78rem; }
@@ -480,6 +481,13 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--brand-text-muted);
   font-size: .75rem;
   white-space: nowrap;
+}
+.pending-answer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  color: var(--brand-text-muted);
 }
 .spinning { animation: spin 900ms linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }

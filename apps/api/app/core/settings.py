@@ -47,6 +47,7 @@ class Settings:
     chat_history_messages: int = 12
     rag_top_k: int = 5
     rag_backend: str = "native"
+    ollama_request_timeout_seconds: int = 300
 
 
 @lru_cache(maxsize=1)
@@ -80,9 +81,7 @@ def get_settings() -> Settings:
         brand_config_path=Path(
             os.getenv("BRAND_CONFIG_PATH", "../../packages/brand/brand.json")
         ).resolve(),
-        cors_origins=_csv(
-            "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
-        ),
+        cors_origins=_csv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"),
         upload_dir=Path(os.getenv("UPLOAD_DIR", "./uploads")).resolve(),
         max_upload_bytes=max_upload_mb * 1024 * 1024,
         embedding_batch_size=_positive_int("EMBEDDING_BATCH_SIZE", 32),
@@ -90,4 +89,5 @@ def get_settings() -> Settings:
         chat_history_messages=_positive_int("CHAT_HISTORY_MESSAGES", 12),
         rag_top_k=_positive_int("RAG_TOP_K", 5),
         rag_backend=_rag_backend(),
+        ollama_request_timeout_seconds=_positive_int("OLLAMA_REQUEST_TIMEOUT_SECONDS", 300),
     )

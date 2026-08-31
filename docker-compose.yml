@@ -3,6 +3,7 @@ name: citenook
 x-app-environment: &app-environment
   DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://cite_nook:checked-in-development-only@postgres:5432/cite_nook}
   OLLAMA_HOST: ${OLLAMA_HOST:-http://host.docker.internal:11434}
+  OLLAMA_REQUEST_TIMEOUT_SECONDS: ${OLLAMA_REQUEST_TIMEOUT_SECONDS:-300}
   CHAT_MODELS: ${CHAT_MODELS:-llama3.1:8b,qwen3.5:9b}
   EMBEDDING_MODELS: ${EMBEDDING_MODELS:-qwen3-embedding:0.6b,embeddinggemma}
   DEFAULT_CHAT_MODEL: ${DEFAULT_CHAT_MODEL:-llama3.1:8b}

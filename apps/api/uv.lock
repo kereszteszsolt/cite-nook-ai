@@ -299,6 +299,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi", extra = ["standard-no-fastapi-cloud-cli"] },
+    { name = "httpx" },
     { name = "ollama" },
     { name = "pgvector" },
     { name = "psycopg", extra = ["binary"] },
@@ -323,6 +324,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", extras = ["standard-no-fastapi-cloud-cli"], specifier = "==0.141.1" },
+    { name = "httpx", specifier = "==0.28.1" },
     { name = "llama-index-core", marker = "extra == 'llamaindex'", specifier = "==0.14.24" },
     { name = "llama-index-vector-stores-postgres", marker = "extra == 'llamaindex'", specifier = "==0.8.1" },
     { name = "ollama", specifier = "==0.6.2" },

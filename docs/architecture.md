@@ -147,7 +147,7 @@ Rules:
 
 | Port | Input | Output | Owner |
 | --- | --- | --- | --- |
-| `ChatProvider` | model and chat messages | answer text | `ai` |
+| `ChatProvider` | model, chat messages, allowed source IDs | structured answer and source IDs | `ai` |
 | `EmbeddingProvider` | model and one or more texts | vectors | `ai` |
 | `ModelCatalogProvider` | none | installed and configured model data | `ai` |
 | `DocumentIndexer` | session, document, extracted sections | stored item count | `rag` |

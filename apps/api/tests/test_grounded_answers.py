@@ -7,12 +7,10 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 from uuid import UUID, uuid4
 
-import pytest
-
+from app.ai.contracts import ChatResult, ModelResponseError
 from app.application.answers import (
     GROUNDING_SYSTEM_PROMPT,
     INSUFFICIENT_ANSWER,
-    GroundedAnswerError,
     GroundedAnswerService,
 )
 from app.persistence.models import Conversation, ConversationMessage
@@ -20,13 +18,31 @@ from app.rag.contracts import RetrievedSource
 
 
 class FakeChatProvider:
-    def __init__(self, answer: str = "The answer is supported [S1].") -> None:
+    def __init__(
+        self,
+        answer: str = "The answer is supported.",
+        *,
+        source_ids: tuple[str, ...] = ("S1",),
+        error: ModelResponseError | None = None,
+    ) -> None:
         self.answer = answer
-        self.calls: list[tuple[str, list[dict[str, str]]]] = []
+        self.source_ids = source_ids
+        self.error = error
+        self.calls: list[tuple[str, list[dict[str, str]], list[str]]] = []
 
-    def chat(self, model: str, messages: Sequence[Mapping[str, str]]) -> str:
-        self.calls.append((model, [dict(message) for message in messages]))
-        return self.answer
+    def chat(
+        self,
+        model: str,
+        messages: Sequence[Mapping[str, str]],
+        *,
+        allowed_source_ids: Sequence[str],
+    ) -> ChatResult:
+        self.calls.append(
+            (model, [dict(message) for message in messages], list(allowed_source_ids))
+        )
+        if self.error is not None:
+            raise self.error
+        return ChatResult(content=self.answer, source_ids=self.source_ids)
 
 
 class FakeRetriever:
@@ -70,9 +86,7 @@ class FakeConversationService:
         self.recent_calls: list[UUID] = []
         self.record_call: dict[str, Any] | None = None
 
-    def recent_history(
-        self, session: Any, conversation_id: UUID
-    ) -> list[ConversationMessage]:
+    def recent_history(self, session: Any, conversation_id: UUID) -> list[ConversationMessage]:
         self.recent_calls.append(conversation_id)
         return self.history
 
@@ -136,11 +150,9 @@ def test_answer_uses_retrieved_sources_and_keeps_grounding_rules() -> None:
     ]
     conversation_service = FakeConversationService(stored_conversation, history)
     chat_provider = FakeChatProvider(
-        "The second passage supports this statement [S2]."
+        "The second passage supports this statement.", source_ids=("S2",)
     )
-    retriever = FakeRetriever(
-        [source("first.txt", 0, 0.9), source("second.pdf", 1, 0.8)]
-    )
+    retriever = FakeRetriever([source("first.txt", 0, 0.9), source("second.pdf", 1, 0.8)])
     session = AnswerSession(stored_conversation)
     service = GroundedAnswerService(
         chat_provider=chat_provider,
@@ -160,6 +172,7 @@ def test_answer_uses_retrieved_sources_and_keeps_grounding_rules() -> None:
     assert retriever.calls == [(session, "What is supported?", "embed-a", 2)]
     assert chat_provider.calls[0][0] == "chat-a"
     chat_messages = chat_provider.calls[0][1]
+    assert chat_provider.calls[0][2] == ["S1", "S2"]
     assert chat_messages[0] == {"role": "system", "content": GROUNDING_SYSTEM_PROMPT}
     assert chat_messages[1]["content"] == "Earlier question"
     assert '"source": "S1"' in chat_messages[-1]["content"]
@@ -167,6 +180,10 @@ def test_answer_uses_retrieved_sources_and_keeps_grounding_rules() -> None:
     assert INSUFFICIENT_ANSWER in GROUNDING_SYSTEM_PROMPT
     assert conversation_service.recent_calls == [stored_conversation.id]
     assert conversation_service.record_call is not None
+    assert (
+        conversation_service.record_call["answer"]
+        == "The second passage supports this statement.\n\n[S2]"
+    )
     citations = conversation_service.record_call["citations"]
     assert [citation["source_id"] for citation in citations] == ["S2"]
     assert citations[0]["document_name"] == "second.pdf"
@@ -203,41 +220,73 @@ def test_missing_sources_returns_explicit_insufficiency_without_chat() -> None:
     assert conversation_service.record_call["citations"] == []
 
 
-def test_chat_answer_with_an_unknown_source_marker_is_rejected() -> None:
+def test_chat_answer_without_structured_citations_stores_safe_insufficiency() -> None:
     stored_conversation = conversation()
     conversation_service = FakeConversationService(stored_conversation)
+    chat_provider = FakeChatProvider("An ungrounded answer.", source_ids=())
     service = GroundedAnswerService(
-        chat_provider=FakeChatProvider("Unsupported claim [S9]."),
+        chat_provider=chat_provider,
         retriever=FakeRetriever([source("only.txt", 0, 0.9)]),
         top_k=2,
         conversations=conversation_service,  # type: ignore[arg-type]
     )
 
-    with pytest.raises(GroundedAnswerError, match="unavailable source markers: S9"):
-        service.answer(
-            AnswerSession(stored_conversation),  # type: ignore[arg-type]
-            conversation_id=stored_conversation.id,
-            question="Question",
-        )
+    result = service.answer(
+        AnswerSession(stored_conversation),  # type: ignore[arg-type]
+        conversation_id=stored_conversation.id,
+        question="Question",
+    )
 
-    assert conversation_service.record_call is None
+    assert result is not None
+    assert len(chat_provider.calls) == 1
+    assert conversation_service.record_call is not None
+    assert conversation_service.record_call["answer"] == INSUFFICIENT_ANSWER
+    assert conversation_service.record_call["citations"] == []
 
 
-def test_chat_answer_without_marker_or_insufficiency_is_rejected() -> None:
+def test_unknown_structured_source_id_stores_safe_insufficiency() -> None:
     stored_conversation = conversation()
     conversation_service = FakeConversationService(stored_conversation)
+    chat_provider = FakeChatProvider("Unsupported claim.", source_ids=("S9",))
     service = GroundedAnswerService(
-        chat_provider=FakeChatProvider("An ungrounded answer."),
+        chat_provider=chat_provider,
         retriever=FakeRetriever([source("only.txt", 0, 0.9)]),
         top_k=2,
         conversations=conversation_service,  # type: ignore[arg-type]
     )
 
-    with pytest.raises(GroundedAnswerError, match="without a source marker"):
-        service.answer(
-            AnswerSession(stored_conversation),  # type: ignore[arg-type]
-            conversation_id=stored_conversation.id,
-            question="Question",
-        )
+    result = service.answer(
+        AnswerSession(stored_conversation),  # type: ignore[arg-type]
+        conversation_id=stored_conversation.id,
+        question="Question",
+    )
 
-    assert conversation_service.record_call is None
+    assert result is not None
+    assert len(chat_provider.calls) == 1
+    assert conversation_service.record_call is not None
+    assert conversation_service.record_call["answer"] == INSUFFICIENT_ANSWER
+    assert conversation_service.record_call["citations"] == []
+
+
+def test_invalid_structured_model_response_stores_safe_insufficiency() -> None:
+    stored_conversation = conversation()
+    conversation_service = FakeConversationService(stored_conversation)
+    chat_provider = FakeChatProvider(error=ModelResponseError("Invalid structured response."))
+    service = GroundedAnswerService(
+        chat_provider=chat_provider,
+        retriever=FakeRetriever([source("only.txt", 0, 0.9)]),
+        top_k=2,
+        conversations=conversation_service,  # type: ignore[arg-type]
+    )
+
+    result = service.answer(
+        AnswerSession(stored_conversation),  # type: ignore[arg-type]
+        conversation_id=stored_conversation.id,
+        question="Question",
+    )
+
+    assert result is not None
+    assert len(chat_provider.calls) == 1
+    assert conversation_service.record_call is not None
+    assert conversation_service.record_call["answer"] == INSUFFICIENT_ANSWER
+    assert conversation_service.record_call["citations"] == []

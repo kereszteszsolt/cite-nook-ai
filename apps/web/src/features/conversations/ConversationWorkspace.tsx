@@ -97,6 +97,12 @@ export function ConversationWorkspace({ catalog, controller }: ConversationWorks
             messages={controller.messages}
             loading={controller.loadingMessages}
             asking={controller.asking}
+            pendingQuestion={
+              controller.pendingQuestion?.conversationId ===
+              controller.activeConversation?.id
+                ? (controller.pendingQuestion?.content ?? null)
+                : null
+            }
             onAsk={controller.askQuestion}
           />
         </div>
