@@ -18,6 +18,12 @@ dependencies = [
   "sqlalchemy==2.0.52",
 ]
 
+[project.optional-dependencies]
+llamaindex = [
+  "llama-index-core==0.14.24",
+  "llama-index-vector-stores-postgres==0.8.1",
+]
+
 [dependency-groups]
 dev = [
   "pytest>=8,<10",

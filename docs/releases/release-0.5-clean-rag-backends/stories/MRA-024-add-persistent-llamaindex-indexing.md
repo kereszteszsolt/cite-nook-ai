@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+Implemented
 
 ## User story
 
@@ -18,14 +18,14 @@ Use LlamaIndex to split text, make vectors, and save nodes.
 
 ## Acceptance criteria
 
-- [ ] The LlamaIndex packages are optional, pinned, locked, and absent from the native runtime image.
-- [ ] The LlamaIndex indexer turns common extracted sections into page-aware LlamaIndex nodes.
-- [ ] A small LlamaIndex embedding bridge uses the configured `EmbeddingProvider` and model name.
-- [ ] A persistent PostgreSQL vector store uses a dedicated table or collection for LlamaIndex nodes.
-- [ ] Each node has a stable UUID and metadata for document, file name, page, order, and embedding model.
-- [ ] Reindex and delete work are safe to repeat and remove old nodes for the same document.
-- [ ] A document becomes ready only after all nodes are stored, and a failed job keeps a short error.
-- [ ] Focused tests cover node metadata, replacement, delete, failure cleanup, and stored node count.
+- [x] The LlamaIndex packages are optional, pinned, locked, and absent from the native runtime image.
+- [x] The LlamaIndex indexer turns common extracted sections into page-aware LlamaIndex nodes.
+- [x] A small LlamaIndex embedding bridge uses the configured `EmbeddingProvider` and model name.
+- [x] A persistent PostgreSQL vector store uses a dedicated table or collection for LlamaIndex nodes.
+- [x] Each node has a stable UUID and metadata for document, file name, page, order, and embedding model.
+- [x] Reindex and delete work are safe to repeat and remove old nodes for the same document.
+- [x] A document becomes ready only after all nodes are stored, and a failed job keeps a short error.
+- [x] Focused tests cover node metadata, replacement, delete, failure cleanup, and stored node count.
 
 ## Out of scope
 

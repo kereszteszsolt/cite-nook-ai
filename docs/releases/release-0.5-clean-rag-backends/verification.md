@@ -2,7 +2,7 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` through `MRA-022` are committed, and `MRA-023` is implemented and awaits commit approval; later stories remain planned.
+Release 0.5 is in progress. `MRA-018` through `MRA-023` are committed, and `MRA-024` is implemented and awaits commit approval; later stories remain planned.
 
 ## Evidence table
 
@@ -13,8 +13,8 @@ Release 0.5 is in progress. `MRA-018` through `MRA-022` are committed, and `MRA-
 | MRA-020 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `33d1f50` | Implemented |
 | MRA-021 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `1b2ace3` | Implemented |
 | MRA-022 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `4aa1003` | Implemented |
-| MRA-023 | Approved 2026-08-30 | Passed | Passed | Pending | This commit | Implemented |
-| MRA-024 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-023 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `e5e2ce1` | Implemented |
+| MRA-024 | Approved 2026-08-31 | Passed | Passed | Pending | This commit | Implemented |
 | MRA-025 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-026 | Pending | Pending | Pending | Pending | — | Planned |
 | MRA-027 | Pending | Pending | Pending | Pending | — | Planned |
@@ -99,7 +99,7 @@ Implementation approval was given on 2026-08-30 after the scope and checks were 
 - Full monorepo lint passed 3/3 tasks, tests passed 70 API, 48 web, and 1 brand test, and build passed 3/3 tasks.
 - Both current Compose configuration commands, repository verification, import compilation, and `git diff --check` passed.
 
-Commit approval was given on 2026-08-30. The resulting hash is reported after the commit succeeds because a commit cannot contain its own hash.
+Commit approval was given on 2026-08-30. Commit `4aa1003` contains the implementation.
 
 ## MRA-023 evidence
 
@@ -116,6 +116,27 @@ Implementation approval was given on 2026-08-30 after the scope and checks were 
 - In the isolated Python 3.14 container, Ruff passed, all 76 API tests passed, and the API build passed.
 - In the isolated Node 26 container, TypeScript lint passed, 48 web and 1 brand test passed, and both production builds passed.
 - Both current Compose configuration commands, repository verification, import compilation, and `git diff --check` passed.
+
+Commit approval was given on 2026-08-30. Commit `e5e2ce1` contains the implementation.
+
+## MRA-024 evidence
+
+Implementation approval was given on 2026-08-31 after the scope and checks were reviewed.
+
+- The `llamaindex` extra pins `llama-index-core==0.14.24` and `llama-index-vector-stores-postgres==0.8.1`, and `uv.lock` resolves 99 packages.
+- Dependency resolution passed for Python 3.13 and 3.14 with the current CiteNook pins, and both versions installed the optional set successfully.
+- `CiteNookEmbedding` sends the selected model and bounded batches through the common `EmbeddingProvider` without adding a second Ollama adapter.
+- The LlamaIndex indexer splits each extracted section separately, keeps page boundaries, and assigns deterministic UUIDs plus document, file, page, order, model, and node metadata.
+- The official PostgreSQL store writes JSONB metadata into the dedicated `citenook_llamaindex` schema and separates collections by embedding model and vector dimension.
+- Replacement clears every prior collection for the document and model, while repeated delete is safe and a failed write makes a best-effort cleanup before returning one short error.
+- The common ingestion service still marks a document ready only after the indexer returns its stored count, and its existing failure path stores the bounded index error.
+- Seven focused unit tests cover batching, metadata, stable IDs, collection names, replacement, repeated delete, and failed-write cleanup; four ingestion tests preserve job state behavior.
+- An isolated `pgvector/pgvector:pg17` integration test stored 2 nodes, replaced them with 1 stable node, verified every required metadata field, and passed two delete calls with 0 nodes left.
+- Python 3.13 and clean Python 3.14 runs passed Ruff and 83 API tests; without `TEST_DATABASE_URL`, the separately proven PostgreSQL test was the single expected skip.
+- A clean native API image imported `app.main` and reported `llama_index=absent`; the run-owned image was removed after the check.
+- Web lint, 48 web tests, 1 brand test, both web builds, both current Compose configurations, and `git diff --check` passed.
+- Initial isolated attempts stopped before application tests because of copied local environment data or a missing brand mount; the corrected minimal runners produced the results above.
+- Static scans found no LlamaIndex import outside its optional adapter and tests, and no retriever, query engine, backend switch, Docker target, or Compose override was added.
 
 Commit approval is pending. The resulting hash is reported after the approved commit succeeds because a commit cannot contain its own hash.
 

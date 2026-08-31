@@ -7,7 +7,7 @@
     "worker": "uv run python -m app.worker",
     "build": "uv run python -m compileall -q app",
     "lint": "uv run ruff check app tests",
-    "test": "uv run pytest -q"
+    "test": "uv run --extra llamaindex pytest -q"
   },
   "license": "Apache-2.0",
   "author": {
