@@ -32,3 +32,4 @@ Rules:
 - Source comments explain only a hard reason, prefer one short sentence, and use at most three in a block.
 - Docstrings use at most five short sentences.
 - Required directives stay unchanged, and plans, history, and proof stay in Markdown.
+- Release closeout checks active docs, local links, exact package versions, all supported Compose configurations, and real runtime proof for each backend.

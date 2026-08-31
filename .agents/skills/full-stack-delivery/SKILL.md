@@ -17,4 +17,6 @@ description: Deliver one approved CiteNook story across React, FastAPI, Turborep
 10. Show checks, then ask for commit approval.
 11. After an approved commit, report its hash and ask before the next story.
 
+For Release 0.5 deployment work, keep native as the base Compose backend and select LlamaIndex only with `docker-compose.llamaindex.yml`. Keep the API and worker on one backend and one data project.
+
 Use comments only when code cannot explain a hard reason; prefer one short sentence and allow at most three in a block. Keep docstrings to five short sentences, preserve required directives, and move plans, history, and proof to Markdown. Do not add a state library, a second queue, or a generic framework without an approved story.

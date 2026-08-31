@@ -1,8 +1,8 @@
 # Testing
 
-## Release 0.5 test plan
+## Release 0.5 checks
 
-Release 0.5 must keep the Release 0.4 native behavior while it adds a separate LlamaIndex deployment. Each story runs focused checks before commit approval. The final release runs the full matrix below.
+Release 0.5 keeps the Release 0.4 native behavior and adds a separate LlamaIndex deployment. Each story runs focused checks before commit approval. Release verification uses the full matrix below.
 
 | Check | Native | LlamaIndex |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ Release 0.5 must keep the Release 0.4 native behavior while it adds a separate L
 | Wrong database backend marker | Required | Required |
 | Native import without LlamaIndex installed | Required | Not applicable |
 
-The final Compose checks will be:
+The four Compose checks are:
 
 ```bash
 docker compose config
@@ -27,14 +27,11 @@ docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml config
 docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml config
 ```
 
-The last two commands are planned until `MRA-026` adds the LlamaIndex override. Runtime smoke tests must check `/api/health` and confirm its `ragBackend` value before document work starts.
+Runtime smoke tests check `/api/health` and confirm its `ragBackend` value before document work starts.
 
 ## Story proof
 
 Short story proof belongs in each release `verification.md`. Large logs should be saved as files and linked. Stories must not contain long command output or issue and limitation sections.
-
-## Current Release 0.4 checks
-
 
 ## Automated checks
 
@@ -45,6 +42,8 @@ npm run test
 npm run build
 docker compose config
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml config
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml config
 ```
 
 The first Compose command must contain no `ollama` service and must resolve `OLLAMA_HOST` to an external endpoint. The override configuration must add the `ollama` service, its named volume, `http://ollama:11434` for the API and worker, and host port `11435` by default.
@@ -79,7 +78,7 @@ MRA-015's Playwright screenshot suite serves only the real Vite/React applicatio
 
 ## Runtime smoke checks
 
-External Ollama mode:
+Native with external Ollama:
 
 ```bash
 docker compose up --build --detach
@@ -89,7 +88,7 @@ curl --fail http://localhost:5173
 docker compose down
 ```
 
-Separate Ollama container mode:
+Native with Compose-managed Ollama:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml up --build --detach
@@ -99,6 +98,31 @@ curl --fail http://localhost:11435/api/tags
 curl --fail http://localhost:5173
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml down
 ```
+
+LlamaIndex with external Ollama:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml up --build --detach
+curl --fail http://localhost:8000/api/health
+curl --fail http://localhost:8000/api/models
+curl --fail http://localhost:5173
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml down
+```
+
+LlamaIndex with Compose-managed Ollama:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml up --build --detach
+curl --fail http://localhost:8000/api/health
+curl --fail http://localhost:8000/api/models
+curl --fail http://localhost:11435/api/tags
+curl --fail http://localhost:5173
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml down
+```
+
+The two native commands must report `ragBackend: native`; the two LlamaIndex commands must report `ragBackend: llamaindex`. Use a dedicated document and conversation for each run. Wait for one completed index job, ask one supported question, verify the returned citation and original-file link, restart API, worker, and web without deleting volumes, then confirm persistence and delete only that smoke data.
+
+Native and LlamaIndex use different PostgreSQL and upload volumes. A backend change does not reuse or migrate an index, so smoke data must be uploaded and indexed separately in each deployment.
 
 For MRA-002, create a conversation through `POST /api/conversations`, update its model pair through `PATCH /api/conversations/{id}`, and confirm that `GET /api/conversations` returns the stored pair after switching between the two Compose modes.
 

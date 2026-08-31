@@ -9,9 +9,10 @@ from __future__ import annotations
 import json
 import re
 import sys
-import tomllib
 from pathlib import Path
+from urllib.parse import unquote
 
+import tomllib
 from comment_rules import find_comment_rule_errors
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -59,6 +60,19 @@ def sentence_count(text: str) -> int:
     return len(re.findall(r"[.!?](?:$|\s|[`*_])", text.strip()))
 
 
+def markdown_fragments(text: str) -> set[str]:
+    fragments: set[str] = set()
+    occurrences: dict[str, int] = {}
+    for heading in re.findall(r"^#{1,6}\s+(.+?)\s*#*$", text, re.MULTILINE):
+        plain = re.sub(r"[`*_~]", "", heading).casefold()
+        base = re.sub(r"[^\w\s-]", "", plain)
+        base = re.sub(r"\s+", "-", base.strip())
+        occurrence = occurrences.get(base, 0)
+        occurrences[base] = occurrence + 1
+        fragments.add(base if occurrence == 0 else f"{base}-{occurrence}")
+    return fragments
+
+
 IGNORED_PARTS = {
     ".generated-code-backup",
     ".git",
@@ -80,7 +94,7 @@ json_paths = [
 for path in json_paths:
     try:
         json.loads(path.read_text(encoding="utf-8"))
-    except Exception as error:
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError) as error:
         fail(f"Invalid JSON {path.relative_to(ROOT)}: {error}")
 
 toml_paths = [ROOT / "apps/api/pyproject.toml", ROOT / ".codex/config.toml"]
@@ -88,7 +102,7 @@ toml_paths.extend((ROOT / ".codex/agents").glob("*.toml"))
 for path in toml_paths:
     try:
         tomllib.loads(path.read_text(encoding="utf-8"))
-    except Exception as error:
+    except (OSError, tomllib.TOMLDecodeError, UnicodeDecodeError) as error:
         fail(f"Invalid TOML {path.relative_to(ROOT)}: {error}")
 
 agents = sorted((ROOT / ".codex/agents").glob("*.toml"))
@@ -218,6 +232,16 @@ if not re.search(r"^  ollama:$", ollama_compose, re.MULTILINE):
 if "ollama_data:/root/.ollama" not in ollama_compose:
     fail("The optional Ollama service is missing its persistent model volume.")
 
+llamaindex_compose = (ROOT / "docker-compose.llamaindex.yml").read_text(
+    encoding="utf-8"
+)
+if not re.search(r"^name: citenook-llamaindex$", llamaindex_compose, re.MULTILINE):
+    fail("The LlamaIndex Compose override must use its isolated project name.")
+if llamaindex_compose.count("target: runtime-llamaindex") != 2:
+    fail("The LlamaIndex Compose override must select both runtime images.")
+if llamaindex_compose.count("RAG_BACKEND: llamaindex") != 2:
+    fail("The LlamaIndex Compose override must select both service backends.")
+
 source_roots = [
     ROOT / ".agents/skills/release-evidence/scripts",
     ROOT / "apps/api/app",
@@ -255,6 +279,7 @@ standard_config_paths = [
     ROOT / "apps/api/pyproject.toml",
     ROOT / "apps/web/Dockerfile",
     ROOT / "apps/web/vite.config.ts",
+    ROOT / "docker-compose.llamaindex.yml",
     ROOT / "docker-compose.ollama.yml",
     ROOT / "docker-compose.yml",
     ROOT / ".codex/config.toml",
@@ -282,11 +307,45 @@ if brand.get("technical") != {
 }:
     fail("The stable CiteNook technical identity is invalid.")
 
-for path in ROOT.rglob("*.md"):
-    if any(part in IGNORED_PARTS for part in path.parts):
-        continue
-    if re.search(r"\bportfolio project\b", path.read_text(encoding="utf-8"), re.I):
+markdown_paths = [
+    path
+    for path in ROOT.rglob("*.md")
+    if not any(part in IGNORED_PARTS for part in path.parts)
+]
+for path in markdown_paths:
+    if re.search(
+        r"\bportfolio project\b",
+        path.read_text(encoding="utf-8"),
+        re.IGNORECASE,
+    ):
         fail(f"Project documentation uses a forbidden project label: {path.relative_to(ROOT)}")
+
+local_link_count = 0
+for path in markdown_paths:
+    source = re.sub(
+        r"^```.*?^```\s*$",
+        "",
+        path.read_text(encoding="utf-8"),
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    for target in re.findall(r"!?\[[^\]]*\]\(([^)]+)\)", source):
+        if re.match(r"^[a-z][a-z0-9+.-]*:", target, re.IGNORECASE):
+            continue
+        local_link_count += 1
+        target_path, _, fragment = target.partition("#")
+        resolved = path if not target_path else (path.parent / unquote(target_path)).resolve()
+        try:
+            resolved.relative_to(ROOT)
+        except ValueError:
+            fail(f"Local Markdown link escapes the repository in {path.relative_to(ROOT)}: {target}")
+            continue
+        if not resolved.exists():
+            fail(f"Broken local Markdown link in {path.relative_to(ROOT)}: {target}")
+            continue
+        if fragment and resolved.suffix.casefold() == ".md":
+            fragments = markdown_fragments(resolved.read_text(encoding="utf-8"))
+            if unquote(fragment).casefold() not in fragments:
+                fail(f"Broken Markdown fragment in {path.relative_to(ROOT)}: {target}")
 
 if ERRORS:
     print("Repository verification failed:")
@@ -296,5 +355,6 @@ if ERRORS:
 
 print(
     "Repository verification passed: "
-    f"{len(agents)} agents, {len(skills)} skills, {len(stories)} stories."
+    f"{len(agents)} agents, {len(skills)} skills, {len(stories)} stories, "
+    f"{local_link_count} local links."
 )

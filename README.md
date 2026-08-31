@@ -43,7 +43,7 @@ flowchart TD
     WEB --> API[FastAPI]
     API --> DB[(PostgreSQL + pgvector)]
     DB -->|queued jobs| WORKER[Ingestion worker]
-    WORKER -->|chunks and status| DB
+    WORKER -->|index and status| DB
     API -->|uploads| FILES[(Upload volume)]
     WORKER -->|reads uploads| FILES
     API -. configured HTTP .-> OLLAMA[External or Compose Ollama]
@@ -52,18 +52,11 @@ flowchart TD
 
 See the [detailed architecture](docs/architecture.md) and [RAG pipeline](docs/rag-pipeline.md) documentation.
 
-## Release 0.5 plan: one RAG backend per deployment
+## One RAG backend per deployment
 
-The current Release 0.4 code always starts the native CiteNook RAG path. The planned Release 0.5 keeps `native` as the default and adds `llamaindex` as a separate deploy choice. One API and worker pair will build one backend only; there will be no UI switch, dual indexing, dual retrieval, or silent fallback.
+Release 0.5 supports `native` and `llamaindex`. Native is the default. One API and worker pair constructs one backend only, with no UI switch, dual indexing, dual retrieval, runtime hot switch, or silent fallback.
 
-| Planned deployment | Backend that starts | Model runtime |
-| --- | --- | --- |
-| Base Compose | Native | External Ollama |
-| Base + Ollama override | Native | Compose-managed Ollama |
-| Base + LlamaIndex override | LlamaIndex | External Ollama |
-| Base + LlamaIndex + Ollama overrides | LlamaIndex | Compose-managed Ollama |
-
-The exact planned commands, data isolation rules, cleanup work, and story order are in the [Release 0.5 plan](docs/releases/release-0.5-clean-rag-backends/README.md). Those LlamaIndex commands become supported only after `MRA-026` is implemented and tested.
+The native and LlamaIndex Compose projects use separate PostgreSQL and upload volumes. Changing a backend does not migrate an existing index; upload the documents to the other deployment so its worker can build that backend's index.
 
 ## Quick start
 
@@ -75,9 +68,9 @@ cp .env.example .env
 
 Docker Compose automatically reads the repository-root `.env`. Edit that file to configure the Ollama endpoint, the available model names, and local ports. The file is ignored by Git and must not be committed. `.env.local` and `.env.dev` are not used by the supported Compose commands. Keep `VITE_API_URL=/api` for the supported same-origin browser route; Compose forwards it to `VITE_API_PROXY_TARGET=http://api:8000`.
 
-Choose one of the following Ollama modes.
+Choose one backend and one Ollama mode. Use the same file list for later `docker compose` commands such as `ps`, `logs`, `exec`, and `down`.
 
-### Option A: use an existing Ollama instance (default)
+### Native with an existing Ollama instance (default)
 
 Ollama is not installed in the API, worker, or web containers. By default the application connects to `http://host.docker.internal:11434`. Set `OLLAMA_HOST` in `.env` to use another URL that is reachable from Docker.
 
@@ -85,12 +78,28 @@ Ollama is not installed in the API, worker, or web containers. By default the ap
 docker compose up --build
 ```
 
-### Option B: run a dedicated Ollama instance for CiteNook
+### Native with Compose-managed Ollama
 
 This optional override starts an official Ollama container dedicated to CiteNook as part of the same Compose stack. It keeps its models in a CiteNook-managed persistent volume while remaining isolated from the API, worker, and web containers:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml up --build
+```
+
+### LlamaIndex with an existing Ollama instance
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml up --build
+```
+
+### LlamaIndex with Compose-managed Ollama
+
+```bash
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.llamaindex.yml \
+  -f docker-compose.ollama.yml \
+  up --build
 ```
 
 The containerized Ollama API is exposed on `http://localhost:11435` by default so it can coexist with an external instance on port `11434`. Override `OLLAMA_CONTAINER_PORT` if needed.
@@ -151,6 +160,8 @@ npm run test
 npm run build
 docker compose config
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml config
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml config
 ```
 
 ### Verification references
@@ -162,7 +173,7 @@ docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
 | [Release 0.2 story map](docs/releases/release-0.2-focused-workspaces/README.md) | Focused workspaces |
 | [Release 0.3 story map](docs/releases/release-0.3-conversation-model-workflows/README.md) | Conversation model workflows |
 | [Release 0.4 story map](docs/releases/release-0.4-local-experience-polish/README.md) | Local experience polish |
-| [Release 0.5 plan](docs/releases/release-0.5-clean-rag-backends/README.md) | Cleanup, architecture refactor, and selectable RAG backends |
+| [Release 0.5 story map](docs/releases/release-0.5-clean-rag-backends/README.md) | Clean architecture and selectable RAG backends |
 
 ## License
 

@@ -1,6 +1,6 @@
 # Development
 
-## Current Release 0.4 setup
+## Local setup
 
 The repository uses npm workspaces and Turborepo. Python dependencies are managed with `uv` inside `apps/api`.
 
@@ -18,9 +18,9 @@ Copy the root environment file before the first Compose start:
 cp .env.example .env
 ```
 
-The current Release 0.4 code always uses the native RAG path. It does not read `RAG_BACKEND` yet.
+For host-run API and worker processes, `RAG_BACKEND` selects `native` or `llamaindex`. Compose pins native in the base file and selects LlamaIndex through its override so both processes cannot drift.
 
-## Current settings
+## Settings
 
 | Setting | Job |
 | --- | --- |
@@ -36,22 +36,11 @@ The current Release 0.4 code always uses the native RAG path. It does not read `
 | `INGESTION_STALE_MINUTES` | Time before a stuck job is queued again |
 | `CHAT_HISTORY_MESSAGES` | Recent messages sent to chat |
 | `RAG_TOP_K` | Maximum retrieved sources |
+| `RAG_BACKEND` | Host-run backend selection: `native` or `llamaindex` |
 
 A conversation stores its chat and embedding models. A document stores the embedding model used for its index.
 
-## Planned Release 0.5 backend setting
-
-`MRA-026` will add:
-
-```env
-RAG_BACKEND=native
-```
-
-Valid values will be `native` and `llamaindex`. The default stays `native`. The API and worker must receive the same value through Compose.
-
-## Planned Release 0.5 Compose matrix
-
-These commands are planned and become supported only after `MRA-026` is implemented and tested.
+## Compose matrix
 
 ### Native with external Ollama
 
@@ -87,17 +76,23 @@ docker compose \
   up --build
 ```
 
-The LlamaIndex override will select its runtime image, set `RAG_BACKEND=llamaindex` for API and worker, and use a separate Compose project name. The Ollama override will remain independent.
+The LlamaIndex override selects `runtime-llamaindex`, sets `RAG_BACKEND=llamaindex` for API and worker, and uses the `citenook-llamaindex` project name. The Ollama override remains independent.
 
-## Planned dependency installs
+## Dependency installs and images
 
-The common and native development environment will keep the base project dependencies:
+The common and native development environment uses the base project dependencies:
 
 ```bash
 uv sync --directory apps/api --group dev
 ```
 
-`MRA-024` will add a locked optional LlamaIndex dependency set. The final install command will be recorded here after the extra name and package versions pass Python 3.13 and 3.14 checks.
+Install the locked optional LlamaIndex set for host development with:
+
+```bash
+uv sync --directory apps/api --group dev --extra llamaindex
+```
+
+The API Dockerfile exposes `runtime-native` and `runtime-llamaindex`. The native target installs only common packages; the optional target adds the lock-file LlamaIndex extra.
 
 ## Data rules
 
@@ -106,10 +101,22 @@ uv sync --directory apps/api --group dev
 - Supported native and LlamaIndex Compose paths use separate named volumes.
 - Changing `RAG_BACKEND` is not a data migration.
 - A database marker stops an unsafe backend mismatch.
+- Moving documents between backends requires a new upload and index run in the destination deployment.
 - Moving a file or package must not rename a table or change an HTTP field by accident.
+
+Base Compose stores data in `citenook_postgres_data` and `citenook_uploads_data`. The LlamaIndex override stores data in `citenook-llamaindex_postgres_data` and `citenook-llamaindex_uploads_data`. Ordinary `docker compose down` keeps these volumes.
+
+After startup, verify the deployment before uploading documents:
+
+```bash
+curl --fail http://localhost:8000/api/health
+curl --fail http://localhost:8000/api/models
+```
+
+The health JSON must report the expected `ragBackend`. The model catalog must show the chosen chat and embedding models as installed.
 
 ## Development workflow
 
 Read the active story and the [story workflow](story-workflow.md) first. Codex must ask before implementation and must ask again before commit. After an approved commit, it asks before it starts the next story.
 
-For the full target structure, see [Architecture](architecture.md). For the story order, see the [Release 0.5 plan](releases/release-0.5-clean-rag-backends/README.md).
+For the package structure, see [Architecture](architecture.md). For the completed story order, see the [Release 0.5 story map](releases/release-0.5-clean-rag-backends/README.md).

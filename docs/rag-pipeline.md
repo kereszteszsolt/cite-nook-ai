@@ -1,6 +1,6 @@
 # RAG pipeline
 
-## Current native flow through Release 0.4
+## Native backend
 
 ```mermaid
 flowchart LR
@@ -17,9 +17,9 @@ flowchart LR
     CHECK --> STORE[Persist turn and sources]
 ```
 
-The flow is complete and working. Release 0.5 keeps it as the default native backend while it moves the index and retrieval parts behind ports.
+This remains the default backend and keeps Release 0.4 `document_chunks` data compatible.
 
-## Release 0.5 selected flow
+## Selected backend flow
 
 ```mermaid
 flowchart TD
@@ -40,7 +40,7 @@ flowchart TD
     SOURCES --> GROUND[Shared prompt, chat, citation check, and storage]
 ```
 
-Only one backend is built for a deployment. The UI and HTTP API do not choose it.
+Only one backend is installed and constructed for a deployment. The UI and HTTP API do not choose it.
 
 ## Common ingestion work
 
@@ -89,7 +89,7 @@ The answer service keeps these steps:
 3. Load the recent conversation history.
 4. Build the same grounded prompt for either backend.
 5. Call the selected chat provider.
-6. reject missing or invalid source markers.
+6. Reject missing or invalid source markers.
 7. Store the question, answer, source JSON, model name, and response time.
 
 When retrieval returns no source, the service uses the existing fixed insufficient-source answer.
@@ -142,4 +142,4 @@ A document delete clears the selected index before the common document row and o
 
 `native` is the default. `llamaindex` is selected by its Compose override. The Ollama mode is a separate choice, so either backend can use an external Ollama server or the optional Compose service.
 
-See the [Release 0.5 implementation plan](releases/release-0.5-clean-rag-backends/implementation-plan.md) for the exact planned flow.
+See the [architecture guide](architecture.md) for package and dependency boundaries and the [development guide](development.md) for the four deployment commands.

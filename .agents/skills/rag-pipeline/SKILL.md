@@ -28,5 +28,7 @@ description: Implement or review one approved CiteNook indexing, retrieval, mode
 - Do not import LlamaIndex from common or native modules.
 - Do not add dual writes, dual queries, hot switching, or silent fallback.
 - Delete selected index data before common document cleanup finishes.
+- Verify `/api/health` reports the selected backend before runtime document work.
+- Treat native and LlamaIndex indexes as separate data that must be built independently.
 
 Ask before implementation and ask again before commit. Follow the story criteria in order. Use comments only when code cannot explain a hard reason; prefer one short sentence and allow at most three in a block. Keep docstrings to five short sentences, preserve required directives, and move plans, history, and proof to Markdown.

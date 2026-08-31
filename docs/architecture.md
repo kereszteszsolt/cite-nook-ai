@@ -1,8 +1,8 @@
 # Architecture
 
-## Current state through Release 0.4
+## Release 0.5 runtime
 
-The browser calls FastAPI through the same-origin `/api` route. FastAPI and the worker share PostgreSQL/pgvector and the upload volume. Ollama stays outside the application images.
+The browser calls FastAPI through the same-origin `/api` route. FastAPI and the worker share the selected Compose project's PostgreSQL/pgvector and upload volume. Ollama stays outside the application images.
 
 ```mermaid
 flowchart LR
@@ -16,21 +16,21 @@ flowchart LR
     WORKER --> FILES
 ```
 
-The current RAG path is native. The worker extracts text, runs the CiteNook chunker, calls Ollama for embeddings, and writes `document_chunks`. The answer service embeds a question, runs direct pgvector search, builds the grounded prompt, calls Ollama chat, checks source markers, and stores the turn.
+The selected RAG backend is native by default. The LlamaIndex Compose override selects the optional adapter and its isolated data project. The API and worker always receive the same backend.
 
-## Why Release 0.5 changes the structure
+## Resulting boundaries
 
-The current design works, but several files own too many kinds of work:
+Release 0.5 separates these responsibilities:
 
-- `App.tsx` owns most chat, file, dialog, polling, and startup state.
-- `GroundedAnswerService` owns embedding, retrieval, prompt, chat, citation, timing, and storage.
-- `IngestionService` owns jobs, extraction, chunking, embedding, vector writes, and status.
-- Routers and the worker build concrete services themselves.
-- HTTP, settings, ORM, providers, and app services sit close to the Python package root.
+- `App.tsx` owns startup, the active workspace, shared errors, and top-level layout.
+- Conversation and document features own their state, requests, dialogs, views, and tests.
+- The answer service owns the common prompt, chat, citation, timing, and message flow.
+- The ingestion service owns job state and extraction, then calls the selected indexer.
+- FastAPI and the worker receive concrete services from `app/bootstrap.py`.
 
-A second backend would add branches to these files. Release 0.5 first makes the old code clear, then adds LlamaIndex through small ports.
+Native and LlamaIndex implement the same small RAG ports. Common application code does not branch on the backend.
 
-## Release 0.5 target
+## Selected backend architecture
 
 The public API and shared answer rules stay stable. A deployment builds one native or LlamaIndex backend.
 
@@ -61,7 +61,7 @@ flowchart TD
 
 A running API and worker pair receives the same backend bundle from the composition root. No request can select a backend.
 
-## Target Python packages
+## Python packages
 
 ```text
 apps/api/app/
@@ -88,7 +88,6 @@ apps/api/app/
 │   └── ollama.py
 ├── rag/
 │   ├── contracts.py
-│   ├── types.py
 │   ├── native/
 │   │   ├── chunking.py
 │   │   ├── indexer.py
@@ -103,7 +102,7 @@ apps/api/app/
 └── worker.py
 ```
 
-Small related modules may be merged when that gives a clearer result. Empty forwarding layers are not allowed.
+The tree contains no compatibility package or empty forwarding layer.
 
 ## Package roles
 
@@ -136,7 +135,7 @@ flowchart LR
 
 Rules:
 
-- Only the composition root reads `RAG_BACKEND` and imports a concrete backend for runtime setup.
+- `core/settings.py` validates `RAG_BACKEND`, and `bootstrap.py` imports only the selected concrete backend for runtime setup.
 - Routers receive app services from FastAPI dependencies.
 - The worker receives its ingestion service from the same composition root.
 - App services do not create settings, Ollama clients, indexers, or retrievers.
@@ -213,7 +212,7 @@ Release 0.4 data remains valid for this path. The native adapter is a refactor o
 
 ## LlamaIndex backend
 
-The LlamaIndex indexer receives common extracted sections and creates page-aware nodes. It uses a small bridge to call the selected `EmbeddingProvider`, then stores nodes in a dedicated PostgreSQL vector table or collection.
+The LlamaIndex indexer receives common extracted sections and creates page-aware nodes. It uses a small bridge to call the selected `EmbeddingProvider`, then stores JSONB metadata and vectors in the `citenook_llamaindex` PostgreSQL schema. Tables are separated by embedding model and vector dimension.
 
 The LlamaIndex retriever uses the persistent LlamaIndex retrieval API. It filters by eligible document IDs and embedding model, maps nodes to the common source record, and gives equal scores a stable order.
 
@@ -229,7 +228,7 @@ The common `documents` table remains the source of truth for job state, active s
 - Release 0.5 does not copy native chunks into LlamaIndex nodes or the reverse.
 - Original uploads remain common app data inside each deployment.
 
-## Frontend target
+## Frontend boundaries
 
 ```mermaid
 flowchart TD

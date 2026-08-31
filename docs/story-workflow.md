@@ -65,6 +65,10 @@ Approval for one step does not grant approval for another. Codex may not commit,
 
 The release `verification.md` file stores short proof for each story. It records implementation approval, key commands, results, review, commit approval, and commit hash. Large logs remain separate files. A failed or blocked criterion stays unchecked, and the story stays `Planned` or `In progress`.
 
+## Release closeout
+
+The final story replaces stale planned text in active guides with tested behavior. It audits local links, repository rules, agent and skill guidance, package versions, Compose commands, and release maps. A release claim requires repository verification, full lint, tests, builds, every supported Compose configuration, and real runtime proof for each deploy-selected backend.
+
 ## Transition rule
 
 The repository check applies the same strict format, status, criterion, sentence, reading, and release-link rules to every story. There is no compatibility mode for old records.

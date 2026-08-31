@@ -2,11 +2,11 @@
 
 ## Status
 
-Planned. This folder is a delivery plan, not a claim that Release 0.5 is implemented.
+Implemented. `MRA-018` through `MRA-027` are implemented, with the final story awaiting commit approval.
 
 ## Objective
 
-Clean the current story records, source comments, web structure, and Python structure. Keep the existing native RAG path working. Add a LlamaIndex path behind the same application rules, then select exactly one path when the app is deployed.
+The release cleans the story records, source comments, web structure, and Python structure. It keeps the native RAG path and adds a LlamaIndex path behind the same application rules. Each deployment selects exactly one path.
 
 ## Fixed design choices
 
@@ -34,7 +34,7 @@ Clean the current story records, source comments, web structure, and Python stru
 | 7 | [MRA-024](stories/MRA-024-add-persistent-llamaindex-indexing.md) | Add persistent LlamaIndex indexing | Durable LlamaIndex nodes in PostgreSQL | Implemented |
 | 8 | [MRA-025](stories/MRA-025-add-llamaindex-source-retrieval.md) | Add LlamaIndex source retrieval | Common answers over LlamaIndex sources | Implemented |
 | 9 | [MRA-026](stories/MRA-026-deploy-one-rag-backend.md) | Deploy one RAG backend | Native or LlamaIndex at deploy time | Implemented |
-| 10 | [MRA-027](stories/MRA-027-complete-release-guides-and-diagrams.md) | Complete the release guides and diagrams | Final, tested, linked documentation | Planned |
+| 10 | [MRA-027](stories/MRA-027-complete-release-guides-and-diagrams.md) | Complete the release guides and diagrams | Final, tested, linked documentation | Implemented |
 
 ## Delivery order and approvals
 
@@ -44,12 +44,12 @@ The full rules are in the [story workflow](../../story-workflow.md).
 
 ## Release plans
 
-- [Cleanup plan](cleanup-plan.md) records the old story, comment, frontend, and Python cleanup.
+- [Cleanup plan](cleanup-plan.md) records the agreed story, comment, frontend, and Python cleanup.
 - [Implementation plan](implementation-plan.md) records package moves, contracts, data flow, deploy choices, risks, and tests.
-- [Verification plan](verification.md) is the release evidence table that will be filled as stories are completed.
-- [Plan manifest](plan-manifest.md) states what this archive changes and what remains deferred.
+- [Verification record](verification.md) contains story and runtime evidence.
+- [Plan manifest](plan-manifest.md) preserves the original planning boundary.
 
-## Target runtime
+## Runtime
 
 ```mermaid
 flowchart TD
@@ -79,18 +79,16 @@ flowchart TD
 
 The diagram shows two valid builds. A running deployment constructs one backend only.
 
-## Planned deploy contract
+## Deploy contract
 
-Release 0.4 always starts the native path. `MRA-026` will add the following Release 0.5 contract.
-
-| RAG backend | Model runtime | Planned command shape |
+| RAG backend | Model runtime | Command |
 | --- | --- | --- |
 | Native | External Ollama | `docker compose up --build` |
 | Native | Compose Ollama | `docker compose -f docker-compose.yml -f docker-compose.ollama.yml up --build` |
 | LlamaIndex | External Ollama | `docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml up --build` |
 | LlamaIndex | Compose Ollama | `docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml up --build` |
 
-The final command names may change only if implementation tests show a clear need. The root README will show the tested commands after `MRA-026` passes.
+Base Compose uses the native image and project data. The LlamaIndex override selects its optional image and the separate `citenook-llamaindex` project data. The Ollama override is independent of the backend choice.
 
 ## Release boundary
 

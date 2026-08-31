@@ -43,7 +43,7 @@ A plan is not implemented behavior. Do not write docs that claim a planned comma
 - Do not leave old and new live code paths after a refactor.
 - Do not add empty layers or a repository class for every small query.
 
-## Planned Python boundaries
+## Python boundaries
 
 ```text
 api             HTTP input and output
@@ -57,9 +57,9 @@ main.py         API entry point
 worker.py       worker entry point
 ```
 
-The active story controls when each boundary may be introduced. Do not jump to a later story.
+These boundaries are implemented. Keep changes within them unless an approved later story changes the design.
 
-## Planned web boundaries
+## Web boundaries
 
 - `App.tsx` owns app startup, active workspace, shared errors, and top-level layout.
 - `features/conversations` owns chat state, requests, dialogs, views, and tests.
@@ -140,9 +140,11 @@ npm run test
 npm run build
 docker compose config
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml config
+docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml config
 ```
 
-The LlamaIndex Compose checks become required after `MRA-026` adds that override. Runtime proof must use a real installed chat model and embedding model.
+Runtime proof must use a real installed chat model and embedding model for both native and LlamaIndex deployments.
 
 ## Release boundary
 

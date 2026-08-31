@@ -24,7 +24,7 @@ Open the **Documents** tab. CiteNook accepts PDF, DOCX, TXT, and Markdown files 
 3. Select **Upload**.
 4. Leave the worker running while the document moves from `queued` to `processing`, then to `ready` or `failed`.
 
-A ready document can contribute passages only when **Use for answers** is active. Turning the switch off keeps the original file and its chunks but excludes them from retrieval. **Open** downloads the stored original in a new browser tab. **Delete** opens a confirmation dialog and permanently removes the document, its chunks, and its ingestion jobs.
+A ready document can contribute passages only when **Use for answers** is active. Turning the switch off keeps the original file and its selected-backend index data but excludes it from retrieval. **Open** downloads the stored original in a new browser tab. **Delete** opens a confirmation dialog and permanently removes the document, its index data, and its ingestion jobs.
 
 [![Stored document management with ready, inactive, and failed examples](screenshots/citenook-documents-desktop.png)](screenshots/citenook-documents-desktop.png)
 
@@ -35,7 +35,7 @@ If processing fails, read the explanation below that document. Check that the fi
 Open **Chat** and select **New conversation**. Choose an installed chat model and embedding model. CiteNook stores both choices on the conversation:
 
 - the chat model writes future answers;
-- the embedding model must match the ready document chunks searched for those answers.
+- the embedding model must match the ready document index searched for those answers.
 
 Use **Edit models** to change the pair for later questions. Existing messages and citations remain in the conversation. Use **Edit title** to replace the title generated from the first question.
 
@@ -43,7 +43,7 @@ Use **Edit models** to change the pair for later questions. Existing messages an
 
 Select a conversation with an embedding model that matches at least one active, ready document. Enter a focused question and press Enter or the send button. Shift+Enter inserts a new line.
 
-CiteNook searches compatible document chunks and instructs the selected chat model to answer only from them. A grounded answer contains a **References** section with source identifiers such as `[S1]`, original document names, page numbers when extraction provides them, matching snippets, and similarity scores. Open a reference link to inspect the stored source.
+CiteNook searches compatible document passages and instructs the selected chat model to answer only from them. A grounded answer contains a **References** section with source identifiers such as `[S1]`, original document names, page numbers when extraction provides them, matching snippets, and similarity scores. Open a reference link to inspect the stored source.
 
 If the retrieved passages do not support an answer, CiteNook should say that the available sources are insufficient instead of inventing a response.
 
@@ -63,6 +63,7 @@ The responsive layout keeps the same stored data and actions on narrow screens:
 
 - `.env` is ignored by Git; keep endpoints and local configuration there.
 - Uploaded originals and PostgreSQL data live in Docker named volumes by default. Ordinary `docker compose down` keeps them.
+- Native and LlamaIndex deployments use separate volumes; changing backend does not migrate documents or index data.
 - Do not commit exports or screenshots made from a personal workspace unless every visible file name, question, answer, citation, and model detail is safe to publish.
 - The checked [screenshot gallery](screenshots/README.md) is generated from invented browser fixtures and never reads the running application or its volumes.
 

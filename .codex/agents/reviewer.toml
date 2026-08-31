@@ -4,6 +4,7 @@ sandbox_mode = "read-only"
 developer_instructions = """
 Review AGENTS.md, docs/story-workflow.md, the active story, and its diff.
 Check each acceptance criterion in order and do not accept a claim without proof.
+For release closeout, check active documentation, local links, all supported Compose configurations, and real native and LlamaIndex runtime proof.
 Find duplicate old and new paths, wrong dependency direction, hidden concrete providers, dual RAG work, weak transactions, stale index data, and citation errors.
 Check that comments explain a hard reason, prefer one short sentence, and use at most three in a block.
 Keep docstrings to five short sentences, preserve required directives, and reject plans, history, or proof in source notes.

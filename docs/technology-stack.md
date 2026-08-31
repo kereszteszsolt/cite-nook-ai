@@ -1,6 +1,6 @@
 # Technology stack
 
-This page lists the main tools used by the current code and the optional tools planned for Release 0.5. Package files and lock files remain the source of truth for exact versions.
+This page lists the main tools used by Release 0.5. Package files and lock files remain the source of truth for exact versions.
 
 ## Web application
 
@@ -47,17 +47,17 @@ This page lists the main tools used by the current code and the optional tools p
 | npm | `11.16.0` | Workspace package install and scripts |
 | Node.js | `>=24` | Web and repository task runtime |
 | Turborepo | `2.10.11` | Workspace lint, test, build, and development tasks |
-| uv | Lock file in `apps/api` | Python dependency install and lock management |
+| uv | `0.11.29` in the API image | Locked Python dependency install |
 | Codex agents | Repository config | Story planning, bounded implementation, and review |
 
-## Planned optional Release 0.5 tools
+## Optional LlamaIndex backend
 
-| Tool | Planned job | Install rule |
-| --- | --- | --- |
-| LlamaIndex core | Node and retrieval interfaces | LlamaIndex runtime image only |
-| LlamaIndex PostgreSQL vector store | Persistent node vectors in PostgreSQL/pgvector | LlamaIndex runtime image only |
+| Tool | Locked version | Job | Install rule |
+| --- | --- | --- | --- |
+| `llama-index-core` | `0.14.24` | Node splitting and retrieval interfaces | LlamaIndex runtime image only |
+| `llama-index-vector-stores-postgres` | `0.8.1` | Persistent node vectors in PostgreSQL/pgvector | LlamaIndex runtime image only |
 
-Exact LlamaIndex package names and versions are selected and pinned in `MRA-024` after compatibility tests. The native runtime must not install them.
+The `llamaindex` Python extra pins both packages and `apps/api/uv.lock` locks their transitive set. The native runtime does not install them.
 
 ## Planned later tools
 

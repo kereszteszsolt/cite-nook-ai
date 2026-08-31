@@ -2,7 +2,7 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` through `MRA-025` are committed, `MRA-026` is implemented and awaits commit approval, and `MRA-027` remains planned.
+Release 0.5 is implemented. `MRA-018` through `MRA-026` are committed, and implemented `MRA-027` is awaiting commit approval.
 
 ## Evidence table
 
@@ -16,8 +16,8 @@ Release 0.5 is in progress. `MRA-018` through `MRA-025` are committed, `MRA-026`
 | MRA-023 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `e5e2ce1` | Implemented |
 | MRA-024 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `f9987ef` | Implemented |
 | MRA-025 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `e470532` | Implemented |
-| MRA-026 | Approved 2026-08-31 | Passed | Passed | Pending | This commit | Implemented |
-| MRA-027 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-026 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `163aa11` | Implemented |
+| MRA-027 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | This commit | Implemented |
 
 ## MRA-018 evidence
 
@@ -179,7 +179,28 @@ Implementation approval was given on 2026-08-31 after the scope and checks were 
 - Repository verification passed with 3 agents, 3 skills, and 27 stories, and `git diff --check` passed.
 - Static boundary scans found no LlamaIndex import in native or application packages, direct web fetch outside `api.ts`, UI backend switch, query engine, dual write, dual query, runtime hot switch, or silent fallback.
 
-Commit approval is pending. The resulting hash is reported after the approved commit succeeds because a commit cannot contain its own hash.
+Commit approval was given on 2026-08-31. Commit `163aa11` contains the implementation.
+
+## MRA-027 evidence
+
+Implementation approval was given on 2026-08-31 after the release documentation scope and checks were reviewed.
+
+- The root README and release map name `native` as the default and show the exact four commands for both backends with external or Compose-managed Ollama.
+- Architecture, RAG, development, testing, technology, user, index, and roadmap guides now match the final package tree, shared answer path, deployment settings, image targets, data isolation, startup checks, and reindex rule.
+- The active story workflow, repository rules, three Codex role files, and three repository skills use the same one-story, one-backend, Compose, runtime, evidence, and approval rules.
+- Locked dependency checks confirm uv `0.11.29`, Node `26.3.0`, `llama-index-core==0.14.24`, and `llama-index-vector-stores-postgres==0.8.1`; the LlamaIndex packages remain optional.
+- The roadmap keeps Ragas in Release 0.6 and compares the two real deployments one at a time.
+- Repository verification passed with 3 agents, 3 skills, 27 stories, and 107 valid local Markdown links; the story audit found no issue or limitation heading.
+- The comment-rule suite passed all 7 tests, the repository verifier passed Ruff, and `git diff --check` passed.
+- Full API Ruff and compile checks passed; 102 API tests passed and 3 separately proven PostgreSQL tests were skipped without `TEST_DATABASE_URL`.
+- In an isolated Node 26 copy, web and brand lint, test, and build passed 6/6 tasks, including 48 web tests, 1 brand test, and a 32-module web build.
+- All four native or LlamaIndex Compose configurations with external or managed Ollama resolved successfully.
+- Isolated native and LlamaIndex external-Ollama smoke runs used installed `llama3.1:8b` and `qwen3-embedding:0.6b` models; each reported its selected backend, one ready chunk, one grounded citation, and two persisted messages after API, worker, and web restart.
+- Both smoke runs deleted only their dedicated document and conversation, stopped without volume deletion, verified their four named volumes, and then removed those run-owned test volumes.
+- An initial native chat attempt with installed `qwen3:4b` returned a long answer without a valid source marker and was correctly rejected with HTTP 502; the clean proof used `llama3.1:8b` and passed both backends.
+- Host Node was unavailable and the root Ruff cache was read-only, so the isolated Node copy and direct no-cache Ruff run supplied the complete checks.
+
+Commit approval was given on 2026-08-31. The resulting hash is reported after the approved commit succeeds because a commit cannot contain its own hash.
 
 ## Required release checks
 
@@ -194,11 +215,11 @@ docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml config
 docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml config
 ```
 
-The two LlamaIndex Compose commands become runnable after `MRA-026`. Before that story, they remain planned checks.
+All four Compose configurations are supported Release 0.5 checks.
 
 ## Runtime proof
 
-The final release proof must record separate native and LlamaIndex smoke runs. Each run records the backend from `/api/health`, one completed document job, one grounded answer, valid source data, restart persistence, document cleanup, and container shutdown without deleting named volumes.
+The final release proof records separate native and LlamaIndex smoke runs. Each run recorded the backend from `/api/health`, one completed document job, one grounded answer, valid source data, restart persistence, document cleanup, and container shutdown without deleting named volumes.
 
 ## Evidence rules
 
