@@ -33,7 +33,7 @@ Clean the current story records, source comments, web structure, and Python stru
 | 6 | [MRA-023](stories/MRA-023-move-the-native-rag-path-behind-ports.md) | Move the native RAG path behind ports | Existing RAG as the native adapter | Implemented |
 | 7 | [MRA-024](stories/MRA-024-add-persistent-llamaindex-indexing.md) | Add persistent LlamaIndex indexing | Durable LlamaIndex nodes in PostgreSQL | Implemented |
 | 8 | [MRA-025](stories/MRA-025-add-llamaindex-source-retrieval.md) | Add LlamaIndex source retrieval | Common answers over LlamaIndex sources | Implemented |
-| 9 | [MRA-026](stories/MRA-026-deploy-one-rag-backend.md) | Deploy one RAG backend | Native or LlamaIndex at deploy time | Planned |
+| 9 | [MRA-026](stories/MRA-026-deploy-one-rag-backend.md) | Deploy one RAG backend | Native or LlamaIndex at deploy time | Implemented |
 | 10 | [MRA-027](stories/MRA-027-complete-release-guides-and-diagrams.md) | Complete the release guides and diagrams | Final, tested, linked documentation | Planned |
 
 ## Delivery order and approvals

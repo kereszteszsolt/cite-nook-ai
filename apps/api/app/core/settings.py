@@ -23,6 +23,13 @@ def _positive_int(name: str, default: int) -> int:
     return value
 
 
+def _rag_backend() -> str:
+    value = os.getenv("RAG_BACKEND", "native").strip()
+    if value not in {"native", "llamaindex"}:
+        raise RuntimeError("RAG_BACKEND must be native or llamaindex.")
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class Settings:
     database_url: str
@@ -39,6 +46,7 @@ class Settings:
     ingestion_stale_minutes: int = 15
     chat_history_messages: int = 12
     rag_top_k: int = 5
+    rag_backend: str = "native"
 
 
 @lru_cache(maxsize=1)
@@ -81,4 +89,5 @@ def get_settings() -> Settings:
         ingestion_stale_minutes=_positive_int("INGESTION_STALE_MINUTES", 15),
         chat_history_messages=_positive_int("CHAT_HISTORY_MESSAGES", 12),
         rag_top_k=_positive_int("RAG_TOP_K", 5),
+        rag_backend=_rag_backend(),
     )

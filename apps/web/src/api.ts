@@ -18,6 +18,7 @@ export const API_CONNECTION_ERROR_MESSAGE =
 export interface HealthResponse {
   status: string;
   appId: string;
+  ragBackend: 'native' | 'llamaindex';
 }
 
 export async function getHealth(): Promise<HealthResponse> {

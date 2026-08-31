@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -14,10 +15,16 @@ from .bootstrap import build_application
 from .core.brand import load_brand
 from .persistence.database import init_database
 
+logger = logging.getLogger("uvicorn.error")
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    init_database()
+    init_database(application.settings.rag_backend)
+    logger.info(
+        "CiteNook API started with RAG backend %s.",
+        application.settings.rag_backend,
+    )
     yield
 
 

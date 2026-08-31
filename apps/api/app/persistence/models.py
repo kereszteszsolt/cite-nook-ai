@@ -32,6 +32,13 @@ def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
+class AppMetadata(Base):
+    __tablename__ = "app_metadata"
+
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    value: Mapped[str] = mapped_column(String(200), nullable=False)
+
+
 class Conversation(Base):
     __tablename__ = "conversations"
 

@@ -1,13 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Keresztes Zsolt <https://kereszteszsolt.hu>
 # SPDX-License-Identifier: Apache-2.0
 
+import asyncio
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
 
+from app import main as main_module
 from app.ai.contracts import ModelProviderUnavailableError
 from app.api.routers.conversations import answer_question
+from app.api.routers.system import health
 from app.api.schemas import ModelCatalog as ApiModelCatalog
 from app.api.schemas import QuestionCreate
 from app.application.model_catalog import ModelCatalog, ModelOption
@@ -61,14 +65,43 @@ def test_model_catalog_json_shape_is_unchanged() -> None:
     }
 
 
-def test_database_table_names_are_unchanged() -> None:
+def test_database_tables_include_the_backend_marker() -> None:
     assert set(Base.metadata.tables) == {
+        "app_metadata",
         "conversation_messages",
         "conversations",
         "document_chunks",
         "documents",
         "ingestion_jobs",
     }
+
+
+def test_health_reports_the_selected_rag_backend() -> None:
+    application = SimpleNamespace(settings=SimpleNamespace(rag_backend="llamaindex"))
+
+    assert health(application) == {
+        "status": "ok",
+        "appId": "cite-nook-ai",
+        "ragBackend": "llamaindex",
+    }
+
+
+def test_api_startup_stops_when_the_database_rejects_the_backend(monkeypatch) -> None:
+    application = SimpleNamespace(settings=SimpleNamespace(rag_backend="llamaindex"))
+    monkeypatch.setattr(main_module, "application", application)
+
+    def reject_backend(backend: str) -> None:
+        assert backend == "llamaindex"
+        raise RuntimeError("database backend mismatch")
+
+    monkeypatch.setattr(main_module, "init_database", reject_backend)
+
+    async def start() -> None:
+        async with main_module.lifespan(main_module.app):
+            pass
+
+    with pytest.raises(RuntimeError, match="database backend mismatch"):
+        asyncio.run(start())
 
 
 class UnavailableAnswerService:

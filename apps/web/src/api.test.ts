@@ -11,11 +11,17 @@ describe('API client', () => {
 
   it('loads health through the configured API boundary', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ status: 'ok', appId: 'cite-nook-ai' })),
+      new Response(
+        JSON.stringify({ status: 'ok', appId: 'cite-nook-ai', ragBackend: 'native' }),
+      ),
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    await expect(getHealth()).resolves.toEqual({ status: 'ok', appId: 'cite-nook-ai' });
+    await expect(getHealth()).resolves.toEqual({
+      status: 'ok',
+      appId: 'cite-nook-ai',
+      ragBackend: 'native',
+    });
     expect(fetchMock).toHaveBeenCalledWith('/api/health');
   });
 

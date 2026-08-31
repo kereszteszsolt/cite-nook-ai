@@ -2,7 +2,7 @@
 
 ## Status
 
-Release 0.5 is in progress. `MRA-018` through `MRA-024` are committed, and `MRA-025` is implemented and awaits commit approval; later stories remain planned.
+Release 0.5 is in progress. `MRA-018` through `MRA-025` are committed, `MRA-026` is implemented and awaits commit approval, and `MRA-027` remains planned.
 
 ## Evidence table
 
@@ -15,8 +15,8 @@ Release 0.5 is in progress. `MRA-018` through `MRA-024` are committed, and `MRA-
 | MRA-022 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `4aa1003` | Implemented |
 | MRA-023 | Approved 2026-08-30 | Passed | Passed | Approved 2026-08-30 | `e5e2ce1` | Implemented |
 | MRA-024 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `f9987ef` | Implemented |
-| MRA-025 | Approved 2026-08-31 | Passed | Passed | Pending | This commit | Implemented |
-| MRA-026 | Pending | Pending | Pending | Pending | — | Planned |
+| MRA-025 | Approved 2026-08-31 | Passed | Passed | Approved 2026-08-31 | `e470532` | Implemented |
+| MRA-026 | Approved 2026-08-31 | Passed | Passed | Pending | This commit | Implemented |
 | MRA-027 | Pending | Pending | Pending | Pending | — | Planned |
 
 ## MRA-018 evidence
@@ -155,6 +155,29 @@ Implementation approval was given on 2026-08-31 after the scope and checks were 
 - The full Python 3.13 and clean Python 3.14 runs each passed 90 API tests with the 2 PostgreSQL tests skipped when `TEST_DATABASE_URL` was absent.
 - Full API Ruff and import compilation passed, and static scans found LlamaIndex imports only in its optional adapter with no query engine, prompt, chat, message storage, backend switch, Docker, or Compose change.
 - Initial isolated invocations stopped before application tests because of a capture temp file, an unsupported coverage flag, a root-relative brand path, or a read-only editable build; the corrected runs produced the results above.
+
+Commit approval was given on 2026-08-31. Commit `e470532` contains the implementation.
+
+## MRA-026 evidence
+
+Implementation approval was given on 2026-08-31 after the scope and checks were reviewed.
+
+- Settings tests prove that `native` is the default, `llamaindex` is accepted, and any other value stops composition with a clear error.
+- The native and LlamaIndex composition tests each construct one indexer and retriever pair, with no fallback or second live backend.
+- Locked Python 3.14 image builds installed 47 native packages and 94 LlamaIndex packages; import checks reported `llama_index=absent` for native and `llama_index=installed` for LlamaIndex.
+- All four Compose configurations resolved successfully; the base targets `runtime-native`, the override targets `runtime-llamaindex`, and both API and worker receive the same backend.
+- The supported project names resolve to separate `citenook_*` and `citenook-llamaindex_*` PostgreSQL and upload volumes.
+- Backend-marker unit tests cover empty databases, Release 0.4 native adoption, same-backend reuse, and both mismatch directions.
+- An isolated `pgvector/pgvector:pg17` run passed all 7 marker tests, including real marker storage, legacy native-chunk adoption, and mismatch rejection.
+- `/api/health` returns `ragBackend`, while API and worker startup logs reported the selected backend on every isolated start.
+- Four isolated end-to-end runs passed for native and LlamaIndex with both external and Compose-managed Ollama, using installed `qwen3:4b` and `qwen3-embedding:0.6b` models.
+- Every runtime run produced one ready chunk, one grounded citation, two persisted messages after API, worker, and web restart, and successful deletion of only its dedicated document and conversation.
+- Each smoke stack stopped without volume deletion; eight distinct run-owned PostgreSQL and upload volumes were verified before their later test cleanup.
+- Full API Ruff and compile checks passed; 102 API tests passed and 3 separately proven PostgreSQL tests were skipped without `TEST_DATABASE_URL`.
+- In an isolated Node 26 copy, web and brand lint, test, and build passed 6/6 tasks, including 48 web tests and 1 brand test.
+- The first combined Node-only gate stopped at the API lint because that image does not provide `uv`; the API gate then passed separately in its Python environment.
+- Repository verification passed with 3 agents, 3 skills, and 27 stories, and `git diff --check` passed.
+- Static boundary scans found no LlamaIndex import in native or application packages, direct web fetch outside `api.ts`, UI backend switch, query engine, dual write, dual query, runtime hot switch, or silent fallback.
 
 Commit approval is pending. The resulting hash is reported after the approved commit succeeds because a commit cannot contain its own hash.
 

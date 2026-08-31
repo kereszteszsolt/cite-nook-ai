@@ -15,6 +15,28 @@ def test_ollama_host_can_point_to_an_external_instance(monkeypatch) -> None:
     get_settings.cache_clear()
 
 
+def test_rag_backend_defaults_to_native_and_accepts_llamaindex(monkeypatch) -> None:
+    monkeypatch.delenv("RAG_BACKEND", raising=False)
+    get_settings.cache_clear()
+    assert get_settings().rag_backend == "native"
+
+    monkeypatch.setenv("RAG_BACKEND", "llamaindex")
+    get_settings.cache_clear()
+    assert get_settings().rag_backend == "llamaindex"
+
+    get_settings.cache_clear()
+
+
+def test_rag_backend_rejects_unknown_values(monkeypatch) -> None:
+    monkeypatch.setenv("RAG_BACKEND", "both")
+    get_settings.cache_clear()
+
+    with pytest.raises(RuntimeError, match="RAG_BACKEND must be native or llamaindex"):
+        get_settings()
+
+    get_settings.cache_clear()
+
+
 def test_default_cors_origins_support_both_loopback_hostnames(monkeypatch) -> None:
     monkeypatch.delenv("CORS_ORIGINS", raising=False)
     get_settings.cache_clear()

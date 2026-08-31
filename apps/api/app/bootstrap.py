@@ -13,8 +13,6 @@ from .application.model_catalog import ModelCatalogService
 from .application.uploads import DocumentUploadService
 from .core.settings import Settings, get_settings
 from .rag.contracts import DocumentIndexer, SourceRetriever
-from .rag.native.indexer import NativeDocumentIndexer
-from .rag.native.retriever import NativeSourceRetriever
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,11 +37,7 @@ def build_application(
     resolved_settings = settings or get_settings()
     provider = model_provider or OllamaProvider(host=resolved_settings.ollama_host)
     conversations = ConversationService(resolved_settings)
-    indexer = NativeDocumentIndexer(
-        embedding_provider=provider,
-        embedding_batch_size=resolved_settings.embedding_batch_size,
-    )
-    retriever = NativeSourceRetriever(embedding_provider=provider)
+    indexer, retriever = _build_rag_backend(resolved_settings, provider)
     return ApplicationContainer(
         settings=resolved_settings,
         conversation_service=conversations,
@@ -67,3 +61,36 @@ def build_application(
         document_indexer=indexer,
         source_retriever=retriever,
     )
+
+
+def _build_rag_backend(
+    settings: Settings,
+    provider: ModelProvider,
+) -> tuple[DocumentIndexer, SourceRetriever]:
+    if settings.rag_backend == "native":
+        from .rag.native.indexer import NativeDocumentIndexer
+        from .rag.native.retriever import NativeSourceRetriever
+
+        return (
+            NativeDocumentIndexer(
+                embedding_provider=provider,
+                embedding_batch_size=settings.embedding_batch_size,
+            ),
+            NativeSourceRetriever(embedding_provider=provider),
+        )
+    if settings.rag_backend == "llamaindex":
+        from .rag.llamaindex.indexer import LlamaIndexDocumentIndexer
+        from .rag.llamaindex.retriever import LlamaIndexSourceRetriever
+
+        return (
+            LlamaIndexDocumentIndexer(
+                embedding_provider=provider,
+                embedding_batch_size=settings.embedding_batch_size,
+                database_url=settings.database_url,
+            ),
+            LlamaIndexSourceRetriever(
+                embedding_provider=provider,
+                database_url=settings.database_url,
+            ),
+        )
+    raise RuntimeError("RAG_BACKEND must be native or llamaindex.")

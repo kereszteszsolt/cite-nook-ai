@@ -7,7 +7,7 @@ from fastapi import APIRouter
 
 from ...application.model_catalog import ModelCatalog as ModelCatalogResult
 from ...core.brand import load_brand
-from ..dependencies import ModelCatalogServiceDependency
+from ..dependencies import ApplicationDependency, ModelCatalogServiceDependency
 from ..schemas import ModelCatalog
 
 router = APIRouter(tags=["system"])
@@ -15,8 +15,12 @@ brand = load_brand()
 
 
 @router.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "appId": brand["technical"]["appId"]}
+def health(application: ApplicationDependency) -> dict[str, str]:
+    return {
+        "status": "ok",
+        "appId": brand["technical"]["appId"],
+        "ragBackend": application.settings.rag_backend,
+    }
 
 
 @router.get("/brand")

@@ -4,8 +4,14 @@
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
+import pytest
+
 from app.bootstrap import build_application
 from app.core.settings import Settings
+from app.rag.llamaindex.indexer import LlamaIndexDocumentIndexer
+from app.rag.llamaindex.retriever import LlamaIndexSourceRetriever
+from app.rag.native.indexer import NativeDocumentIndexer
+from app.rag.native.retriever import NativeSourceRetriever
 
 
 class FakeModelProvider:
@@ -26,7 +32,7 @@ class FakeModelProvider:
         return "Grounded answer [S1]."
 
 
-def settings(tmp_path: Path) -> Settings:
+def settings(tmp_path: Path, *, rag_backend: str = "native") -> Settings:
     return Settings(
         database_url="postgresql+psycopg://unused",
         ollama_host="http://ollama.test",
@@ -37,6 +43,7 @@ def settings(tmp_path: Path) -> Settings:
         brand_config_path=Path("brand.json"),
         cors_origins=("http://localhost:5173",),
         upload_dir=tmp_path,
+        rag_backend=rag_backend,
     )
 
 
@@ -51,6 +58,8 @@ def test_composition_root_shares_settings_and_model_provider(tmp_path: Path) -> 
     )
 
     assert application.settings is configured_settings
+    assert isinstance(application.document_indexer, NativeDocumentIndexer)
+    assert isinstance(application.source_retriever, NativeSourceRetriever)
     assert application.conversation_service._settings is configured_settings
     assert application.answer_service._chat_provider is provider
     assert application.answer_service._retriever is application.source_retriever
@@ -62,3 +71,24 @@ def test_composition_root_shares_settings_and_model_provider(tmp_path: Path) -> 
     assert application.ingestion_service.worker_id == "worker-a"
     assert application.model_catalog_service.catalog().ollama_available is True
     assert provider.list_calls == 1
+
+
+def test_composition_root_builds_only_the_llamaindex_backend(tmp_path: Path) -> None:
+    application = build_application(
+        settings=settings(tmp_path, rag_backend="llamaindex"),
+        model_provider=FakeModelProvider(),
+    )
+
+    assert isinstance(application.document_indexer, LlamaIndexDocumentIndexer)
+    assert isinstance(application.source_retriever, LlamaIndexSourceRetriever)
+    assert application.answer_service._retriever is application.source_retriever
+    assert application.ingestion_service._indexer is application.document_indexer
+    assert application.document_service._indexer is application.document_indexer
+
+
+def test_composition_root_rejects_an_unvalidated_backend(tmp_path: Path) -> None:
+    with pytest.raises(RuntimeError, match="RAG_BACKEND must be native or llamaindex"):
+        build_application(
+            settings=settings(tmp_path, rag_backend="both"),
+            model_provider=FakeModelProvider(),
+        )

@@ -25,11 +25,15 @@ def _stop(*_: object) -> None:
 def main() -> None:
     signal.signal(signal.SIGTERM, _stop)
     signal.signal(signal.SIGINT, _stop)
-    init_database()
-    service = build_application().ingestion_service
+    application = build_application()
+    init_database(application.settings.rag_backend)
+    service = application.ingestion_service
     next_stale_check = 0.0
 
-    logger.info("CiteNook ingestion worker started.")
+    logger.info(
+        "CiteNook ingestion worker started with RAG backend %s.",
+        application.settings.rag_backend,
+    )
     while not stop_event.is_set():
         try:
             if monotonic() >= next_stale_check:
