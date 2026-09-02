@@ -39,6 +39,7 @@ build/Release
 
 # Dependency directories
 node_modules/
+.generated-code-backup/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
@@ -141,3 +142,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Turborepo and Python tooling
+.turbo/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+apps/api/.venv/
+*.egg-info/

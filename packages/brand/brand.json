@@ -1,0 +1,30 @@
+{
+  "productName": "CiteNook",
+  "extendedName": "CiteNook AI",
+  "description": "Local document Q&A with citations",
+  "tagline": "Ask your documents. Verify the sources.",
+  "developer": {
+    "name": "Keresztes Zsolt",
+    "website": "https://kereszteszsolt.hu"
+  },
+  "assets": {
+    "favicon": "/favicon.svg"
+  },
+  "technical": {
+    "repository": "cite-nook-ai",
+    "packageScope": "@citenook/*",
+    "appId": "cite-nook-ai",
+    "dockerProject": "citenook",
+    "storyPrefix": "MRA"
+  },
+  "theme": {
+    "accent": "#315c52",
+    "accentStrong": "#20453d",
+    "accentSoft": "#dcebe6",
+    "background": "#f5f3ed",
+    "surface": "#fffdf8",
+    "text": "#1d2925",
+    "textMuted": "#66736e",
+    "border": "#d9ddd7"
+  }
+}

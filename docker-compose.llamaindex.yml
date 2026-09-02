@@ -1,0 +1,14 @@
+name: citenook-llamaindex
+
+services:
+  api:
+    build:
+      target: runtime-llamaindex
+    environment:
+      RAG_BACKEND: llamaindex
+
+  worker:
+    build:
+      target: runtime-llamaindex
+    environment:
+      RAG_BACKEND: llamaindex

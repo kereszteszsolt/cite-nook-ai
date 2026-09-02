@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Keresztes Zsolt <https://kereszteszsolt.hu>
+# SPDX-License-Identifier: Apache-2.0
+
+from __future__ import annotations
+
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from .api.routers import conversations, documents, system
+from .bootstrap import build_application
+from .core.brand import load_brand
+from .persistence.database import init_database
+
+logger = logging.getLogger("uvicorn.error")
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    init_database(application.settings.rag_backend)
+    logger.info(
+        "CiteNook API started with RAG backend %s.",
+        application.settings.rag_backend,
+    )
+    yield
+
+
+application = build_application()
+brand = load_brand()
+settings = application.settings
+app = FastAPI(
+    title=f"{brand['extendedName']} API",
+    description=brand["description"],
+    version="0.1.0",
+    lifespan=lifespan,
+)
+app.state.application = application
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=list(settings.cors_origins),
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
+    allow_headers=["*"],
+)
+
+
+app.include_router(system.router, prefix="/api")
+app.include_router(conversations.router, prefix="/api")
+app.include_router(documents.router, prefix="/api")

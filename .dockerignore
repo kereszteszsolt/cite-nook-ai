@@ -1,0 +1,14 @@
+.git
+.generated-code-backup
+.idea
+.vscode
+node_modules
+.turbo
+**/__pycache__
+**/.venv
+**/.pytest_cache
+**/.ruff_cache
+dist
+coverage
+*.zip
+*.log

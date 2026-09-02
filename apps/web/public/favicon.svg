@@ -1,0 +1,13 @@
+<!--
+SPDX-FileCopyrightText: 2026 Keresztes Zsolt <https://kereszteszsolt.hu>
+SPDX-License-Identifier: Apache-2.0
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">CiteNook</title>
+  <rect width="64" height="64" rx="15" fill="#20453d"/>
+  <path d="M13 17.5c7.2-2.4 13.6-.8 19 4.1v27.1c-5.3-4.2-11.7-5.5-19-3.1V17.5Z" fill="#fffdf8"/>
+  <path d="M51 17.5c-7.2-2.4-13.6-.8-19 4.1v27.1c5.3-4.2 11.7-5.5 19-3.1V17.5Z" fill="#dcebe6"/>
+  <path d="M32 21.6v27.1" fill="none" stroke="#315c52" stroke-width="2"/>
+  <path d="M18 25.5h8M18 31h8M38 25.5h8" fill="none" stroke="#315c52" stroke-linecap="round" stroke-width="2.2"/>
+  <path d="M39.5 32.5h4.8v4.2c0 3-1.7 4.8-4.8 5.4v-2.6c1.3-.4 1.9-1.1 2-2.2h-2v-4.8Zm7 0h4.8v4.2c0 3-1.7 4.8-4.8 5.4v-2.6c1.3-.4 1.9-1.1 2-2.2h-2v-4.8Z" fill="#315c52"/>
+</svg>
