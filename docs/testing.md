@@ -113,7 +113,7 @@ Run its mocked-HTTP tests from `apps/api` without PostgreSQL or Ollama:
 uv run --locked pytest -q tests/test_evaluation.py
 ```
 
-The API workspace lint, test, and build commands include the evaluation package. Live native and LlamaIndex evaluation measurements remain part of `MRA-031`.
+The API workspace lint, test, and build commands include the evaluation package. The [measured comparison](releases/release-0.6-rag-evaluation-and-ci/comparison.md) records the 2026-10-14 live native and LlamaIndex runs; both passed twelve fixture checks with the same installed model pair. Full release checks and runtime cleanup proof are in [Release 0.6 verification](releases/release-0.6-rag-evaluation-and-ci/verification.md#mra-031-evidence).
 
 ## Runtime smoke checks
 

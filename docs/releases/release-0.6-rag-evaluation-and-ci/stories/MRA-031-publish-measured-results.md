@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+Implemented
 
 ## User story
 
@@ -18,12 +18,12 @@ Show real results with a clear scope and no guessed scores.
 
 ## Acceptance criteria
 
-- [ ] The same fixtures and model settings are run on real native and LlamaIndex deployments one at a time.
-- [ ] The result record names each backend, installed model pair, test settings, date, and run outcome.
-- [ ] The comparison shows fixture-check counts, expected source matches, no-answer checks, and response-time values.
-- [ ] The guide explains that a small fixture check is not full RAG accuracy, retrieval recall, or faithfulness scoring.
-- [ ] The root `README.md` links to the measured comparison and keeps planned work separate from shipped features.
-- [ ] Release proof includes repository verification, lint, tests, build, Compose checks, and both live RAG runs.
+- [x] The same fixtures and model settings are run on real native and LlamaIndex deployments one at a time.
+- [x] The result record names each backend, installed model pair, test settings, date, and run outcome.
+- [x] The comparison shows fixture-check counts, expected source matches, no-answer checks, and response-time values.
+- [x] The guide explains that a small fixture check is not full RAG accuracy, retrieval recall, or faithfulness scoring.
+- [x] The root `README.md` links to the measured comparison and keeps planned work separate from shipped features.
+- [x] Release proof includes repository verification, lint, tests, build, Compose checks, and both live RAG runs.
 
 ## Out of scope
 

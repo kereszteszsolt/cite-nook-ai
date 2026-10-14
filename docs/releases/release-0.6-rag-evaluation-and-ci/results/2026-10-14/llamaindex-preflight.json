@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "citenook-small-rag-v1",
+  "suiteSha256": "3896a8fd81ef0ee754d769b60b2c47742bfb0ae30ce15fef61d2f7b0d092ed5a",
+  "startedAt": "2026-10-14T20:22:10.488288+00:00",
+  "apiUrl": "http://127.0.0.1:8000/api/",
+  "ragBackend": "llamaindex",
+  "chatModel": "llama3.1:8b",
+  "embeddingModel": "qwen3-embedding:0.6b",
+  "ragTopK": 5,
+  "ragTopKSource": "Operator-supplied; the public API does not expose this setting.",
+  "scope": "Small synthetic fixture checks only; these are not retrieval recall, factual accuracy, or model-graded faithfulness scores. Key facts use case-insensitive whole-term matching.",
+  "status": "error",
+  "error": "GET health: [Errno 1] Operation not permitted",
+  "documents": {},
+  "conversationIds": [],
+  "cleanupErrors": [],
+  "cases": [],
+  "finishedAt": "2026-10-14T20:22:10.490057+00:00"
+}

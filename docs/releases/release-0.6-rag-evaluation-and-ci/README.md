@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. `MRA-029` implements the fixture runner with mocked-HTTP proof, and `MRA-030` implements repository checks with a successful GitHub run. Real backend measurements remain planned for `MRA-031`.
+Implemented. `MRA-029` provides the fixture runner, `MRA-030` provides repository checks with a successful GitHub run, and `MRA-031` publishes real native and LlamaIndex measurements. Both deployments passed all twelve fixture checks on 2026-10-14, and the release-closeout checks passed.
 
 ## Objective
 
@@ -14,7 +14,7 @@ Compare the two existing RAG deployments with the same small, invented document 
 | ---: | --- | --- | --- | --- |
 | 1 | [MRA-029](stories/MRA-029-add-a-small-rag-evaluation.md) | Add a small RAG evaluation | Repeatable API-based fixture runs | Implemented |
 | 2 | [MRA-030](stories/MRA-030-run-existing-checks-in-ci.md) | Run existing checks in CI | One lean GitHub Actions workflow | Implemented |
-| 3 | [MRA-031](stories/MRA-031-publish-measured-results.md) | Publish measured results | Real comparison and updated README | Planned |
+| 3 | [MRA-031](stories/MRA-031-publish-measured-results.md) | Publish measured results | Real comparison and updated README | Implemented |
 
 ## Evaluation boundary
 
@@ -31,7 +31,7 @@ Compare the two existing RAG deployments with the same small, invented document 
 
 Follow [story and Codex workflow](../../story-workflow.md): one story at a time, explicit implementation and commit approval, and acceptance criteria in order. Use only the needed implementation role; do not start parallel agents for these small stories.
 
-The [fixture runner guide](../../rag-evaluation.md) describes the implemented CLI, data, checks, and cleanup. Real measurements will be added by `MRA-031`; mocked test output is not a backend benchmark.
+The [fixture runner guide](../../rag-evaluation.md) describes the implemented CLI, data, checks, and cleanup. The [measured comparison](comparison.md) records the 2026-10-14 native and LlamaIndex runs, each with twelve passing fixture checks. Full answers and environment records accompany the comparison; its scope and timing limits remain explicit.
 
 ## Proof
 

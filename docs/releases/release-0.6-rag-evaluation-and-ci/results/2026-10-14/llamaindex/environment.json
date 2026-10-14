@@ -1,0 +1,193 @@
+{
+  "recordedAt": "2026-10-14T20:21:58.332052+00:00",
+  "health": {
+    "status": "ok",
+    "appId": "cite-nook-ai",
+    "ragBackend": "llamaindex"
+  },
+  "catalog": {
+    "chatModels": [
+      {
+        "name": "llama3.1:8b",
+        "installed": true
+      }
+    ],
+    "embeddingModels": [
+      {
+        "name": "qwen3-embedding:0.6b",
+        "installed": true
+      }
+    ],
+    "defaultChatModel": "llama3.1:8b",
+    "defaultEmbeddingModel": "qwen3-embedding:0.6b",
+    "ollamaAvailable": true
+  },
+  "python": "3.14.6",
+  "applicationSourceSha256": "7693ede80ecb12204cefb0684df9d951999751022443234e6e5e7f7895eeb071",
+  "packages": {
+    "fastapi": "0.141.1",
+    "httpx": "0.28.1",
+    "ollama": "0.6.2",
+    "sqlalchemy": "2.0.52",
+    "pgvector": "0.5.0",
+    "llama-index-core": "0.14.24",
+    "llama-index-vector-stores-postgres": "0.8.1"
+  },
+  "llamaIndexInstalled": true,
+  "settings": {
+    "RAG_BACKEND": "llamaindex",
+    "RAG_TOP_K": "5",
+    "CHAT_MODELS": "llama3.1:8b",
+    "EMBEDDING_MODELS": "qwen3-embedding:0.6b",
+    "OLLAMA_REQUEST_TIMEOUT_SECONDS": "300",
+    "EMBEDDING_BATCH_SIZE": "32",
+    "CHAT_HISTORY_MESSAGES": "12"
+  },
+  "ollamaVersion": {
+    "version": "0.32.0"
+  },
+  "models": [
+    {
+      "name": "llama3.1:8b",
+      "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+      "size": 4920753328,
+      "details": {
+        "format": "gguf",
+        "family": "llama",
+        "families": [
+          "llama"
+        ],
+        "parameter_size": "8.0B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 131072,
+        "embedding_length": 4096
+      }
+    },
+    {
+      "name": "qwen3-embedding:0.6b",
+      "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+      "size": 639150858,
+      "details": {
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "595.78M",
+        "quantization_level": "Q8_0",
+        "context_length": 32768,
+        "embedding_length": 1024
+      }
+    }
+  ],
+  "warmups": [
+    {
+      "endpoint": "/api/chat",
+      "model": "llama3.1:8b",
+      "elapsedSeconds": 0.766,
+      "loadDurationNs": 275172005
+    },
+    {
+      "endpoint": "/api/embed",
+      "model": "qwen3-embedding:0.6b",
+      "elapsedSeconds": 0.21,
+      "loadDurationNs": 157036582
+    }
+  ],
+  "loadedModelsAfterWarmup": [
+    {
+      "name": "qwen3-embedding:0.6b",
+      "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+      "size_vram": 0,
+      "context_length": 4096
+    },
+    {
+      "name": "llama3.1:8b",
+      "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+      "size_vram": 0,
+      "context_length": 4096
+    }
+  ],
+  "sourceRevision": "d0a04f7546a61e18dd578bd9cf1957794b812616",
+  "uvLockSha256": "93290223560ca39414b4f83e5e1ae311864c222c518c242abb8ec9070cc60a55",
+  "images": {
+    "api": "sha256:86b3ad4471aacef4411268db3d1a33066c59f7fc1779f662d5f692b7ff8b3182",
+    "worker": "sha256:15ccc475dbea1430bd1517c381439754935eb5e545802255614d6c5a0b81fef8"
+  },
+  "host": {
+    "architecture": "x86_64",
+    "dockerLogicalCpus": 24,
+    "dockerMemoryBytes": 33613303808,
+    "dockerVersion": "29.6.1",
+    "composeVersion": "5.3.0",
+    "sharedHost": true,
+    "sharedOllama": true
+  },
+  "otherLoadedModelObserved": true,
+  "warmupNotes": "Same chat and embedding inputs before each measured run; LlamaIndex also had an earlier warm-up pair before API readiness.",
+  "readyDocuments": [
+    {
+      "id": "2c5fa936-272c-4f19-9df9-6b90fc5bb540",
+      "fileName": "copper-ferry.md",
+      "contentType": "text/markdown",
+      "sizeBytes": 194,
+      "sha256": "76a960707133af088cb841d6cd4ead399c86714f0549e4c3ede2354a732330da",
+      "embeddingModel": "qwen3-embedding:0.6b",
+      "status": "ready",
+      "errorMessage": null,
+      "chunkCount": 1,
+      "isActive": true,
+      "createdAt": "2026-10-14T20:22:24.460371Z"
+    },
+    {
+      "id": "d39943b4-de89-4908-86a1-05b724c71d4e",
+      "fileName": "birch-seed-bank.md",
+      "contentType": "text/markdown",
+      "sizeBytes": 201,
+      "sha256": "94b79a7bc96e9e9c23e5feeaa8906710ebbf5eae7021477ca25136a6ce18f46e",
+      "embeddingModel": "qwen3-embedding:0.6b",
+      "status": "ready",
+      "errorMessage": null,
+      "chunkCount": 1,
+      "isActive": true,
+      "createdAt": "2026-10-14T20:22:24.445196Z"
+    },
+    {
+      "id": "9f27d04e-8512-4c9a-98c9-7b67d72062f7",
+      "fileName": "amber-observatory.md",
+      "contentType": "text/markdown",
+      "sizeBytes": 232,
+      "sha256": "e2b480f7046baddec98ed0956b8c38012af51c48d429800b456c6dc65f36eeff",
+      "embeddingModel": "qwen3-embedding:0.6b",
+      "status": "ready",
+      "errorMessage": null,
+      "chunkCount": 1,
+      "isActive": true,
+      "createdAt": "2026-10-14T20:22:24.415985Z"
+    }
+  ],
+  "postRunCleanup": {
+    "api": {
+      "documents": [],
+      "conversations": [],
+      "uploadFiles": []
+    },
+    "database": {
+      "documents": 0,
+      "conversations": 0,
+      "messages": 0,
+      "ingestionJobs": 0,
+      "nativeChunks": 0,
+      "llamaIndexNodes": 0,
+      "postgresVersion": "PostgreSQL 17.10 (Debian 17.10-1.pgdg12+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit",
+      "pgvectorVersion": "0.8.5"
+    },
+    "isolatedProjectRemoved": true,
+    "scratchVolumesRemoved": true
+  },
+  "indexStorageDuringRun": {
+    "llamaIndexNodes": 3,
+    "nativeChunks": 0,
+    "pgvectorVersion": "0.8.5"
+  }
+}

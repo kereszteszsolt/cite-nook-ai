@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "citenook-small-rag-v1",
+  "suiteSha256": "3896a8fd81ef0ee754d769b60b2c47742bfb0ae30ce15fef61d2f7b0d092ed5a",
+  "startedAt": "2026-10-14T20:22:24.367085+00:00",
+  "apiUrl": "http://127.0.0.1:8000/api/",
+  "ragBackend": "llamaindex",
+  "chatModel": "llama3.1:8b",
+  "embeddingModel": "qwen3-embedding:0.6b",
+  "ragTopK": 5,
+  "ragTopKSource": "Operator-supplied; the public API does not expose this setting.",
+  "scope": "Small synthetic fixture checks only; these are not retrieval recall, factual accuracy, or model-graded faithfulness scores. Key facts use case-insensitive whole-term matching.",
+  "status": "passed",
+  "error": null,
+  "documents": {
+    "9f27d04e-8512-4c9a-98c9-7b67d72062f7": "amber-observatory.md",
+    "d39943b4-de89-4908-86a1-05b724c71d4e": "birch-seed-bank.md",
+    "2c5fa936-272c-4f19-9df9-6b90fc5bb540": "copper-ferry.md"
+  },
+  "conversationIds": [
+    "09c1c39b-d039-46ee-bd50-3ded67ca5d67",
+    "041d875e-4df1-462e-8cc8-5eef19b07b01",
+    "31ba06e6-bf99-4144-9fa0-c7c370dc8d32",
+    "7fa2d4f2-3f0b-44e4-be4c-361de43eac74",
+    "6371ed8e-2f55-4f08-be14-90da4ac1fa26",
+    "970eb09c-4ce5-4774-b29c-b55e56d40b7c",
+    "6efee447-3eb5-452a-9552-59518bbf3224",
+    "5351ffb1-629a-4c7f-ab9f-a86b17ff6cc2",
+    "c624f2cf-9432-4f3b-ba1b-cdabd1b41cdc",
+    "d894664c-d0a8-4eeb-a5de-705ca9968104",
+    "7920c379-3a4b-4389-99dc-e6b309b730a2",
+    "15e73933-4b4e-431d-a72a-ee91eb98a5b6"
+  ],
+  "cleanupErrors": [],
+  "cases": [
+    {
+      "id": "amber-leader",
+      "question": "Who leads Amber Observatory?",
+      "expectedSources": [
+        "amber-observatory.md"
+      ],
+      "keyFacts": [
+        "Mira Vale"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "Mira Vale\n\n[S1]",
+      "citedDocumentNames": [
+        "amber-observatory.md"
+      ],
+      "responseDurationMs": 10819,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "09c1c39b-d039-46ee-bd50-3ded67ca5d67",
+      "factMatches": {
+        "Mira Vale": true
+      }
+    },
+    {
+      "id": "amber-lens",
+      "question": "What is the main telescope lens diameter in centimeters at Amber Observatory?",
+      "expectedSources": [
+        "amber-observatory.md"
+      ],
+      "keyFacts": [
+        "47"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "47 centimeters\n\n[S1]",
+      "citedDocumentNames": [
+        "amber-observatory.md"
+      ],
+      "responseDurationMs": 11133,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "041d875e-4df1-462e-8cc8-5eef19b07b01",
+      "factMatches": {
+        "47": true
+      }
+    },
+    {
+      "id": "amber-badge",
+      "question": "What color is the visitor badge at Amber Observatory?",
+      "expectedSources": [
+        "amber-observatory.md"
+      ],
+      "keyFacts": [
+        "cobalt"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "cobalt\n\n[S1]",
+      "citedDocumentNames": [
+        "amber-observatory.md"
+      ],
+      "responseDurationMs": 15369,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "31ba06e6-bf99-4144-9fa0-c7c370dc8d32",
+      "factMatches": {
+        "cobalt": true
+      }
+    },
+    {
+      "id": "birch-manager",
+      "question": "Who manages Birch Seed Bank?",
+      "expectedSources": [
+        "birch-seed-bank.md"
+      ],
+      "keyFacts": [
+        "Tomas Reed"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "Tomas Reed\n\n[S1]",
+      "citedDocumentNames": [
+        "birch-seed-bank.md"
+      ],
+      "responseDurationMs": 17470,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "7fa2d4f2-3f0b-44e4-be4c-361de43eac74",
+      "factMatches": {
+        "Tomas Reed": true
+      }
+    },
+    {
+      "id": "birch-varieties",
+      "question": "How many seed varieties does Birch Seed Bank store?",
+      "expectedSources": [
+        "birch-seed-bank.md"
+      ],
+      "keyFacts": [
+        "180"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "180\n\n[S1]",
+      "citedDocumentNames": [
+        "birch-seed-bank.md"
+      ],
+      "responseDurationMs": 19731,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "6371ed8e-2f55-4f08-be14-90da4ac1fa26",
+      "factMatches": {
+        "180": true
+      }
+    },
+    {
+      "id": "birch-room",
+      "question": "What is the cold storage room code at Birch Seed Bank?",
+      "expectedSources": [
+        "birch-seed-bank.md"
+      ],
+      "keyFacts": [
+        "B7"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "B7\n\n[S1]",
+      "citedDocumentNames": [
+        "birch-seed-bank.md"
+      ],
+      "responseDurationMs": 17893,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "970eb09c-4ce5-4774-b29c-b55e56d40b7c",
+      "factMatches": {
+        "B7": true
+      }
+    },
+    {
+      "id": "copper-departure",
+      "question": "At what time does Copper Ferry leave each morning?",
+      "expectedSources": [
+        "copper-ferry.md"
+      ],
+      "keyFacts": [
+        "09:20"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "09:20\n\n[S1]",
+      "citedDocumentNames": [
+        "copper-ferry.md"
+      ],
+      "responseDurationMs": 11926,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "6efee447-3eb5-452a-9552-59518bbf3224",
+      "factMatches": {
+        "09:20": true
+      }
+    },
+    {
+      "id": "copper-capacity",
+      "question": "How many passengers can Copper Ferry carry?",
+      "expectedSources": [
+        "copper-ferry.md"
+      ],
+      "keyFacts": [
+        "26"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "26\n\n[S1]",
+      "citedDocumentNames": [
+        "copper-ferry.md"
+      ],
+      "responseDurationMs": 11064,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "5351ffb1-629a-4c7f-ab9f-a86b17ff6cc2",
+      "factMatches": {
+        "26": true
+      }
+    },
+    {
+      "id": "copper-destination",
+      "question": "What is Copper Ferry's destination?",
+      "expectedSources": [
+        "copper-ferry.md"
+      ],
+      "keyFacts": [
+        "Willow Dock"
+      ],
+      "expectsNoAnswer": false,
+      "answer": "Willow Dock\n\n[S1]",
+      "citedDocumentNames": [
+        "copper-ferry.md"
+      ],
+      "responseDurationMs": 10984,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": true,
+        "noAnswer": null
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "c624f2cf-9432-4f3b-ba1b-cdabd1b41cdc",
+      "factMatches": {
+        "Willow Dock": true
+      }
+    },
+    {
+      "id": "amber-price-unknown",
+      "question": "What is the admission price at Amber Observatory?",
+      "expectedSources": [],
+      "keyFacts": [],
+      "expectsNoAnswer": true,
+      "answer": "The provided sources are insufficient to answer this question.",
+      "citedDocumentNames": [],
+      "responseDurationMs": 12191,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": null,
+        "noAnswer": true
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "d894664c-d0a8-4eeb-a5de-705ca9968104",
+      "factMatches": {}
+    },
+    {
+      "id": "birch-latitude-unknown",
+      "question": "What is the latitude of Birch Seed Bank?",
+      "expectedSources": [],
+      "keyFacts": [],
+      "expectsNoAnswer": true,
+      "answer": "The provided sources are insufficient to answer this question.",
+      "citedDocumentNames": [],
+      "responseDurationMs": 11415,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": null,
+        "noAnswer": true
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "7920c379-3a4b-4389-99dc-e6b309b730a2",
+      "factMatches": {}
+    },
+    {
+      "id": "copper-ticket-unknown",
+      "question": "What is the ticket price for Copper Ferry?",
+      "expectedSources": [],
+      "keyFacts": [],
+      "expectsNoAnswer": true,
+      "answer": "The provided sources are insufficient to answer this question.",
+      "citedDocumentNames": [],
+      "responseDurationMs": 12110,
+      "checks": {
+        "expectedSources": true,
+        "keyFacts": null,
+        "noAnswer": true
+      },
+      "passed": true,
+      "error": null,
+      "conversationId": "15e73933-4b4e-431d-a72a-ee91eb98a5b6",
+      "factMatches": {}
+    }
+  ],
+  "finishedAt": "2026-10-14T20:25:10.378872+00:00"
+}

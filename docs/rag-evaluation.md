@@ -6,7 +6,7 @@
 
 The [fixture manifest](../apps/api/evaluation/fixtures/cases.json) lists each question's expected source names, literal key facts, and no-answer expectation. Source checks compare the returned citation file names with the expected set and verify that each cited ID belongs to this run. Key facts use case-insensitive whole-term matching; paraphrases, changed spacing, and numbers written as words can fail this simple check. A no-answer case passes only with the exact fixed reply, apart from outer whitespace, and no citations.
 
-These are small synthetic fixture checks, not factual accuracy, retrieval recall, or model-graded faithfulness scores. The public citations show the sources used in an answer, not every retrieved item. `responseDurationMs` comes from the stored assistant response, not a stopwatch around the CLI request. This story has mocked-HTTP proof; real backend measurements belong to `MRA-031`.
+These are small synthetic fixture checks, not factual accuracy, retrieval recall, or model-graded faithfulness scores. The public citations show the sources used in an answer, not every retrieved item. `responseDurationMs` comes from the stored assistant response, not a stopwatch around the CLI request. The [2026-10-14 measured comparison](releases/release-0.6-rag-evaluation-and-ci/comparison.md) records real native and LlamaIndex runs, including full answers, model digests, settings, and timing limits.
 
 ## Prepare one deployment
 

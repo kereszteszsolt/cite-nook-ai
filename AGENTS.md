@@ -149,4 +149,4 @@ Runtime proof must use a real installed chat model and embedding model for both 
 
 ## Release boundary
 
-Release 0.5 does not add Ragas, cloud providers, hybrid search, reranking, backend scoring, runtime backend switching, or indexed-data migration. Release 0.6 is planned as a small API-based RAG evaluation, one GitHub Actions workflow, and measured documentation only. Use the existing endpoints and two real deployments; do not add Ragas or a new RAG backend.
+Release 0.5 does not add Ragas, cloud providers, hybrid search, reranking, backend scoring, runtime backend switching, or indexed-data migration. Release 0.6 adds only a small API-based RAG evaluation, one GitHub Actions workflow, and measured documentation. Use the existing endpoints and two real deployments; do not add Ragas or a new RAG backend.

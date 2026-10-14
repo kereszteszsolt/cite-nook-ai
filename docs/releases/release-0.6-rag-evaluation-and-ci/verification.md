@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. `MRA-029` has mocked-HTTP proof, and `MRA-030` has local checks and a successful hosted GitHub Actions run dated 2026-10-14. Live RAG measurements remain planned for `MRA-031`.
+Implemented. `MRA-029` has mocked-HTTP proof, `MRA-030` has local checks and a successful hosted GitHub Actions run, and `MRA-031` has both live fixture runs. Release-closeout checks and documentation review passed on 2026-10-14. The user approved the `MRA-031` commit on the same date.
 
 ## Story evidence
 
@@ -10,7 +10,7 @@ In progress. `MRA-029` has mocked-HTTP proof, and `MRA-030` has local checks and
 | --- | --- | --- | --- | --- | --- | --- |
 | MRA-029 | Approved 2026-10-14 | Passed | Passed local review | Approved 2026-10-14 | `a94f196` | Implemented |
 | MRA-030 | Approved 2026-10-14 | Passed locally and on GitHub | Passed local and hosted review | Approved 2026-10-14 | `d783b47` | Implemented |
-| MRA-031 | Pending | Not run | Pending | Pending | Pending | Planned |
+| MRA-031 | Approved 2026-10-14 | Both live runs and release checks passed | Passed local evidence and documentation review | Approved 2026-10-14 | This story commit; see Git history | Implemented |
 
 ## MRA-029 evidence
 
@@ -89,12 +89,56 @@ The local full run used Node 24.18.0, the already installed npm 11.16.0, Python 
 | Workflow start and finish | 2026-10-14 19:34:58–19:35:35 UTC; 37 seconds |
 | Job start and finish | 2026-10-14 19:35:00–19:35:35 UTC; 35 seconds |
 
-The public GitHub API confirmed successful checkout, tool setup, locked npm and uv installs, repository verification, lint, tests, build, and job cleanup. The run covers the committed workflow on `develop`; the `main` and pull-request triggers were checked in the workflow configuration, not through additional hosted runs. This CI proof does not run or score the real RAG deployments; that remains `MRA-031` work.
+The public GitHub API confirmed successful checkout, tool setup, locked npm and uv installs, repository verification, lint, tests, build, and job cleanup. The run covers the committed workflow on `develop`; the `main` and pull-request triggers were checked in the workflow configuration, not through additional hosted runs. This CI proof does not run or score the real RAG deployments; live measurements are recorded separately under `MRA-031` below.
+
+## MRA-031 evidence
+
+The user approved this story on 2026-10-14 with "MRA-031" and approved its commit with "commit kérlek" on the same date. The implementation publishes measured evidence and updates active guides; application code, fixtures, dependencies, and RAG behavior are unchanged. The measurements used application and evaluator revision `d0a04f7`, before this documentation commit. The approved commit message is `docs(mra-031): publish measured RAG fixture results`; its hash is reported after Git creates the commit.
+
+Acceptance criteria were verified in order:
+
+1. Native ran first, followed by LlamaIndex after native was stopped; each used a new project with its own empty PostgreSQL and upload volumes, the same twelve questions, suite SHA-256, installed model digests, and top-k of 5.
+2. Both [environment records](comparison.md#evidence-and-reproduction) identify the backend, model catalog, full installed model digests, API/worker settings, date, runtime versions, source fingerprint, images, ready documents, and cleanup checks.
+3. The [comparison](comparison.md) reports 12/12 complete fixture checks, 9/9 supported source sets, 9/9 literal key facts, 3/3 no-answer replies, and per-case API response times for each backend; raw runner JSON and Markdown files are preserved unchanged.
+4. The comparison and [run guide](../../rag-evaluation.md) explain literal-match limits, returned citations versus retrieved items, canonical no-answer checks, and the lack of full accuracy, retrieval recall, or model-graded faithfulness scoring.
+5. The root [README](../../../README.md) links the measured comparison and separate later options; documentation, testing, technology, roadmap, release map, and repository guidance no longer describe these measurements as future work.
+6. Repository verification, full root lint, tests, builds, all four Compose configuration checks, both real backend runs, and the final link and documentation review passed.
+
+Both catalogs confirmed `llama3.1:8b` and `qwen3-embedding:0.6b` were installed. Direct API and worker checks confirmed the same model pair and `RAG_TOP_K=5`; the runner correctly retains its operator-supplied top-k label because that setting is absent from the public API. The host and both API images had the same application source fingerprint, recorded with full model digests in the comparison. LlamaIndex had three stored nodes and zero native chunks during its run.
+
+Each run exited 0 with no run or cleanup errors. Follow-up API and SQL checks found no documents, conversations, messages, ingestion jobs, native chunks, uploaded files, or remaining selected LlamaIndex nodes. Both scratch projects, networks, and their newly created volumes were removed, and a Docker prefix check found no remaining measurement resources. Existing services and installed Ollama models were preserved.
+
+An initial LlamaIndex [network preflight](results/2026-10-14/llamaindex-preflight.json) exited 2 when sandbox policy rejected `GET health`; it created no records and attempted no questions. The actual run used permitted localhost access and a fresh output directory. A startup environment capture also retried after API readiness, with its earlier model warm-up outside the measurements. No fixture or product change was made to obtain passing results.
+
+The runs used CPU inference on a shared Docker host and shared Ollama service. Another loaded model was observed before LlamaIndex; other activity was not controlled. Native's mean API answer time was 12319.25 ms, and LlamaIndex's was 13508.75 ms, with medians of 12163.5 and 12018 ms. These one-pass timings do not establish a general backend ranking.
 
 ## Evaluation runs
 
-Record one real, dated run per backend after `MRA-029` is implemented. Note the selected chat and embedding models, `RAG_TOP_K`, number of answered and no-answer cases, fixture-check outcomes, source-document matches, and API-reported response times. Link the actual per-case output and note failed or missing runs instead of filling in estimates.
+| Backend | UTC interval, 2026-10-14 | Outcome | Raw results | Runner report |
+| --- | --- | --- | --- | --- |
+| Native | 20:17:13–20:19:45 | Passed, 12/12; 9 fact and 3 no-answer cases | [JSON](results/2026-10-14/native/results.json) | [Markdown](results/2026-10-14/native/report.md) |
+| LlamaIndex | 20:22:24–20:25:10 | Passed, 12/12; 9 fact and 3 no-answer cases | [JSON](results/2026-10-14/llamaindex/results.json) | [Markdown](results/2026-10-14/llamaindex/report.md) |
+
+See the [measured comparison](comparison.md) for the common installed pair, settings, suite hash, all timing values, environment records, reproduction commands, and limits.
 
 ## CI and release checks
 
-After `MRA-030`, record the GitHub Actions run URL and its result. For release closeout, record repository verification, lint, unit tests, build, all four Compose configuration checks, and real smoke proof for native and LlamaIndex. Keep logs concise and include commit hashes only after approval.
+Hosted CI proof is the successful `MRA-030` run linked above. The following release-closeout commands ran locally on 2026-10-14, after both live measurements had finished:
+
+| Command or check | Result |
+| --- | --- |
+| `python3 .agents/skills/release-evidence/scripts/verify_repository.py` | Passed before the full checks; repeated after final documentation updates |
+| `npm run lint` | Passed, all 3 workspaces, cache bypassed |
+| `npm run test` | 159 API, 50 web, and 1 brand test passed; 3 PostgreSQL integration tests skipped with `TEST_DATABASE_URL` unset |
+| `npm run build` | Passed, all 3 workspaces; 32-module web production build |
+| `docker compose config --quiet` | Passed |
+| `docker compose -f docker-compose.yml -f docker-compose.ollama.yml config --quiet` | Passed |
+| `docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml config --quiet` | Passed |
+| `docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml config --quiet` | Passed |
+| Native and LlamaIndex locked API/worker image builds | Passed; native omits the LlamaIndex extra, LlamaIndex includes it |
+| Real native and LlamaIndex fixture CLI runs | Both exited 0; 12/12 checks each, no cleanup errors |
+| Artifact validation | Published runner files match the originals byte for byte; model/settings identity, sequential timestamps, case counts, source sets, and timing tables verified |
+| Active documentation and version review | Local links passed; package tables match manifests and runtime records; no stale planned measurement claim or application/dependency change |
+| `git -c core.whitespace=cr-at-eol diff --check` and new artifact whitespace checks | Passed |
+
+The root checks used Node 24.18.0, npm 11.16.0, Python 3.13.14, uv 0.11.29, `CI=true`, `UV_LOCKED=1`, `UV_PYTHON=3.13`, `UV_PROJECT_ENVIRONMENT=/tmp/citenook-mra030-venv`, `TURBO_TELEMETRY_DISABLED=1`, and `TURBO_FORCE=1`. Runtime measurements used Python 3.14.6 in the application images and the same locked host environment for the HTTP runner. The four supported Compose combinations have static configuration proof here; the two live measurements used existing external Ollama, without starting a second model service.

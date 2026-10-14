@@ -12,6 +12,7 @@
 - [Architecture](architecture.md)
 - [RAG pipeline](rag-pipeline.md)
 - [Small RAG fixture evaluation](rag-evaluation.md)
+- [Measured native/LlamaIndex fixture comparison](releases/release-0.6-rag-evaluation-and-ci/comparison.md)
 - [Development](development.md)
 - [Testing](testing.md)
 - [Technology stack](technology-stack.md)
@@ -28,3 +29,5 @@
 - [Release 0.6 stories](releases/release-0.6-rag-evaluation-and-ci/README.md)
 
 Release 0.5 implements clean package boundaries and one deploy-selected native or LlamaIndex backend. Its release folder links the completed stories, design records, and verification proof.
+
+Release 0.6 adds a small API-based fixture runner, GitHub Actions checks, and measured results from both real deployments.
