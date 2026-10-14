@@ -9,7 +9,7 @@ In progress. `MRA-029` has mocked-HTTP proof, and `MRA-030` has local workflow a
 | Story | Implementation approval | Focused checks | Review | Commit approval | Commit | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | MRA-029 | Approved 2026-10-14 | Passed | Passed local review | Approved 2026-10-14 | `a94f196` | Implemented |
-| MRA-030 | Approved 2026-10-14 | Local passed; hosted pending | Passed local review | Approved 2026-10-14 | Pending | In progress |
+| MRA-030 | Approved 2026-10-14 | Local passed; hosted pending | Passed local review | Approved 2026-10-14 | `d783b47` | In progress |
 | MRA-031 | Pending | Not run | Pending | Pending | Pending | Planned |
 
 ## MRA-029 evidence
@@ -43,7 +43,7 @@ The npm commands used Node 26.3.0, `UV_PROJECT_ENVIRONMENT=/tmp/citenook-mra029-
 
 ## MRA-030 evidence
 
-The user approved starting the next story on 2026-10-14 after approving the `MRA-029` commit and later requested `develop` push runs too. `MRA-030` is in progress: criteria 1–5 have local proof, while criterion 6 requires a real GitHub run. Commit approval was given on 2026-10-14; publication approval remains pending.
+The user approved starting the next story on 2026-10-14 after approving the `MRA-029` commit and later requested `develop` push runs too. `MRA-030` is in progress: criteria 1–5 have local proof, while criterion 6 requires a real GitHub run. Commit approval was given on 2026-10-14; publication approval remains pending. Commit `d783b47` is `ci(mra-030): run repository checks on GitHub Actions`.
 
 Acceptance criteria were verified in order:
 
