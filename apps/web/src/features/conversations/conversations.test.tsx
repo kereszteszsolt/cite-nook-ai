@@ -317,7 +317,9 @@ describe('persistent conversation history', () => {
 
   it('copies complete message text and reports clipboard success', async () => {
     apiMock.messages.mockResolvedValue(storedMessages);
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     const copyButton = await screen.findByRole('button', { name: 'Copy message 2' });
     await act(async () => {
@@ -342,7 +344,9 @@ describe('persistent conversation history', () => {
       value: { writeText },
     });
     apiMock.messages.mockResolvedValue(storedMessages);
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     const copyButton = await screen.findByRole('button', { name: 'Copy message 1' });
     await act(async () => {
@@ -368,7 +372,9 @@ describe('persistent conversation history', () => {
           resolveRetry = resolve;
         }),
     );
-    render(<App />);
+    await act(async () => {
+      render(<App />);
+    });
 
     fireEvent.click(
       await screen.findByRole('button', { name: 'Ask question again for answer 2' }),

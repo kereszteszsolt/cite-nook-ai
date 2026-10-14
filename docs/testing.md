@@ -35,6 +35,33 @@ Short story proof belongs in each release `verification.md`. Large logs should b
 
 ## Automated checks
 
+### GitHub Actions
+
+The [Checks workflow](../.github/workflows/checks.yml) defines one Ubuntu 24.04 job for pull requests and pushes to `main` and `develop`. It uses Node.js 24, npm 11.16.0, Python 3.13, and uv 0.11.29. `npm ci` installs the npm lockfile, and `uv sync --locked --extra llamaindex` installs the Python lockfile with the optional backend needed by the unit tests. `UV_LOCKED=1` also guards the later `uv run` commands against lock changes.
+
+`turbo.json` passes `UV_PYTHON` and `UV_LOCKED` into workspace commands and includes them in task cache keys. It also passes an optional local `UV_PROJECT_ENVIRONMENT` path through without tying cache keys to that machine-specific path.
+
+The workflow runs repository verification, lint, tests, and build as separate required steps. Its explicit Bash shell uses [GitHub's fail-fast shell settings](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#exit-codes-and-error-action-preference); no step allows failures or overrides the default success condition. Action references are pinned to release commit hashes, and repository access is read-only.
+
+To run the same checks from the repository root, first select Node.js 24 and install uv 0.11.29, then use Bash:
+
+```bash
+set -euo pipefail
+export CI=true UV_LOCKED=1 UV_PYTHON=3.13 TURBO_TELEMETRY_DISABLED=1
+unset TEST_DATABASE_URL
+npm install --global npm@11.16.0
+npm ci
+uv sync --project apps/api --locked --extra llamaindex
+python3 .agents/skills/release-evidence/scripts/verify_repository.py
+npm run lint
+npm run test
+npm run build
+```
+
+This job uses mocked model providers, HTTP transports, and browser requests. It needs no live PostgreSQL, Ollama, model download, or custom secret; the three PostgreSQL integration tests stay skipped while `TEST_DATABASE_URL` is absent. Compose smoke tests, screenshot capture, and real RAG fixture runs remain separate manual checks. Hosted execution proof is recorded only after a real run in [Release 0.6 verification](releases/release-0.6-rag-evaluation-and-ci/verification.md).
+
+### Release checks
+
 ```bash
 python3 .agents/skills/release-evidence/scripts/verify_repository.py
 npm run lint

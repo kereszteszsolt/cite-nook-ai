@@ -61,4 +61,4 @@ The `llamaindex` Python extra pins both packages and `apps/api/uv.lock` locks th
 
 ## Evaluation and planned tools
 
-The small [HTTP fixture runner](rag-evaluation.md) uses the existing httpx and pytest dependencies. GitHub Actions CI and real backend evaluation measurements remain planned for Release 0.6. Ragas, OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not part of that release.
+The small [HTTP fixture runner](rag-evaluation.md) uses the existing httpx and pytest dependencies. The [GitHub Actions workflow](../.github/workflows/checks.yml) has local check proof and awaits its first hosted run. Real backend evaluation measurements remain planned for Release 0.6. Ragas, OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not part of that release.
