@@ -59,6 +59,6 @@ This page lists the main tools used by Release 0.5. Package files and lock files
 
 The `llamaindex` Python extra pins both packages and `apps/api/uv.lock` locks their transitive set. The native runtime does not install them.
 
-## Planned later tools
+## Evaluation and planned tools
 
-Release 0.6 plans a small evaluation runner and GitHub Actions CI using the existing tools. Ragas, OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not part of that release. Evaluation and CI are not yet implemented.
+The small [HTTP fixture runner](rag-evaluation.md) uses the existing httpx and pytest dependencies. GitHub Actions CI and real backend evaluation measurements remain planned for Release 0.6. Ragas, OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not part of that release.

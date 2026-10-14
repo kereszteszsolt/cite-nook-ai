@@ -8,9 +8,9 @@ See the [Release 0.5 story map and proof](releases/release-0.5-clean-rag-backend
 
 ## Release 0.6: small RAG evaluation and CI
 
-This release is planned, not implemented. It adds a small synthetic evaluation of the two real Release 0.5 RAG deployments, one at a time, using existing HTTP endpoints. It also adds one GitHub Actions workflow for the repository's existing checks and publishes measured results only after real runs.
+This release is in progress. `MRA-029` adds a small synthetic fixture runner that uses the existing HTTP endpoints, with mocked-HTTP test proof. One GitHub Actions workflow for the existing checks and real measurements of both Release 0.5 deployments remain planned.
 
-The suite will check expected citations, simple fixture facts, unsupported questions, and API response times. It will not claim full factual accuracy or retrieval recall from the public citations alone. No Ragas, new RAG backend, or new product feature is planned for this release.
+The [fixture runner](rag-evaluation.md) checks expected citations, simple fixture facts, unsupported questions, and API response times. It does not claim full factual accuracy or retrieval recall from the public citations alone. No Ragas, new RAG backend, or new product feature is planned for this release.
 
 See [Release 0.6 stories](releases/release-0.6-rag-evaluation-and-ci/README.md) for the three scoped stories and [verification](releases/release-0.6-rag-evaluation-and-ci/verification.md) for future results.
 

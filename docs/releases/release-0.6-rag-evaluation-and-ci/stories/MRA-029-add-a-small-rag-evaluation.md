@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+Implemented
 
 ## User story
 
@@ -18,14 +18,14 @@ See which path can cite good sources, say when it lacks proof, and reply in time
 
 ## Acceptance criteria
 
-- [ ] Three small invented documents and twelve questions define expected source files, key facts, and no-answer cases.
-- [ ] One CLI runner checks `/api/health` and rejects a deployment with the wrong `ragBackend`.
-- [ ] The runner checks `/api/models` for installed chat and embedding models before starting a run.
-- [ ] The runner uploads only its fixtures, waits for `ready`, and asks every question through the public API.
-- [ ] Each case records the answer, cited document names, fixture-check results, and `responseDurationMs`.
-- [ ] The runner writes machine-readable results and a brief report without claiming retrieval recall or factual accuracy.
-- [ ] The runner deletes only its own documents and conversations after each run, including failed runs.
-- [ ] Focused mocked-HTTP tests cover valid answers, no-answer cases, wrong backends, pending jobs, and API errors.
+- [x] Three small invented documents and twelve questions define expected source files, key facts, and no-answer cases.
+- [x] One CLI runner checks `/api/health` and rejects a deployment with the wrong `ragBackend`.
+- [x] The runner checks `/api/models` for installed chat and embedding models before starting a run.
+- [x] The runner uploads only its fixtures, waits for `ready`, and asks every question through the public API.
+- [x] Each case records the answer, cited document names, fixture-check results, and `responseDurationMs`.
+- [x] The runner writes machine-readable results and a brief report without claiming retrieval recall or factual accuracy.
+- [x] The runner deletes only its own documents and conversations after each run, including failed runs.
+- [x] Focused mocked-HTTP tests cover valid answers, no-answer cases, wrong backends, pending jobs, and API errors.
 
 ## Out of scope
 

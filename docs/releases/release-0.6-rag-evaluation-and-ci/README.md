@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned. No Release 0.6 implementation or benchmark result is claimed yet.
+In progress. `MRA-029` implements the fixture runner with mocked-HTTP proof. Hosted CI and real backend measurements remain planned.
 
 ## Objective
 
@@ -12,7 +12,7 @@ Compare the two existing RAG deployments with the same small, invented document 
 
 | Order | Story | Title | Main result | Status |
 | ---: | --- | --- | --- | --- |
-| 1 | [MRA-029](stories/MRA-029-add-a-small-rag-evaluation.md) | Add a small RAG evaluation | Repeatable API-based fixture runs | Planned |
+| 1 | [MRA-029](stories/MRA-029-add-a-small-rag-evaluation.md) | Add a small RAG evaluation | Repeatable API-based fixture runs | Implemented |
 | 2 | [MRA-030](stories/MRA-030-run-existing-checks-in-ci.md) | Run existing checks in CI | One lean GitHub Actions workflow | Planned |
 | 3 | [MRA-031](stories/MRA-031-publish-measured-results.md) | Publish measured results | Real comparison and updated README | Planned |
 
@@ -31,7 +31,7 @@ Compare the two existing RAG deployments with the same small, invented document 
 
 Follow [story and Codex workflow](../../story-workflow.md): one story at a time, explicit implementation and commit approval, and acceptance criteria in order. Use only the needed implementation role; do not start parallel agents for these small stories.
 
-The evaluation script, fixture data, test commands, and measurements will be added by the approved stories. There is no runnable benchmark in this planning archive.
+The [fixture runner guide](../../rag-evaluation.md) describes the implemented CLI, data, checks, and cleanup. Real measurements will be added by `MRA-031`; mocked test output is not a backend benchmark.
 
 ## Proof
 

@@ -76,6 +76,18 @@ MRA-014's brand tests cover the configured favicon asset path in both the typed 
 
 MRA-015's Playwright screenshot suite serves only the real Vite/React application shell and intercepts every `/api` request with static generic fixture responses. It does not connect to PostgreSQL, an upload volume, the running Compose application, or Ollama. The suite captures desktop chat, the new-conversation dialog, the stored-document panel, and mobile chat into `docs/screenshots`.
 
+## Small RAG fixture checks
+
+`MRA-029` adds an HTTP-only evaluation runner with three invented documents and twelve questions. Its [run guide](rag-evaluation.md) covers isolated deployment setup, output, exit codes, and cleanup. These fixture checks do not measure full RAG accuracy, retrieval recall, or faithfulness.
+
+Run its mocked-HTTP tests from `apps/api` without PostgreSQL or Ollama:
+
+```bash
+uv run --locked pytest -q tests/test_evaluation.py
+```
+
+The API workspace lint, test, and build commands include the evaluation package. Live native and LlamaIndex evaluation measurements remain part of `MRA-031`.
+
 ## Runtime smoke checks
 
 Native with external Ollama:
