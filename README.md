@@ -32,7 +32,7 @@ CiteNook is developed through independently verifiable MRA stories. The [release
 - **Frontend:** React, TypeScript, Vite, and source-aware conversation and document views.
 - **Quality and runtime:** pytest, Vitest, React Testing Library, Playwright, Docker Compose, uv, and Turborepo.
 
-See the [technology stack](docs/technology-stack.md) for exact dependencies and the [small RAG fixture runner](docs/rag-evaluation.md) for API-based checks. GitHub Actions CI is in progress; measured backend comparisons remain **planned** for Release 0.6.
+See the [technology stack](docs/technology-stack.md) for exact dependencies and the [small RAG fixture runner](docs/rag-evaluation.md) for API-based checks. GitHub Actions CI is implemented; measured backend comparisons remain **planned** for Release 0.6.
 
 ## Screenshots
 
@@ -183,7 +183,7 @@ docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-
 | [Release 0.3 story map](docs/releases/release-0.3-conversation-model-workflows/README.md) | Conversation model workflows |
 | [Release 0.4 story map](docs/releases/release-0.4-local-experience-polish/README.md) | Local experience polish |
 | [Release 0.5 story map](docs/releases/release-0.5-clean-rag-backends/README.md) | Clean architecture and selectable RAG backends |
-| [Release 0.6 story map](docs/releases/release-0.6-rag-evaluation-and-ci/README.md) | Small RAG fixture runner; CI in progress and measured results planned |
+| [Release 0.6 story map](docs/releases/release-0.6-rag-evaluation-and-ci/README.md) | Small RAG fixture runner and repository CI; measured results planned |
 
 ## License
 

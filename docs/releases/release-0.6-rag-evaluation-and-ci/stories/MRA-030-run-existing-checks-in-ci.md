@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress
+Implemented
 
 ## User story
 
@@ -23,7 +23,7 @@ Catch a bad change with one small CI job.
 - [x] The job runs repository verification plus the existing lint, test, and build commands.
 - [x] CI tests run with mocked services and need no live PostgreSQL, Ollama, or model download.
 - [x] A failed command fails the job, and the local equivalent commands are listed in `docs/testing.md`.
-- [ ] The workflow result is checked on GitHub and its URL is recorded in `verification.md`.
+- [x] The workflow result is checked on GitHub and its URL is recorded in `verification.md`.
 
 ## Out of scope
 

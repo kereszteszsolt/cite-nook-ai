@@ -58,7 +58,7 @@ npm run test
 npm run build
 ```
 
-This job uses mocked model providers, HTTP transports, and browser requests. It needs no live PostgreSQL, Ollama, model download, or custom secret; the three PostgreSQL integration tests stay skipped while `TEST_DATABASE_URL` is absent. Compose smoke tests, screenshot capture, and real RAG fixture runs remain separate manual checks. Hosted execution proof is recorded only after a real run in [Release 0.6 verification](releases/release-0.6-rag-evaluation-and-ci/verification.md).
+This job uses mocked model providers, HTTP transports, and browser requests. It needs no live PostgreSQL, Ollama, model download, or custom secret; the three PostgreSQL integration tests stay skipped while `TEST_DATABASE_URL` is absent. Compose smoke tests, screenshot capture, and real RAG fixture runs remain separate manual checks. The successful `develop` push run is recorded in [Release 0.6 verification](releases/release-0.6-rag-evaluation-and-ci/verification.md#hosted-github-actions-run).
 
 ### Release checks
 

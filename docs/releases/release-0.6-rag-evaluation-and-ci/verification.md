@@ -2,14 +2,14 @@
 
 ## Status
 
-In progress. `MRA-029` has mocked-HTTP proof, and `MRA-030` has local workflow and full check proof dated 2026-10-14. The first hosted CI run and live RAG measurements remain pending.
+In progress. `MRA-029` has mocked-HTTP proof, and `MRA-030` has local checks and a successful hosted GitHub Actions run dated 2026-10-14. Live RAG measurements remain planned for `MRA-031`.
 
 ## Story evidence
 
 | Story | Implementation approval | Focused checks | Review | Commit approval | Commit | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | MRA-029 | Approved 2026-10-14 | Passed | Passed local review | Approved 2026-10-14 | `a94f196` | Implemented |
-| MRA-030 | Approved 2026-10-14 | Local passed; hosted pending | Passed local review | Approved 2026-10-14 | `d783b47` | In progress |
+| MRA-030 | Approved 2026-10-14 | Passed locally and on GitHub | Passed local and hosted review | Approved 2026-10-14 | `d783b47` | Implemented |
 | MRA-031 | Pending | Not run | Pending | Pending | Pending | Planned |
 
 ## MRA-029 evidence
@@ -43,7 +43,7 @@ The npm commands used Node 26.3.0, `UV_PROJECT_ENVIRONMENT=/tmp/citenook-mra029-
 
 ## MRA-030 evidence
 
-The user approved starting the next story on 2026-10-14 after approving the `MRA-029` commit and later requested `develop` push runs too. `MRA-030` is in progress: criteria 1–5 have local proof, while criterion 6 requires a real GitHub run. Commit approval was given on 2026-10-14; publication approval remains pending. Commit `d783b47` is `ci(mra-030): run repository checks on GitHub Actions`.
+The user approved starting the next story on 2026-10-14 after approving the `MRA-029` commit and later requested `develop` push runs too. Commit approval was given on 2026-10-14, and commit `d783b47` is `ci(mra-030): run repository checks on GitHub Actions`. The user then committed the verification reference as `7b16acd`, pushed `develop`, and reported the successful GitHub run. All six criteria now have proof; approval to commit this evidence update was given on 2026-10-14.
 
 Acceptance criteria were verified in order:
 
@@ -52,7 +52,7 @@ Acceptance criteria were verified in order:
 3. Repository verification, `npm run lint`, `npm run test`, and `npm run build` passed in order through the root Turborepo commands with cache bypass enabled.
 4. The final run passed 159 API, 50 web, and 1 brand test without a live database or Ollama; the 3 PostgreSQL integration tests were skipped with `TEST_DATABASE_URL` unset.
 5. `actionlint` and a local Bash failure smoke check passed, the workflow has no allow-failure steps, and `docs/testing.md` lists the local equivalent commands.
-6. Pending: the first hosted workflow run and its URL have not been verified.
+6. [Checks #1](https://github.com/kereszteszsolt/cite-nook-ai/actions/runs/38624888748) completed successfully for the `develop` push at `7b16acd`; its workflow and job results were verified through the GitHub API.
 
 The workflow grants read-only repository access and pins each action to a checked release commit: [checkout v7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1), [setup-node v7.1.0](https://github.com/actions/setup-node/releases/tag/v7.1.0), and [setup-uv v10.3.0](https://github.com/astral-sh/setup-uv/releases/tag/v10.3.0). The selected runtime lines are supported in the [Node release table](https://nodejs.org/en/about/previous-releases) and [Python version table](https://devguide.python.org/versions/). No product dependency or runtime path changes in this story.
 
@@ -75,7 +75,21 @@ Commands and results:
 | `git diff --exit-code -- package-lock.json apps/api/uv.lock` | Passed; no dependency or lockfile changes |
 | `git -c core.whitespace=cr-at-eol diff --check` | Passed |
 
-The local full run used Node 24.18.0, the already installed npm 11.16.0, Python 3.13.14, uv 0.11.29, `CI=true`, `UV_LOCKED=1`, `UV_PYTHON=3.13`, `UV_PROJECT_ENVIRONMENT=/tmp/citenook-mra030-venv`, `TURBO_TELEMETRY_DISABLED=1`, and `TURBO_FORCE=1`. No hosted success is inferred from the local results. To verify criterion 6, publish the reviewed workflow through an approved commit and push, trigger its pull-request event or a push to `main` or `develop`, then record the actual run URL and outcome here.
+The local full run used Node 24.18.0, the already installed npm 11.16.0, Python 3.13.14, uv 0.11.29, `CI=true`, `UV_LOCKED=1`, `UV_PYTHON=3.13`, `UV_PROJECT_ENVIRONMENT=/tmp/citenook-mra030-venv`, `TURBO_TELEMETRY_DISABLED=1`, and `TURBO_FORCE=1`. Hosted proof comes from the separate GitHub run below, not from those local results.
+
+### Hosted GitHub Actions run
+
+| Field | Verified value |
+| --- | --- |
+| Workflow | [Checks #1](https://github.com/kereszteszsolt/cite-nook-ai/actions/runs/38624888748) |
+| Job | [Repository checks](https://github.com/kereszteszsolt/cite-nook-ai/actions/runs/38624888748/job/116061413218) |
+| Event and branch | `push` to `develop` |
+| Head commit | `7b16acde38e80166b240d734bd47a2dff57a7aad` |
+| Status and conclusion | `completed` / `success` for both workflow and job |
+| Workflow start and finish | 2026-10-14 19:34:58–19:35:35 UTC; 37 seconds |
+| Job start and finish | 2026-10-14 19:35:00–19:35:35 UTC; 35 seconds |
+
+The public GitHub API confirmed successful checkout, tool setup, locked npm and uv installs, repository verification, lint, tests, build, and job cleanup. The run covers the committed workflow on `develop`; the `main` and pull-request triggers were checked in the workflow configuration, not through additional hosted runs. This CI proof does not run or score the real RAG deployments; that remains `MRA-031` work.
 
 ## Evaluation runs
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. `MRA-029` implements the fixture runner with mocked-HTTP proof, and `MRA-030` has local workflow checks. The first hosted CI run and real backend measurements remain pending.
+In progress. `MRA-029` implements the fixture runner with mocked-HTTP proof, and `MRA-030` implements repository checks with a successful GitHub run. Real backend measurements remain planned for `MRA-031`.
 
 ## Objective
 
@@ -13,7 +13,7 @@ Compare the two existing RAG deployments with the same small, invented document 
 | Order | Story | Title | Main result | Status |
 | ---: | --- | --- | --- | --- |
 | 1 | [MRA-029](stories/MRA-029-add-a-small-rag-evaluation.md) | Add a small RAG evaluation | Repeatable API-based fixture runs | Implemented |
-| 2 | [MRA-030](stories/MRA-030-run-existing-checks-in-ci.md) | Run existing checks in CI | One lean GitHub Actions workflow | In progress |
+| 2 | [MRA-030](stories/MRA-030-run-existing-checks-in-ci.md) | Run existing checks in CI | One lean GitHub Actions workflow | Implemented |
 | 3 | [MRA-031](stories/MRA-031-publish-measured-results.md) | Publish measured results | Real comparison and updated README | Planned |
 
 ## Evaluation boundary
