@@ -61,4 +61,4 @@ The `llamaindex` Python extra pins both packages and `apps/api/uv.lock` locks th
 
 ## Planned later tools
 
-Ragas remains planned for Release 0.6. OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not installed by Release 0.5.
+Release 0.6 plans a small evaluation runner and GitHub Actions CI using the existing tools. Ragas, OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not part of that release. Evaluation and CI are not yet implemented.

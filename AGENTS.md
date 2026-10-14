@@ -8,11 +8,12 @@ The core user path is small: upload a file, wait for indexing, ask a question, r
 
 ## Source of truth
 
-Read these files before Release 0.5 work:
+Read these files before work on an active story:
 
 - `docs/story-workflow.md` for story, comment, approval, and evidence rules;
 - the active `MRA-*` story for scope and ordered acceptance criteria;
-- `docs/releases/release-0.5-clean-rag-backends/implementation-plan.md` for the agreed target;
+- the active release `README.md` for its scope;
+- `docs/releases/release-0.5-clean-rag-backends/implementation-plan.md` for current backend boundaries;
 - `docs/architecture.md` and `docs/rag-pipeline.md` for dependency and data rules.
 
 A plan is not implemented behavior. Do not write docs that claim a planned command or backend already works.
@@ -148,4 +149,4 @@ Runtime proof must use a real installed chat model and embedding model for both 
 
 ## Release boundary
 
-Release 0.5 does not add Ragas, cloud providers, hybrid search, reranking, backend scoring, runtime backend switching, or indexed-data migration. Release 0.6 keeps the evaluation plan and will use the two real deployments.
+Release 0.5 does not add Ragas, cloud providers, hybrid search, reranking, backend scoring, runtime backend switching, or indexed-data migration. Release 0.6 is planned as a small API-based RAG evaluation, one GitHub Actions workflow, and measured documentation only. Use the existing endpoints and two real deployments; do not add Ragas or a new RAG backend.

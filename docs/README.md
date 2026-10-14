@@ -24,5 +24,6 @@
 - [Release 0.3 stories](releases/release-0.3-conversation-model-workflows/README.md)
 - [Release 0.4 stories](releases/release-0.4-local-experience-polish/README.md)
 - [Release 0.5 stories](releases/release-0.5-clean-rag-backends/README.md)
+- [Release 0.6 planned stories](releases/release-0.6-rag-evaluation-and-ci/README.md)
 
 Release 0.5 implements clean package boundaries and one deploy-selected native or LlamaIndex backend. Its release folder links the completed stories, design records, and verification proof.
