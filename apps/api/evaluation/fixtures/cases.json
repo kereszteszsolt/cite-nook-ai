@@ -1,0 +1,89 @@
+{
+  "id": "citenook-small-rag-v1",
+  "cases": [
+    {
+      "id": "amber-leader",
+      "question": "Who leads Amber Observatory?",
+      "expectedSources": ["amber-observatory.md"],
+      "keyFacts": ["Mira Vale"],
+      "noAnswer": false
+    },
+    {
+      "id": "amber-lens",
+      "question": "What is the main telescope lens diameter in centimeters at Amber Observatory?",
+      "expectedSources": ["amber-observatory.md"],
+      "keyFacts": ["47"],
+      "noAnswer": false
+    },
+    {
+      "id": "amber-badge",
+      "question": "What color is the visitor badge at Amber Observatory?",
+      "expectedSources": ["amber-observatory.md"],
+      "keyFacts": ["cobalt"],
+      "noAnswer": false
+    },
+    {
+      "id": "birch-manager",
+      "question": "Who manages Birch Seed Bank?",
+      "expectedSources": ["birch-seed-bank.md"],
+      "keyFacts": ["Tomas Reed"],
+      "noAnswer": false
+    },
+    {
+      "id": "birch-varieties",
+      "question": "How many seed varieties does Birch Seed Bank store?",
+      "expectedSources": ["birch-seed-bank.md"],
+      "keyFacts": ["180"],
+      "noAnswer": false
+    },
+    {
+      "id": "birch-room",
+      "question": "What is the cold storage room code at Birch Seed Bank?",
+      "expectedSources": ["birch-seed-bank.md"],
+      "keyFacts": ["B7"],
+      "noAnswer": false
+    },
+    {
+      "id": "copper-departure",
+      "question": "At what time does Copper Ferry leave each morning?",
+      "expectedSources": ["copper-ferry.md"],
+      "keyFacts": ["09:20"],
+      "noAnswer": false
+    },
+    {
+      "id": "copper-capacity",
+      "question": "How many passengers can Copper Ferry carry?",
+      "expectedSources": ["copper-ferry.md"],
+      "keyFacts": ["26"],
+      "noAnswer": false
+    },
+    {
+      "id": "copper-destination",
+      "question": "What is Copper Ferry's destination?",
+      "expectedSources": ["copper-ferry.md"],
+      "keyFacts": ["Willow Dock"],
+      "noAnswer": false
+    },
+    {
+      "id": "amber-price-unknown",
+      "question": "What is the admission price at Amber Observatory?",
+      "expectedSources": [],
+      "keyFacts": [],
+      "noAnswer": true
+    },
+    {
+      "id": "birch-latitude-unknown",
+      "question": "What is the latitude of Birch Seed Bank?",
+      "expectedSources": [],
+      "keyFacts": [],
+      "noAnswer": true
+    },
+    {
+      "id": "copper-ticket-unknown",
+      "question": "What is the ticket price for Copper Ferry?",
+      "expectedSources": [],
+      "keyFacts": [],
+      "noAnswer": true
+    }
+  ]
+}

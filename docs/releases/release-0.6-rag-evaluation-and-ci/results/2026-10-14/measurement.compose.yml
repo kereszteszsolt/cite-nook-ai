@@ -1,0 +1,29 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: cite_nook
+      POSTGRES_USER: cite_nook
+      POSTGRES_PASSWORD: checked-in-development-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cite_nook -d cite_nook"]
+
+  api:
+    environment: &measurement-environment
+      DATABASE_URL: postgresql+psycopg://cite_nook:checked-in-development-only@postgres:5432/cite_nook
+      OLLAMA_HOST: http://host.docker.internal:11434
+      OLLAMA_REQUEST_TIMEOUT_SECONDS: "300"
+      CHAT_MODELS: llama3.1:8b
+      EMBEDDING_MODELS: qwen3-embedding:0.6b
+      DEFAULT_CHAT_MODEL: llama3.1:8b
+      DEFAULT_EMBEDDING_MODEL: qwen3-embedding:0.6b
+      UPLOAD_DIR: /data/uploads
+      MAX_UPLOAD_MB: "20"
+      EMBEDDING_BATCH_SIZE: "32"
+      INGESTION_STALE_MINUTES: "15"
+      CHAT_HISTORY_MESSAGES: "12"
+      RAG_TOP_K: "5"
+      BRAND_CONFIG_PATH: /config/brand.json
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+
+  worker:
+    environment: *measurement-environment

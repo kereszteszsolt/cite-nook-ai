@@ -25,6 +25,15 @@ _Ask your documents. Verify the sources._
 
 CiteNook is developed through independently verifiable MRA stories. The [release story maps](#verification-references) document the path from the initial local RAG workflow to the current document and conversation experience.
 
+## Engineering highlights
+
+- **RAG and AI:** Native retrieval or LlamaIndex indexing and retrieval, Ollama chat and embeddings, PostgreSQL/pgvector similarity search, grounded prompts, JSON Schema-constrained structured answers, and checked source citations.
+- **Backend:** Python, FastAPI, SQLAlchemy, a persistent ingestion worker, and PDF/DOCX/text extraction.
+- **Frontend:** React, TypeScript, Vite, and source-aware conversation and document views.
+- **Quality and runtime:** pytest, Vitest, React Testing Library, Playwright, Docker Compose, uv, and Turborepo.
+
+See the [technology stack](docs/technology-stack.md) for exact dependencies and the [small RAG fixture runner](docs/rag-evaluation.md) for API-based checks. Release 0.6 includes GitHub Actions CI and a [measured native/LlamaIndex comparison](docs/releases/release-0.6-rag-evaluation-and-ci/comparison.md): both passed 12/12 checks on the same small synthetic fixture set. See the [roadmap](docs/roadmap.md#later-options) for optional later work.
+
 ## Screenshots
 
 [![CiteNook grounded chat with references](docs/screenshots/citenook-chat-desktop.png)](docs/screenshots/citenook-chat-desktop.png)
@@ -174,6 +183,7 @@ docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-
 | [Release 0.3 story map](docs/releases/release-0.3-conversation-model-workflows/README.md) | Conversation model workflows |
 | [Release 0.4 story map](docs/releases/release-0.4-local-experience-polish/README.md) | Local experience polish |
 | [Release 0.5 story map](docs/releases/release-0.5-clean-rag-backends/README.md) | Clean architecture and selectable RAG backends |
+| [Release 0.6 story map](docs/releases/release-0.6-rag-evaluation-and-ci/README.md) | Small RAG fixture runner, repository CI, and measured results |
 
 ## License
 

@@ -6,13 +6,13 @@ This release is implemented. It cleans old story records, source comments, the w
 
 See the [Release 0.5 story map and proof](releases/release-0.5-clean-rag-backends/README.md).
 
-## Release 0.6: backend evaluation
+## Release 0.6: small RAG evaluation and CI
 
-This release is planned. It will run the same test documents and questions against the two real Release 0.5 deployments, one deployment at a time.
+This release is implemented. It provides a small synthetic fixture runner through `MRA-029` and one GitHub Actions workflow through `MRA-030`. `MRA-031` records [real native and LlamaIndex measurements](releases/release-0.6-rag-evaluation-and-ci/comparison.md) dated 2026-10-14; each deployment passed twelve checks with the same installed model pair. The workflow has local proof and a successful hosted run.
 
-The evaluation will call the normal CiteNook HTTP API. It will not add a third LlamaIndex implementation under an evaluation folder. Ragas may score faithfulness and factual quality, while retrieval checks and response time may be measured beside those scores.
+The [fixture runner](rag-evaluation.md) checks expected citations, simple fixture facts, unsupported questions, and API response times. It does not claim full factual accuracy or retrieval recall from the public citations alone. Release 0.6 adds no Ragas, new RAG backend, or new product feature.
 
-Release 0.6 story IDs will be created only after its scope is reviewed and approved.
+See [Release 0.6 stories](releases/release-0.6-rag-evaluation-and-ci/README.md) for the three scoped stories and [verification](releases/release-0.6-rag-evaluation-and-ci/verification.md) for checks and runtime proof. Optional later work is listed separately below.
 
 ## Later options
 

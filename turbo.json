@@ -1,5 +1,12 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "UV_LOCKED",
+    "UV_PYTHON"
+  ],
+  "globalPassThroughEnv": [
+    "UV_PROJECT_ENVIRONMENT"
+  ],
   "tasks": {
     "dev": {
       "cache": false,

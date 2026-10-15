@@ -1,6 +1,6 @@
 # Technology stack
 
-This page lists the main tools used by Release 0.5. Package files and lock files remain the source of truth for exact versions.
+This page lists the main tools used through Release 0.6. Package files and lock files remain the source of truth for exact versions.
 
 ## Web application
 
@@ -59,6 +59,6 @@ This page lists the main tools used by Release 0.5. Package files and lock files
 
 The `llamaindex` Python extra pins both packages and `apps/api/uv.lock` locks their transitive set. The native runtime does not install them.
 
-## Planned later tools
+## Evaluation and CI
 
-Ragas remains planned for Release 0.6. OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not installed by Release 0.5.
+The small [HTTP fixture runner](rag-evaluation.md) uses the existing httpx and pytest dependencies. The [GitHub Actions workflow](../.github/workflows/checks.yml) has local check proof and a [successful hosted run](https://github.com/kereszteszsolt/cite-nook-ai/actions/runs/38624888748). The [measured comparison](releases/release-0.6-rag-evaluation-and-ci/comparison.md) records real native and LlamaIndex runs with installed Ollama models. Ragas, OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not part of Release 0.6.
