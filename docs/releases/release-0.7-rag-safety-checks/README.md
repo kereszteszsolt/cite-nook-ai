@@ -2,17 +2,17 @@
 
 ## Status
 
-Planned. `MRA-032` is not implemented and no adversarial evaluation has run.
+Implemented. `MRA-032` adds a separate eight-case suite and [real native/LlamaIndex measurements](comparison.md): four and three cases passed, respectively. Observed failures remain documented; no full prompt-injection protection is claimed.
 
 ## Objective
 
-Add a small, separate prompt-injection test suite to the existing API-based RAG evaluation. Check how each deployed RAG backend handles untrusted instructions inside synthetic documents and questions. Preserve the Release 0.6 twelve-case comparison and its results.
+The existing API-based evaluator now has a separate prompt-injection suite. It checks how each deployed RAG backend handles untrusted instructions inside synthetic documents and questions. The Release 0.6 twelve-case comparison and its results remain unchanged.
 
 ## Story map
 
 | Order | Story | Focus | Status |
 | ---: | --- | --- | --- |
-| 1 | [MRA-032](stories/MRA-032-add-adversarial-rag-fixtures.md) | Isolated prompt-injection fixtures, checks, and measured results | Planned |
+| 1 | [MRA-032](stories/MRA-032-add-adversarial-rag-fixtures.md) | Isolated prompt-injection fixtures, checks, and measured results | Implemented |
 
 ## Scope
 
@@ -25,9 +25,9 @@ Add a small, separate prompt-injection test suite to the existing API-based RAG 
 
 ## Execution and evidence
 
-Follow the [story workflow](../../story-workflow.md). Get approval before implementing `MRA-032` and again before committing. Do not start extra agents or redesign the existing RAG paths for a test-only change.
+The user approved implementation and both isolated model runs. The [story workflow](../../story-workflow.md) still requires separate commit approval. No extra agents or production RAG changes were needed.
 
-[Release 0.7 verification](verification.md) starts empty on purpose; populate it only after focused checks and real evaluation runs. The existing [evaluation guide](../../rag-evaluation.md) documents the implemented Release 0.6 runner, not yet this planned safety suite.
+[Release 0.7 verification](verification.md) records the focused/full checks, run commands and cleanup proof. The [evaluation guide](../../rag-evaluation.md) documents `--suite baseline` (the unchanged default) and `--suite safety`; [measured findings](comparison.md) link every real answer and observed failure.
 
 ## Out of scope
 

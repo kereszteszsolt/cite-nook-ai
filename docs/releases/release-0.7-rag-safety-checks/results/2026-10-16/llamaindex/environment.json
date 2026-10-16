@@ -1,0 +1,559 @@
+{
+  "preflight": {
+    "capturedAt": "2026-10-16T16:36:52.463748+00:00",
+    "backend": "llamaindex",
+    "phase": "preflight",
+    "composeProject": "citenook-mra032-llamaindex",
+    "health": {
+      "status": "ok",
+      "appId": "cite-nook-ai",
+      "ragBackend": "llamaindex"
+    },
+    "documents": [],
+    "conversationIds": [],
+    "models": {
+      "llama3.1:8b": {
+        "name": "llama3.1:8b",
+        "model": "llama3.1:8b",
+        "modified_at": "2026-07-29T15:23:27.526882789Z",
+        "size": 4920753328,
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "8.0B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 131072,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "qwen3-embedding:0.6b": {
+        "name": "qwen3-embedding:0.6b",
+        "model": "qwen3-embedding:0.6b",
+        "modified_at": "2026-07-19T18:41:45.797097202Z",
+        "size": 639150858,
+        "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "details": {
+          "parent_model": "/Users/ollama/.ollama/models/blobs/sha256-06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+          "format": "gguf",
+          "family": "qwen3",
+          "families": [
+            "qwen3"
+          ],
+          "parameter_size": "595.78M",
+          "quantization_level": "Q8_0",
+          "context_length": 32768,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      }
+    },
+    "ollamaVersion": {
+      "version": "0.32.0"
+    },
+    "loadedSelectedModels": [
+      {
+        "name": "llama3.1:8b",
+        "model": "llama3.1:8b",
+        "size": 5576117451,
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "8.0B",
+          "quantization_level": "Q4_K_M"
+        },
+        "expires_at": "2026-10-16T16:40:45.44202152Z",
+        "size_vram": 0,
+        "context_length": 4096
+      },
+      {
+        "name": "qwen3-embedding:0.6b",
+        "model": "qwen3-embedding:0.6b",
+        "size": 2371270737,
+        "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen3",
+          "families": [
+            "qwen3"
+          ],
+          "parameter_size": "595.78M",
+          "quantization_level": "Q8_0"
+        },
+        "expires_at": "2026-10-16T16:40:28.100716744Z",
+        "size_vram": 0,
+        "context_length": 4096
+      }
+    ],
+    "services": {
+      "api": {
+        "python": "3.14.6",
+        "settings": {
+          "RAG_BACKEND": "llamaindex",
+          "RAG_TOP_K": "5",
+          "OLLAMA_HOST": "http://host.docker.internal:11434",
+          "OLLAMA_REQUEST_TIMEOUT_SECONDS": "300",
+          "CHAT_MODELS": "llama3.1:8b",
+          "EMBEDDING_MODELS": "qwen3-embedding:0.6b",
+          "DEFAULT_CHAT_MODEL": "llama3.1:8b",
+          "DEFAULT_EMBEDDING_MODEL": "qwen3-embedding:0.6b",
+          "EMBEDDING_BATCH_SIZE": "32",
+          "CHAT_HISTORY_MESSAGES": "12"
+        },
+        "packages": {
+          "fastapi": "0.141.1",
+          "httpx": "0.28.1",
+          "ollama": "0.6.2",
+          "pgvector": "0.5.0",
+          "sqlalchemy": "2.0.52"
+        },
+        "imageId": "sha256:d871ef17bfc1327caee4f366c3e8d727258d170fed7c1d1900f977f067fd4ad4"
+      },
+      "worker": {
+        "python": "3.14.6",
+        "settings": {
+          "RAG_BACKEND": "llamaindex",
+          "RAG_TOP_K": "5",
+          "OLLAMA_HOST": "http://host.docker.internal:11434",
+          "OLLAMA_REQUEST_TIMEOUT_SECONDS": "300",
+          "CHAT_MODELS": "llama3.1:8b",
+          "EMBEDDING_MODELS": "qwen3-embedding:0.6b",
+          "DEFAULT_CHAT_MODEL": "llama3.1:8b",
+          "DEFAULT_EMBEDDING_MODEL": "qwen3-embedding:0.6b",
+          "EMBEDDING_BATCH_SIZE": "32",
+          "CHAT_HISTORY_MESSAGES": "12"
+        },
+        "packages": {
+          "fastapi": "0.141.1",
+          "httpx": "0.28.1",
+          "ollama": "0.6.2",
+          "pgvector": "0.5.0",
+          "sqlalchemy": "2.0.52"
+        },
+        "imageId": "sha256:c8e91f49171c7c921c709cc85c1a0306e6c09793db3548d4b2e44dd0913eb4a0"
+      }
+    },
+    "databaseCounts": {
+      "documents": 0,
+      "document_chunks": 0,
+      "ingestion_jobs": 0,
+      "conversations": 0,
+      "conversation_messages": 0
+    },
+    "llamaIndexNodeCounts": {},
+    "uploadEntries": [],
+    "dockerVersion": "29.6.1",
+    "composeVersion": "5.3.0",
+    "dockerHost": {
+      "architecture": "x86_64",
+      "cpus": 24,
+      "memoryBytes": 33613303808
+    }
+  },
+  "duringRun": {
+    "capturedAt": "2026-10-16T16:38:03.027141+00:00",
+    "backend": "llamaindex",
+    "phase": "during-run",
+    "composeProject": "citenook-mra032-llamaindex",
+    "health": {
+      "status": "ok",
+      "appId": "cite-nook-ai",
+      "ragBackend": "llamaindex"
+    },
+    "documents": [
+      {
+        "id": "b42d0d69-7c45-4c14-9e23-8d9c3da01ede",
+        "fileName": "willow-canal-boat.md",
+        "contentType": "text/markdown",
+        "sizeBytes": 410,
+        "sha256": "b7f028cc25048d4306ed34b38743543562e21d3c9510dd7d146f8068f52cd96b",
+        "embeddingModel": "qwen3-embedding:0.6b",
+        "status": "ready",
+        "errorMessage": null,
+        "chunkCount": 1,
+        "isActive": true,
+        "createdAt": "2026-10-16T16:37:01.908842Z"
+      },
+      {
+        "id": "873fa701-0dca-42f6-a5d7-9cb7265051da",
+        "fileName": "marble-kite-store.md",
+        "contentType": "text/markdown",
+        "sizeBytes": 421,
+        "sha256": "f4fbe505e393eb3a80dc4a28a8c5a16ab54486b24f9a2e5bb5b955f636d2aabd",
+        "embeddingModel": "qwen3-embedding:0.6b",
+        "status": "ready",
+        "errorMessage": null,
+        "chunkCount": 1,
+        "isActive": true,
+        "createdAt": "2026-10-16T16:37:01.896529Z"
+      },
+      {
+        "id": "d8497647-8bca-49e7-a236-47f7069a7f53",
+        "fileName": "juniper-clock-house.md",
+        "contentType": "text/markdown",
+        "sizeBytes": 561,
+        "sha256": "e3798366dbe855b9234ac1e56fd11a957935c9545eb281544a7a0f6fce1ef303",
+        "embeddingModel": "qwen3-embedding:0.6b",
+        "status": "ready",
+        "errorMessage": null,
+        "chunkCount": 1,
+        "isActive": true,
+        "createdAt": "2026-10-16T16:37:01.873504Z"
+      }
+    ],
+    "conversationIds": [
+      "ab06732f-615e-4159-a4c1-302ade2fd093",
+      "579a1f50-e041-4b69-b1d3-29058532bbfe",
+      "3d8903b5-0150-406c-be4a-3fbaa76801d6",
+      "66f7fbae-bd06-45ca-abd6-562fdac0a982"
+    ],
+    "models": {
+      "llama3.1:8b": {
+        "name": "llama3.1:8b",
+        "model": "llama3.1:8b",
+        "modified_at": "2026-07-29T15:23:27.526882789Z",
+        "size": 4920753328,
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "8.0B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 131072,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "qwen3-embedding:0.6b": {
+        "name": "qwen3-embedding:0.6b",
+        "model": "qwen3-embedding:0.6b",
+        "modified_at": "2026-07-19T18:41:45.797097202Z",
+        "size": 639150858,
+        "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "details": {
+          "parent_model": "/Users/ollama/.ollama/models/blobs/sha256-06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+          "format": "gguf",
+          "family": "qwen3",
+          "families": [
+            "qwen3"
+          ],
+          "parameter_size": "595.78M",
+          "quantization_level": "Q8_0",
+          "context_length": 32768,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      }
+    },
+    "ollamaVersion": {
+      "version": "0.32.0"
+    },
+    "loadedSelectedModels": [
+      {
+        "name": "qwen3-embedding:0.6b",
+        "model": "qwen3-embedding:0.6b",
+        "size": 2371270737,
+        "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen3",
+          "families": [
+            "qwen3"
+          ],
+          "parameter_size": "595.78M",
+          "quantization_level": "Q8_0"
+        },
+        "expires_at": "2026-10-16T16:42:48.79492811Z",
+        "size_vram": 0,
+        "context_length": 4096
+      },
+      {
+        "name": "llama3.1:8b",
+        "model": "llama3.1:8b",
+        "size": 5576117451,
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "8.0B",
+          "quantization_level": "Q4_K_M"
+        },
+        "expires_at": "2026-10-16T16:42:48.550406867Z",
+        "size_vram": 0,
+        "context_length": 4096
+      }
+    ],
+    "services": {
+      "api": {
+        "python": "3.14.6",
+        "settings": {
+          "RAG_BACKEND": "llamaindex",
+          "RAG_TOP_K": "5",
+          "OLLAMA_HOST": "http://host.docker.internal:11434",
+          "OLLAMA_REQUEST_TIMEOUT_SECONDS": "300",
+          "CHAT_MODELS": "llama3.1:8b",
+          "EMBEDDING_MODELS": "qwen3-embedding:0.6b",
+          "DEFAULT_CHAT_MODEL": "llama3.1:8b",
+          "DEFAULT_EMBEDDING_MODEL": "qwen3-embedding:0.6b",
+          "EMBEDDING_BATCH_SIZE": "32",
+          "CHAT_HISTORY_MESSAGES": "12"
+        },
+        "packages": {
+          "fastapi": "0.141.1",
+          "httpx": "0.28.1",
+          "ollama": "0.6.2",
+          "pgvector": "0.5.0",
+          "sqlalchemy": "2.0.52"
+        },
+        "imageId": "sha256:d871ef17bfc1327caee4f366c3e8d727258d170fed7c1d1900f977f067fd4ad4"
+      },
+      "worker": {
+        "python": "3.14.6",
+        "settings": {
+          "RAG_BACKEND": "llamaindex",
+          "RAG_TOP_K": "5",
+          "OLLAMA_HOST": "http://host.docker.internal:11434",
+          "OLLAMA_REQUEST_TIMEOUT_SECONDS": "300",
+          "CHAT_MODELS": "llama3.1:8b",
+          "EMBEDDING_MODELS": "qwen3-embedding:0.6b",
+          "DEFAULT_CHAT_MODEL": "llama3.1:8b",
+          "DEFAULT_EMBEDDING_MODEL": "qwen3-embedding:0.6b",
+          "EMBEDDING_BATCH_SIZE": "32",
+          "CHAT_HISTORY_MESSAGES": "12"
+        },
+        "packages": {
+          "fastapi": "0.141.1",
+          "httpx": "0.28.1",
+          "ollama": "0.6.2",
+          "pgvector": "0.5.0",
+          "sqlalchemy": "2.0.52"
+        },
+        "imageId": "sha256:c8e91f49171c7c921c709cc85c1a0306e6c09793db3548d4b2e44dd0913eb4a0"
+      }
+    },
+    "databaseCounts": {
+      "documents": 3,
+      "document_chunks": 0,
+      "ingestion_jobs": 3,
+      "conversations": 5,
+      "conversation_messages": 8
+    },
+    "llamaIndexNodeCounts": {
+      "citenook_llamaindex.data_citenook_nodes_abfcff456d211b23_d1024": 3
+    },
+    "uploadEntries": [
+      "873fa701-0dca-42f6-a5d7-9cb7265051da",
+      "873fa701-0dca-42f6-a5d7-9cb7265051da/marble-kite-store.md",
+      "b42d0d69-7c45-4c14-9e23-8d9c3da01ede",
+      "b42d0d69-7c45-4c14-9e23-8d9c3da01ede/willow-canal-boat.md",
+      "d8497647-8bca-49e7-a236-47f7069a7f53",
+      "d8497647-8bca-49e7-a236-47f7069a7f53/juniper-clock-house.md"
+    ],
+    "dockerVersion": "29.6.1",
+    "composeVersion": "5.3.0",
+    "dockerHost": {
+      "architecture": "x86_64",
+      "cpus": 24,
+      "memoryBytes": 33613303808
+    }
+  },
+  "afterCleanup": {
+    "capturedAt": "2026-10-16T16:39:08.007509+00:00",
+    "backend": "llamaindex",
+    "phase": "after-cleanup",
+    "composeProject": "citenook-mra032-llamaindex",
+    "health": {
+      "status": "ok",
+      "appId": "cite-nook-ai",
+      "ragBackend": "llamaindex"
+    },
+    "documents": [],
+    "conversationIds": [],
+    "models": {
+      "llama3.1:8b": {
+        "name": "llama3.1:8b",
+        "model": "llama3.1:8b",
+        "modified_at": "2026-07-29T15:23:27.526882789Z",
+        "size": 4920753328,
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "8.0B",
+          "quantization_level": "Q4_K_M",
+          "context_length": 131072,
+          "embedding_length": 4096
+        },
+        "capabilities": [
+          "completion",
+          "tools"
+        ]
+      },
+      "qwen3-embedding:0.6b": {
+        "name": "qwen3-embedding:0.6b",
+        "model": "qwen3-embedding:0.6b",
+        "modified_at": "2026-07-19T18:41:45.797097202Z",
+        "size": 639150858,
+        "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "details": {
+          "parent_model": "/Users/ollama/.ollama/models/blobs/sha256-06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+          "format": "gguf",
+          "family": "qwen3",
+          "families": [
+            "qwen3"
+          ],
+          "parameter_size": "595.78M",
+          "quantization_level": "Q8_0",
+          "context_length": 32768,
+          "embedding_length": 1024
+        },
+        "capabilities": [
+          "embedding"
+        ]
+      }
+    },
+    "ollamaVersion": {
+      "version": "0.32.0"
+    },
+    "loadedSelectedModels": [
+      {
+        "name": "llama3.1:8b",
+        "model": "llama3.1:8b",
+        "size": 5576117451,
+        "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "8.0B",
+          "quantization_level": "Q4_K_M"
+        },
+        "expires_at": "2026-10-16T16:43:58.87056318Z",
+        "size_vram": 0,
+        "context_length": 4096
+      },
+      {
+        "name": "qwen3-embedding:0.6b",
+        "model": "qwen3-embedding:0.6b",
+        "size": 2371270737,
+        "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "qwen3",
+          "families": [
+            "qwen3"
+          ],
+          "parameter_size": "595.78M",
+          "quantization_level": "Q8_0"
+        },
+        "expires_at": "2026-10-16T16:43:45.643212195Z",
+        "size_vram": 0,
+        "context_length": 4096
+      }
+    ],
+    "services": {
+      "api": {
+        "python": "3.14.6",
+        "settings": {
+          "RAG_BACKEND": "llamaindex",
+          "RAG_TOP_K": "5",
+          "OLLAMA_HOST": "http://host.docker.internal:11434",
+          "OLLAMA_REQUEST_TIMEOUT_SECONDS": "300",
+          "CHAT_MODELS": "llama3.1:8b",
+          "EMBEDDING_MODELS": "qwen3-embedding:0.6b",
+          "DEFAULT_CHAT_MODEL": "llama3.1:8b",
+          "DEFAULT_EMBEDDING_MODEL": "qwen3-embedding:0.6b",
+          "EMBEDDING_BATCH_SIZE": "32",
+          "CHAT_HISTORY_MESSAGES": "12"
+        },
+        "packages": {
+          "fastapi": "0.141.1",
+          "httpx": "0.28.1",
+          "ollama": "0.6.2",
+          "pgvector": "0.5.0",
+          "sqlalchemy": "2.0.52"
+        },
+        "imageId": "sha256:d871ef17bfc1327caee4f366c3e8d727258d170fed7c1d1900f977f067fd4ad4"
+      },
+      "worker": {
+        "python": "3.14.6",
+        "settings": {
+          "RAG_BACKEND": "llamaindex",
+          "RAG_TOP_K": "5",
+          "OLLAMA_HOST": "http://host.docker.internal:11434",
+          "OLLAMA_REQUEST_TIMEOUT_SECONDS": "300",
+          "CHAT_MODELS": "llama3.1:8b",
+          "EMBEDDING_MODELS": "qwen3-embedding:0.6b",
+          "DEFAULT_CHAT_MODEL": "llama3.1:8b",
+          "DEFAULT_EMBEDDING_MODEL": "qwen3-embedding:0.6b",
+          "EMBEDDING_BATCH_SIZE": "32",
+          "CHAT_HISTORY_MESSAGES": "12"
+        },
+        "packages": {
+          "fastapi": "0.141.1",
+          "httpx": "0.28.1",
+          "ollama": "0.6.2",
+          "pgvector": "0.5.0",
+          "sqlalchemy": "2.0.52"
+        },
+        "imageId": "sha256:c8e91f49171c7c921c709cc85c1a0306e6c09793db3548d4b2e44dd0913eb4a0"
+      }
+    },
+    "databaseCounts": {
+      "documents": 0,
+      "document_chunks": 0,
+      "ingestion_jobs": 0,
+      "conversations": 0,
+      "conversation_messages": 0
+    },
+    "llamaIndexNodeCounts": {
+      "citenook_llamaindex.data_citenook_nodes_abfcff456d211b23_d1024": 0
+    },
+    "uploadEntries": [],
+    "dockerVersion": "29.6.1",
+    "composeVersion": "5.3.0",
+    "dockerHost": {
+      "architecture": "x86_64",
+      "cpus": 24,
+      "memoryBytes": 33613303808
+    }
+  }
+}

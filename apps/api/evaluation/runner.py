@@ -18,11 +18,13 @@ from uuid import UUID
 
 import httpx
 
-from .suite import NO_ANSWER, Case, load_suite
+from .suite import NO_ANSWER, SUITE_PATHS, Case, load_suite
 
 SCOPE = (
     "Small synthetic fixture checks only; these are not retrieval recall, factual accuracy, "
     "or model-graded faithfulness scores. Key facts use case-insensitive whole-term matching."
+    " Selected injection fixtures and marker checks are not a full security audit or a general "
+    "safety score; they cannot prove that every claim is grounded or every attack was retrieved."
 )
 
 
@@ -34,10 +36,13 @@ class RunConfig:
     rag_top_k: int
     indexing_timeout: float = 300
     poll_interval: float = 1
+    suite: str = "baseline"
 
     def __post_init__(self) -> None:
         if self.backend not in {"native", "llamaindex"}:
             raise ValueError("Backend must be native or llamaindex.")
+        if self.suite not in SUITE_PATHS:
+            raise ValueError(f"Unknown fixture suite: {self.suite}.")
         if not self.chat_model.strip() or not self.embedding_model.strip():
             raise ValueError("Select both chat and embedding models.")
         for value in (self.rag_top_k, self.indexing_timeout, self.poll_interval):
@@ -156,16 +161,30 @@ def check_answer(case: Case, message: dict[str, Any], owned: dict[str, str]) -> 
         fact: bool(re.search(r"(?<!\w)" + re.escape(fact) + r"(?!\w)", answer, re.IGNORECASE))
         for fact in case.key_facts
     }
+    forbidden_matches = {
+        text: text.casefold() in answer.casefold() for text in case.forbidden_texts
+    }
+    source_ids = [citation.get("sourceId", "") for citation in citations]
+    markers = set(re.findall(r"\[(S[^\]\s]*)\]", answer, re.IGNORECASE))
+    valid_markers = (
+        all(isinstance(value, str) and re.fullmatch(r"S[1-9][0-9]*", value) for value in source_ids)
+        and len(set(source_ids)) == len(source_ids)
+        and markers == set(source_ids)
+    )
     checks = {
         "expectedSources": names == sorted(case.expected_sources),
+        "citationMarkers": bool(valid_markers),
         "keyFacts": all(fact_matches.values()) if not case.no_answer else None,
         "noAnswer": answer.strip() == NO_ANSWER and not citations if case.no_answer else None,
+        "forbiddenTextAbsent": not any(forbidden_matches.values()) if forbidden_matches else None,
     }
     return {
         "answer": answer,
         "citedDocumentNames": names,
+        "citations": citations,
         "responseDurationMs": duration,
         "factMatches": fact_matches,
+        "forbiddenMatches": forbidden_matches,
         "checks": checks,
         "passed": all(value is not False for value in checks.values()),
     }
@@ -190,13 +209,15 @@ def run_evaluation(
     clock: Callable[[], float] = time.monotonic,
     sleep: Callable[[float], None] = time.sleep,
 ) -> dict[str, Any]:
-    suite = load_suite()
+    suite = load_suite(config.suite)
     owned: dict[str, str] = {}
     conversations: list[str] = []
     result: dict[str, Any] = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
+        "suiteName": config.suite,
         "suiteId": suite.id,
         "suiteSha256": suite.sha256,
+        "plannedCases": len(suite.cases),
         "startedAt": datetime.now(UTC).isoformat(),
         "apiUrl": str(client.base_url),
         "ragBackend": config.backend,
@@ -239,8 +260,11 @@ def run_evaluation(
                 "expectedSources": list(case.expected_sources),
                 "keyFacts": list(case.key_facts),
                 "expectsNoAnswer": case.no_answer,
+                "attackLocation": case.attack_location,
+                "forbiddenTexts": list(case.forbidden_texts),
                 "answer": None,
                 "citedDocumentNames": [],
+                "citations": [],
                 "responseDurationMs": None,
                 "checks": None,
                 "passed": False,
@@ -304,12 +328,14 @@ def render_report(result: dict[str, Any]) -> str:
             for case in cases
             if case["checks"] is not None and case["checks"][key] is not None
         ]
-        for key in ("expectedSources", "keyFacts", "noAnswer")
+        for key in (
+            "expectedSources", "citationMarkers", "keyFacts", "noAnswer", "forbiddenTextAbsent"
+        )
     }
     lines = [
         "# CiteNook fixture run",
         "",
-        SCOPE,
+        result["scope"],
         "",
         f"- Status: {result['status']}",
         f"- Started: {result['startedAt']}",
@@ -318,15 +344,18 @@ def render_report(result: dict[str, Any]) -> str:
         f"- Embedding model: `{result['embeddingModel']}`",
         f"- RAG_TOP_K: {result['ragTopK']} (operator-supplied, not API-verified)",
         f"- Suite: `{result['suiteId']}` / `{result['suiteSha256']}`",
-        f"- Fixture checks passed: {passed}/{len(cases)} attempted (12 planned)",
+        f"- Fixture checks passed: {passed}/{len(cases)} attempted "
+        f"({result['plannedCases']} planned)",
         *(f"- {key}: {sum(values)}/{len(values)} checked" for key, values in checks.items()),
         "",
-        "| Case | Fixture check | API response time (ms) |",
-        "| --- | --- | ---: |",
+        "| Case | Fixture check | API response time (ms) | Failed checks or error |",
+        "| --- | --- | ---: | --- |",
     ]
     for case in cases:
         state = "error" if case["error"] else "pass" if case["passed"] else "fail"
-        lines.append(f"| {case['id']} | {state} | {case['responseDurationMs']} |")
+        failed = [key for key, value in (case["checks"] or {}).items() if value is False]
+        detail = (case["error"] or ", ".join(failed)).replace("|", "\\|").replace("\n", " ")
+        lines.append(f"| {case['id']} | {state} | {case['responseDurationMs']} | {detail} |")
     if result["error"]:
         lines.extend(["", f"Run error: {result['error']}"])
     lines.extend(["", f"Cleanup errors: {len(result['cleanupErrors'])}."])
@@ -350,7 +379,8 @@ def positive_int(value: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run the small CiteNook HTTP fixture suite.")
+    parser = argparse.ArgumentParser(description="Run a CiteNook HTTP fixture suite.")
+    parser.add_argument("--suite", choices=tuple(SUITE_PATHS), default="baseline")
     parser.add_argument("--base-url", default="http://localhost:8000")
     parser.add_argument("--backend", choices=("native", "llamaindex"), required=True)
     parser.add_argument("--chat-model", required=True)
@@ -379,6 +409,7 @@ def main(argv: list[str] | None = None) -> int:
             args.rag_top_k,
             args.indexing_timeout,
             args.poll_interval,
+            args.suite,
         )
         args.output_dir.mkdir(parents=True, exist_ok=False)
         with httpx.Client(

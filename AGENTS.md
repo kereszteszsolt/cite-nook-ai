@@ -9,7 +9,7 @@ CiteNook is a local-first RAG application: React/TypeScript frontend, FastAPI ba
 1. Read this file, `docs/story-workflow.md`, and **only the active `MRA-*` story**. Check its release README for status and dependencies.
 2. Inspect the affected modules and their tests. Open `docs/architecture.md`, `docs/rag-pipeline.md`, or `docs/testing.md` **only if relevant** to the change.
 3. Activate at most the skill(s) that match the actual file/technology scope below. Do not preload every skill, historic release plan, or unrelated module.
-4. A planned release is not implemented behavior. Release 0.6 is complete; Release 0.7 (RAG safety fixtures) is planned only. Preserve prior evaluation fixtures and measured results.
+4. A planned release is not implemented behavior. Releases 0.6 and 0.7 are complete; the separate RAG safety suite records observed failures, not a security guarantee. Preserve prior evaluation fixtures and measured results.
 
 ## Technical boundaries
 

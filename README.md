@@ -32,7 +32,7 @@ CiteNook is developed through independently verifiable MRA stories. The [release
 - **Frontend:** React, TypeScript, Vite, and source-aware conversation and document views.
 - **Quality and runtime:** pytest, Vitest, React Testing Library, Playwright, Docker Compose, uv, and Turborepo.
 
-See the [technology stack](docs/technology-stack.md) for exact dependencies and the [small RAG fixture runner](docs/rag-evaluation.md) for API-based checks. Release 0.6 includes GitHub Actions CI and a [measured native/LlamaIndex comparison](docs/releases/release-0.6-rag-evaluation-and-ci/comparison.md): both passed 12/12 checks on the same small synthetic fixture set. The [next planned release, 0.7](docs/releases/release-0.7-rag-safety-checks/README.md), scopes separate RAG prompt-injection regression checks; these are **not implemented** and no additional security claim is made. See the [roadmap](docs/roadmap.md#later-options) for other optional work.
+See the [technology stack](docs/technology-stack.md) for exact dependencies and the [small RAG fixture runner](docs/rag-evaluation.md) for API-based checks. Release 0.6 includes GitHub Actions CI and a [measured native/LlamaIndex comparison](docs/releases/release-0.6-rag-evaluation-and-ci/comparison.md): both passed 12/12 checks on the same small synthetic fixture set. [Release 0.7](docs/releases/release-0.7-rag-safety-checks/README.md) adds a separate eight-case prompt-injection suite; its [measured findings](docs/releases/release-0.7-rag-safety-checks/comparison.md) record 4/8 native and 3/8 LlamaIndex fixture passes, including unsupported price/year answers in both runs. These results do not certify prompt-injection protection. See the [roadmap](docs/roadmap.md#later-options) for other optional work.
 
 ## Screenshots
 
@@ -184,7 +184,7 @@ docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-
 | [Release 0.4 story map](docs/releases/release-0.4-local-experience-polish/README.md) | Local experience polish |
 | [Release 0.5 story map](docs/releases/release-0.5-clean-rag-backends/README.md) | Clean architecture and selectable RAG backends |
 | [Release 0.6 story map](docs/releases/release-0.6-rag-evaluation-and-ci/README.md) | Small RAG fixture runner, repository CI, and measured results |
-| [Release 0.7 story map (planned)](docs/releases/release-0.7-rag-safety-checks/README.md) | Prompt-injection regression suite and verification plan; not implemented |
+| [Release 0.7 story map](docs/releases/release-0.7-rag-safety-checks/README.md) | Separate prompt-injection fixtures, checks, and measured findings |
 
 ## License
 

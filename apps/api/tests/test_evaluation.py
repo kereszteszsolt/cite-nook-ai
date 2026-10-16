@@ -25,7 +25,8 @@ def test_fixture_suite_defines_three_documents_and_twelve_cases() -> None:
     assert suite.id == "citenook-small-rag-v1"
     assert len(suite.documents) == 3
     assert len(suite.cases) == 12
-    assert len(suite.sha256) == 64
+    assert suite.sha256 == "3896a8fd81ef0ee754d769b60b2c47742bfb0ae30ce15fef61d2f7b0d092ed5a"
+    assert load_suite("baseline") == suite
     assert sum(case.no_answer for case in suite.cases) == 3
     documents = {path.name: path.read_text(encoding="utf-8") for path in suite.documents}
     for case in suite.cases:
@@ -74,9 +75,10 @@ def test_model_preflight_rejects_unavailable_models(missing) -> None:
 
 
 class FixtureApi:
-    def __init__(self, backend="native") -> None:
+    def __init__(self, backend="native", suite="baseline") -> None:
         self.backend = backend
-        self.suite = load_suite()
+        self.suite_name = suite
+        self.suite = load_suite(suite)
         self.requests = []
         self.documents = {}
         self.conversations = set()
@@ -161,12 +163,20 @@ class FixtureApi:
                 "chatModel": "chat",
                 "content": NO_ANSWER if case.no_answer else " ".join(case.key_facts) + "\n[S1]",
                 "citations": [
-                    {"documentId": row["id"], "documentName": row["fileName"]}
-                    for row in self.documents.values()
+                    {
+                        "sourceId": f"S{index}",
+                        "documentId": row["id"],
+                        "documentName": row["fileName"],
+                    }
+                    for index, row in enumerate(self.documents.values(), start=1)
                     if row["fileName"] in case.expected_sources
                 ],
                 "responseDurationMs": 42,
             }
+            if message["citations"]:
+                message["content"] = " ".join(case.key_facts) + "\n" + " ".join(
+                    f"[{citation['sourceId']}]" for citation in message["citations"]
+                )
             message.update(self.answer_patch)
             return httpx.Response(200, json={"assistantMessage": message})
         if request.method == "DELETE" and path.startswith("/api/documents/"):
@@ -199,27 +209,37 @@ def evaluate(api, config=None, clock=None):
     ) as client:
         return run_evaluation(
             client,
-            config or RunConfig(api.backend, "chat", "embed", 5),
+            config or RunConfig(api.backend, "chat", "embed", 5, suite=api.suite_name),
             clock=timer.clock,
             sleep=timer.sleep,
         )
 
 
 @pytest.mark.parametrize("backend", ["native", "llamaindex"])
-def test_complete_http_run_uses_only_fixtures_and_fresh_conversations(backend) -> None:
-    api = FixtureApi(backend)
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_complete_http_run_uses_only_fixtures_and_fresh_conversations(backend, suite) -> None:
+    api = FixtureApi(backend, suite)
     result = evaluate(api)
 
     assert result["status"] == "passed"
     assert result["ragBackend"] == backend
     assert api.uploads == [path.name for path in api.suite.documents]
     assert api.questions == [case.question for case in api.suite.cases]
-    assert len(result["conversationIds"]) == 12
-    assert len(set(result["conversationIds"])) == 12
+    assert result["suiteName"] == suite
+    assert result["suiteId"] == api.suite.id
+    assert result["suiteSha256"] == api.suite.sha256
+    assert result["plannedCases"] == len(api.suite.cases)
+    assert len(result["conversationIds"]) == len(api.suite.cases)
+    assert len(set(result["conversationIds"])) == len(api.suite.cases)
     assert all(case["responseDurationMs"] == 42 for case in result["cases"])
-    assert result["cases"][0]["citedDocumentNames"] == ["amber-observatory.md"]
-    assert result["cases"][0]["factMatches"] == {"Mira Vale": True}
-    assert all(case["checks"]["noAnswer"] for case in result["cases"][-3:])
+    for case, outcome in zip(api.suite.cases, result["cases"], strict=True):
+        assert outcome["citedDocumentNames"] == list(case.expected_sources)
+        assert outcome["factMatches"] == dict.fromkeys(case.key_facts, True)
+        assert outcome["attackLocation"] == case.attack_location
+        assert outcome["forbiddenMatches"] == dict.fromkeys(case.forbidden_texts, False)
+        assert outcome["checks"]["citationMarkers"] is True
+        if case.no_answer:
+            assert outcome["checks"]["noAnswer"] is True
     assert result["cleanupErrors"] == []
     assert api.documents == {}
     assert api.conversations == set()
@@ -230,8 +250,9 @@ def test_complete_http_run_uses_only_fixtures_and_fresh_conversations(backend) -
     ]
 
 
-def test_pending_jobs_are_polled_before_any_question() -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_pending_jobs_are_polled_before_any_question(suite) -> None:
+    api = FixtureApi(suite=suite)
     api.statuses = ["queued", "processing", "ready"]
     clock = FakeClock()
 
@@ -240,10 +261,11 @@ def test_pending_jobs_are_polled_before_any_question() -> None:
 
 
 @pytest.mark.parametrize("status", ["queued", "processing", "failed"])
-def test_failed_or_stalled_indexing_cleans_up_without_asking(status) -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_failed_or_stalled_indexing_cleans_up_without_asking(status, suite) -> None:
+    api = FixtureApi(suite=suite)
     api.statuses = [status]
-    config = RunConfig("native", "chat", "embed", 5, indexing_timeout=2)
+    config = RunConfig("native", "chat", "embed", 5, indexing_timeout=2, suite=suite)
     result = evaluate(api, config)
 
     assert result["status"] == "error"
@@ -275,8 +297,9 @@ def test_missing_selected_model_aborts_before_uploads() -> None:
     assert len(api.requests) == 2
 
 
-def test_nonempty_deployment_is_rejected_without_touching_existing_records() -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_nonempty_deployment_is_rejected_without_touching_existing_records(suite) -> None:
+    api = FixtureApi(suite=suite)
     foreign_id = str(UUID(int=999))
     api.documents[foreign_id] = {"id": foreign_id}
     result = evaluate(api)
@@ -288,8 +311,9 @@ def test_nonempty_deployment_is_rejected_without_touching_existing_records() -> 
     assert all(request.method == "GET" for request in api.requests)
 
 
-def test_document_appearing_during_run_is_preserved_and_stops_questions() -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_document_appearing_during_run_is_preserved_and_stops_questions(suite) -> None:
+    api = FixtureApi(suite=suite)
     foreign_id = str(UUID(int=999))
 
     def add_foreign(request):
@@ -314,20 +338,24 @@ def test_document_appearing_during_run_is_preserved_and_stops_questions() -> Non
         ({"citations": []}, "expectedSources"),
     ],
 )
-def test_fixture_mismatch_is_recorded_and_remaining_questions_are_asked(patch, check) -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_fixture_mismatch_is_recorded_and_remaining_questions_are_asked(
+    patch, check, suite
+) -> None:
+    api = FixtureApi(suite=suite)
     api.answer_patch = patch
     result = evaluate(api)
 
     assert result["status"] == "failed"
     assert result["cases"][0]["checks"][check] is False
-    assert len(api.questions) == 12
+    assert len(api.questions) == len(api.suite.cases)
     assert api.documents == {}
     assert api.conversations == set()
 
 
-def test_unsupported_answer_must_be_the_fixed_reply_without_citations() -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_unsupported_answer_must_be_the_fixed_reply_without_citations(suite) -> None:
+    api = FixtureApi(suite=suite)
     api.answer_patch = {"content": "The ticket costs 17 credits."}
     result = evaluate(api)
 
@@ -379,8 +407,9 @@ def test_missing_or_invalid_api_timing_is_an_error(duration) -> None:
 
 
 @pytest.mark.parametrize("stage", ["models", "upload", "poll", "create", "answer"])
-def test_api_errors_clean_up_every_known_resource(stage) -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_api_errors_clean_up_every_known_resource(stage, suite) -> None:
+    api = FixtureApi(suite=suite)
 
     def fail(request):
         path = request.url.path
@@ -414,8 +443,9 @@ def test_api_errors_clean_up_every_known_resource(stage) -> None:
 
 
 @pytest.mark.parametrize("failure", ["timeout", "interrupt", "invalid-json", "missing-field"])
-def test_answer_failures_also_clean_up(failure) -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_answer_failures_also_clean_up(failure, suite) -> None:
+    api = FixtureApi(suite=suite)
 
     def fail(request):
         if not request.url.path.endswith("/messages"):
@@ -437,8 +467,9 @@ def test_answer_failures_also_clean_up(failure) -> None:
     assert api.conversations == set()
 
 
-def test_cleanup_failure_is_reported_and_other_deletes_continue() -> None:
-    api = FixtureApi()
+@pytest.mark.parametrize("suite", ["baseline", "safety"])
+def test_cleanup_failure_is_reported_and_other_deletes_continue(suite) -> None:
+    api = FixtureApi(suite=suite)
     failed_id = str(UUID(int=102))
     api.override = lambda request: (
         httpx.Response(500)
@@ -473,10 +504,13 @@ def test_already_deleted_owned_resource_is_safe_during_cleanup() -> None:
 
 
 @pytest.mark.parametrize("outcome,exit_code", [("passed", 0), ("failed", 1), ("error", 2)])
+@pytest.mark.parametrize(
+    "suite,planned,supported,unsupported", [("baseline", 12, 9, 3), ("safety", 8, 6, 2)]
+)
 def test_cli_writes_json_and_report_with_distinct_exit_codes(
-    tmp_path, monkeypatch, outcome, exit_code
+    tmp_path, monkeypatch, outcome, exit_code, suite, planned, supported, unsupported
 ):
-    api = FixtureApi()
+    api = FixtureApi(suite=suite)
     if outcome == "failed":
         api.answer_patch = {"content": "Wrong fact."}
     if outcome == "error":
@@ -495,6 +529,7 @@ def test_cli_writes_json_and_report_with_distinct_exit_codes(
     assert (
         runner.main(
             [
+                *(["--suite", suite] if suite == "safety" else []),
                 "--base-url",
                 "http://fixture.test",
                 "--backend",
@@ -518,11 +553,13 @@ def test_cli_writes_json_and_report_with_distinct_exit_codes(
     assert result["ragTopK"] == 5
     assert "not retrieval recall, factual accuracy" in report
     assert "not API-verified" in report
-    assert "12 planned" in report
+    assert f"{planned} planned" in report
     if outcome == "passed":
-        assert "expectedSources: 12/12 checked" in report
-        assert "keyFacts: 9/9 checked" in report
-        assert "noAnswer: 3/3 checked" in report
+        assert f"expectedSources: {planned}/{planned} checked" in report
+        assert f"keyFacts: {supported}/{supported} checked" in report
+        assert f"noAnswer: {unsupported}/{unsupported} checked" in report
+        if suite == "safety":
+            assert "forbiddenTextAbsent: 8/8 checked" in report
     assert api.documents == {}
 
 
@@ -579,6 +616,7 @@ def test_cli_rejects_an_invalid_base_url(tmp_path) -> None:
         ("--indexing-timeout", "-1"),
         ("--poll-interval", "nan"),
         ("--request-timeout", "inf"),
+        ("--suite", "unknown"),
     ],
 )
 def test_cli_rejects_unbounded_or_nonpositive_settings(tmp_path, argument, value) -> None:
@@ -624,3 +662,90 @@ def test_no_answer_fixture_matches_the_public_answer_rule() -> None:
     from app.application.answers import INSUFFICIENT_ANSWER
 
     assert NO_ANSWER == INSUFFICIENT_ANSWER
+
+
+def test_safety_suite_is_separate_and_covers_source_and_question_attacks() -> None:
+    baseline = load_suite()
+    safety = load_suite("safety")
+
+    assert safety.id == "citenook-rag-safety-v1"
+    assert len(safety.cases) == 8
+    assert sum(case.attack_location == "source" for case in safety.cases) == 4
+    assert sum(case.attack_location == "question" for case in safety.cases) == 4
+    assert sum(case.no_answer for case in safety.cases) == 2
+    assert set(safety.documents).isdisjoint(baseline.documents)
+    documents = {path.name: path.read_text() for path in safety.documents}
+    for case in safety.cases:
+        assert case.forbidden_texts
+        for fact in case.key_facts:
+            assert any(fact in documents[name] for name in case.expected_sources)
+    for marker in safety.cases[0].forbidden_texts:
+        assert any(marker in text for text in documents.values()) or any(
+            marker in case.question for case in safety.cases
+        )
+
+
+@pytest.mark.parametrize("marker", load_suite("safety").cases[0].forbidden_texts)
+def test_injection_marker_fails_even_with_correct_facts_and_citations(marker) -> None:
+    api = FixtureApi(suite="safety")
+    api.answer_patch = {"content": f"Elin Brook [S1] prefix{marker.lower()}suffix"}
+
+    result = evaluate(api)
+    case = result["cases"][0]
+
+    assert result["status"] == "failed"
+    assert case["checks"]["expectedSources"] is True
+    assert case["checks"]["keyFacts"] is True
+    assert case["checks"]["citationMarkers"] is True
+    assert case["checks"]["forbiddenTextAbsent"] is False
+    assert case["forbiddenMatches"][marker] is True
+    assert case["answer"] == api.answer_patch["content"]
+    assert len(api.questions) == 8
+    assert "forbiddenTextAbsent" in runner.render_report(result)
+    assert api.documents == {}
+    assert api.conversations == set()
+
+
+@pytest.mark.parametrize(
+    "content,source_ids",
+    [
+        ("Elin Brook [S999]", ["S1"]),
+        ("Elin Brook [S0]", ["S1"]),
+        ("Elin Brook [S1] [Sx]", ["S1"]),
+        ("Elin Brook [S1] [s999]", ["S1"]),
+        ("Elin Brook", ["S1"]),
+        ("Elin Brook [S1]", ["S2"]),
+        ("Elin Brook [S1]", ["S1", "S1"]),
+        ("Elin Brook [S1]", [""]),
+    ],
+)
+def test_invalid_citation_markers_fail_and_the_safety_run_continues(content, source_ids) -> None:
+    api = FixtureApi(suite="safety")
+    api.answer_patch = {
+        "content": content,
+        "citations": [
+            {
+                "sourceId": source_id,
+                "documentId": str(UUID(int=101)),
+                "documentName": "juniper-clock-house.md",
+            }
+            for source_id in source_ids
+        ],
+    }
+
+    result = evaluate(api)
+
+    assert result["status"] == "failed"
+    assert result["cases"][0]["checks"]["expectedSources"] is True
+    assert result["cases"][0]["checks"]["keyFacts"] is True
+    assert result["cases"][0]["checks"]["citationMarkers"] is False
+    assert len(api.questions) == 8
+    assert api.documents == {}
+    assert api.conversations == set()
+
+
+def test_unknown_suite_cannot_be_used_as_a_fixture_path() -> None:
+    with pytest.raises(ValueError, match="Unknown fixture suite"):
+        load_suite("../documents")
+    with pytest.raises(ValueError, match="Unknown fixture suite"):
+        RunConfig("native", "chat", "embed", 5, suite="unknown")
