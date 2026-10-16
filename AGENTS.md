@@ -1,152 +1,69 @@
-# AGENTS.md
+# Codex engineering guide
 
-## Project
+## Repository
 
-**CiteNook** is the display name for the `cite-nook-ai` repository. It is a local document question-answering app built with React, FastAPI, PostgreSQL/pgvector, a separate ingestion worker, and Ollama.
+CiteNook is a local-first RAG application: React/TypeScript frontend, FastAPI backend, SQLAlchemy/PostgreSQL with pgvector, a separate ingestion worker, and Ollama. `native` and `llamaindex` are alternative retrieval backends selected per deployment, not simultaneous pipelines.
 
-The core user path is small: upload a file, wait for indexing, ask a question, receive a grounded answer, and inspect its sources.
+## Load context progressively
 
-## Source of truth
+1. Read this file, `docs/story-workflow.md`, and **only the active `MRA-*` story**. Check its release README for status and dependencies.
+2. Inspect the affected modules and their tests. Open `docs/architecture.md`, `docs/rag-pipeline.md`, or `docs/testing.md` **only if relevant** to the change.
+3. Activate at most the skill(s) that match the actual file/technology scope below. Do not preload every skill, historic release plan, or unrelated module.
+4. A planned release is not implemented behavior. Releases 0.6 and 0.7 are complete; the separate RAG safety suite records observed failures, not a security guarantee. Preserve prior evaluation fixtures and measured results.
 
-Read these files before work on an active story:
+## Technical boundaries
 
-- `docs/story-workflow.md` for story, comment, approval, and evidence rules;
-- the active `MRA-*` story for scope and ordered acceptance criteria;
-- the active release `README.md` for its scope;
-- `docs/releases/release-0.5-clean-rag-backends/implementation-plan.md` for current backend boundaries;
-- `docs/architecture.md` and `docs/rag-pipeline.md` for dependency and data rules.
+- **React/Vite:** `apps/web/src/features/*` owns feature state and UI; requests go through `apps/web/src/api.ts`, not ad hoc `fetch` calls in feature components. Preserve loading and error handling.
+- **FastAPI:** routers validate HTTP contracts; `app/application/*` coordinates use cases; `app/persistence/*` owns SQLAlchemy storage; `app/bootstrap.py` wires concrete adapters. Keep routers thin and application services independent of concrete adapters.
+- **Worker / PostgreSQL:** background extraction and embedding run in `app/worker.py`; the PostgreSQL-backed job queue remains the only queue. Preserve transaction boundaries, index metadata and worker retry/error states.
+- **RAG / LLM:** one `DocumentIndexer` and `SourceRetriever` per deployment. Keep native code free of LlamaIndex dependencies. Native and LlamaIndex indexes use separate deployment data; never introduce dual indexing, runtime switching or silent fallback.
+- **Answer integrity:** the common answer service owns prompts, model calls, grounded citations, timing and persistence. Treat uploaded text as untrusted data. Validate source markers; a citation marker alone does not establish that a claim is grounded.
+- **Infra:** API, worker and web may use external Ollama or the existing optional Compose Ollama service. Do not add an unrelated queue, provider, abstraction layer, or library outside an approved story.
 
-A plan is not implemented behavior. Do not write docs that claim a planned command or backend already works.
+## Roles and on-demand skills
 
-## Product principles
+The main Codex session should normally do the work itself. Delegate only when a separate result adds value.
 
-- Keep the app local and usable without accounts.
-- Persist files, document state, conversations, messages, selected models, index data, and citations.
-- Keep explicit source proof with every grounded answer.
-- State that sources are not enough rather than inventing an answer.
-- Keep product branding in `packages/brand/brand.json`.
-- Keep Ollama outside the application images.
-- Keep extraction and embedding work in the separate worker.
-- Use PostgreSQL for the queue instead of adding another queue service.
+| Role | Use only when | Constraint |
+| --- | --- | --- |
+| `implementation_worker` | A single approved story is intentionally delegated | Sole writer for that story |
+| `architect` | A risky cross-boundary change needs a short independent plan | Read-only; no duplicate implementation plan |
+| `reviewer` | A security-sensitive, architecture-heavy or release change needs independent review | Read-only; review the diff and existing evidence |
 
-## Release 0.5 architecture rules
+| Skill | Trigger |
+| --- | --- |
+| `react-fastapi-contracts` | React, FastAPI, typed HTTP contracts or worker-driven UI state |
+| `rag-pipeline` | Embeddings, pgvector, native/LlamaIndex retrieval, citations, model outputs or RAG evaluation / safety fixtures |
+| `release-evidence` | Story status, repository checks, documentation integrity or release verification |
 
-- Clean the old code before adding a second backend.
-- Use one selected RAG backend in one deployment.
-- Keep `native` as the default.
-- Do not add a UI backend switch.
-- Do not write to or query native and LlamaIndex for the same request.
-- Keep prompts, chat, citation checks, timing, and message storage common.
-- Use LlamaIndex for node indexing and source retrieval, not a second answer path.
-- Keep native modules free of LlamaIndex imports.
-- Build concrete dependencies in `app/bootstrap.py` only.
-- Keep routers thin and make app services depend on ports.
-- Do not leave old and new live code paths after a refactor.
-- Do not add empty layers or a repository class for every small query.
+Use **one writer**. Never delegate overlapping edits, duplicate research or repeat test suites merely to keep agents busy. Parallel read-only review is optional when its input is stable. The session cap is two concurrent threads; it is a limit, not a target.
 
-## Python boundaries
+## One-story delivery loop
 
-```text
-api             HTTP input and output
-application     use-case order and product rules
-core            settings and brand
-persistence     SQLAlchemy sessions and ORM models
-ai              model ports and Ollama adapter
-rag             RAG ports and backend adapters
-bootstrap.py    concrete dependency setup
-main.py         API entry point
-worker.py       worker entry point
-```
-
-These boundaries are implemented. Keep changes within them unless an approved later story changes the design.
-
-## Web boundaries
-
-- `App.tsx` owns app startup, active workspace, shared errors, and top-level layout.
-- `features/conversations` owns chat state, requests, dialogs, views, and tests.
-- `features/documents` owns document state, polling, requests, views, and tests.
-- Web feature code calls `apps/web/src/api.ts` and does not call `fetch` directly.
-- Do not add a state library or router without an approved story.
-
-## Story execution
-
-Work on one story at a time and follow its acceptance criteria in order.
-
-1. Name the next valid story, scope, likely files, and checks.
-2. Ask for clear approval before implementation starts.
-3. Implement only the approved story.
-4. Run checks and show the result.
-5. Propose one commit message.
-6. Ask for clear approval before creating the commit.
-7. Report the commit hash after the approved commit.
-8. Ask before starting the next valid story.
-
-Earlier approval does not grant later approval. Do not commit, continue, force-push, reset shared history, or rewrite commits without clear approval.
-
-## Story writing rules
-
-- Use the sections and status values in `docs/story-workflow.md`.
-- Keep a prose block at five sentences or less.
-- Keep each criterion to one short, testable sentence.
-- Use four to eight criteria.
-- Keep `User story` plus `Goal` at Flesch Reading Ease 80 or more.
-- Put long proof in the release `verification.md` file.
-- Do not add issue or limitation sections to story files.
-
-## Source comment rules
-
-- Add a comment only when code cannot make the reason clear.
-- Explain why; do not narrate what the code does.
-- Prefer one short sentence.
-- Use at most three short sentences in one comment block.
-- Use at most five short sentences in one docstring.
-- Do not paste plans, story text, change history, or logs into source comments.
-- Keep SPDX and required tool directives unchanged.
-
-## Codex roles
-
-Use the smallest useful role:
-
-- `architect` plans a cross-cutting story and does not edit files;
-- `implementation_worker` implements one approved story;
-- `reviewer` checks the approved story, regressions, evidence, and needless complexity.
-
-Repository skills:
-
-- `full-stack-delivery` for React, FastAPI, Docker, and shared contract work;
-- `rag-pipeline` for index, retrieval, model, grounding, and citation work;
-- `release-evidence` for story, rule, verification, and release records.
-
-Do not invoke every role for a small documentation fix.
+- Name the active story, touched files, risk and **focused** checks; obtain approval before implementation.
+- Work through the story's acceptance criteria in order. Avoid speculative code, unnecessary refactoring and new dependencies.
+- Run affected tests first. Expand to integration, Compose or model smoke checks only when the change calls for them; request approval before costly/destructive checks.
+- Record real commands, outcomes and limitations in the active release `verification.md`. Do not rewrite historic evidence.
+- Review the diff and propose a commit message. **Do not commit, push or start another story without separate approval.**
+- Keep comments for non-obvious reasons, not descriptions of obvious code; follow `docs/story-workflow.md` for comment and docstring limits.
 
 ## License headers
 
-New hand-written project source files use:
+New handwritten application source files use the relevant comment syntax for:
 
 ```text
 SPDX-FileCopyrightText: 2026 Keresztes Zsolt <https://kereszteszsolt.hu>
 SPDX-License-Identifier: Apache-2.0
 ```
 
-Keep the header at the start of source files. Do not add it to Markdown, JSON, TOML, Dockerfiles, Compose files, environment examples, ignore files, generated lock files, or binary assets.
+Do not add SPDX headers to Markdown, JSON, TOML, Dockerfiles, Compose/env files, lock files or generated assets. Preserve any existing third-party notices.
 
-## Verification
+## Verification references
 
-Run the focused checks for the active story. Before a release claim, run:
+Use the commands in `docs/testing.md` appropriate to the changed layers. For repository structure and release-link checks:
 
 ```bash
 python3 .agents/skills/release-evidence/scripts/verify_repository.py
-npm run lint
-npm run test
-npm run build
-docker compose config
-docker compose -f docker-compose.yml -f docker-compose.ollama.yml config
-docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml config
-docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-compose.ollama.yml config
 ```
 
-Runtime proof must use a real installed chat model and embedding model for both native and LlamaIndex deployments.
-
-## Release boundary
-
-Release 0.5 does not add Ragas, cloud providers, hybrid search, reranking, backend scoring, runtime backend switching, or indexed-data migration. Release 0.6 adds only a small API-based RAG evaluation, one GitHub Actions workflow, and measured documentation. Use the existing endpoints and two real deployments; do not add Ragas or a new RAG backend.
+A release closeout additionally requires lint, unit/build checks, supported Compose configurations and real runtime proof for affected retrieval backends; never claim a run that was not performed.
