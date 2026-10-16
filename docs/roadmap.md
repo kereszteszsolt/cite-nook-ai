@@ -14,6 +14,12 @@ The [fixture runner](rag-evaluation.md) checks expected citations, simple fixtur
 
 See [Release 0.6 stories](releases/release-0.6-rag-evaluation-and-ci/README.md) for the three scoped stories and [verification](releases/release-0.6-rag-evaluation-and-ci/verification.md) for checks and runtime proof. Optional later work is listed separately below.
 
+## Release 0.7: RAG safety regression checks (planned)
+
+`MRA-032` plans a small, separate set of synthetic prompt-injection tests for both existing RAG deployments. The tests will reuse the public API and current evaluator while leaving the Release 0.6 twelve-case fixture set and its measurements unchanged. Failed cases will be recorded as findings; this release does not promise a production guardrail or full security coverage.
+
+See the [Release 0.7 story map](releases/release-0.7-rag-safety-checks/README.md) and [unrun verification record](releases/release-0.7-rag-safety-checks/verification.md). This work is not implemented yet.
+
 ## Later options
 
-Possible later work includes an OpenAI-compatible model provider, hybrid search, reranking, retrieval tracing, and a citation inspector. Other options include authentication, OCR, streaming answers, agent workflows, per-conversation source sets, conversation search, and retryable ingestion. These items are not part of Release 0.5 or Release 0.6.
+Possible later work includes an OpenAI-compatible model provider, hybrid search, reranking, retrieval tracing, and a citation inspector. Other options include authentication, OCR, streaming answers, agent workflows, per-conversation source sets, conversation search, and retryable ingestion. These items are not part of the completed releases or the scoped Release 0.7 plan.

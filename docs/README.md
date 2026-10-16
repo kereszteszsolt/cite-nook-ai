@@ -27,7 +27,10 @@
 - [Release 0.4 stories](releases/release-0.4-local-experience-polish/README.md)
 - [Release 0.5 stories](releases/release-0.5-clean-rag-backends/README.md)
 - [Release 0.6 stories](releases/release-0.6-rag-evaluation-and-ci/README.md)
+- [Release 0.7 planned safety checks](releases/release-0.7-rag-safety-checks/README.md)
 
 Release 0.5 implements clean package boundaries and one deploy-selected native or LlamaIndex backend. Its release folder links the completed stories, design records, and verification proof.
 
 Release 0.6 adds a small API-based fixture runner, GitHub Actions checks, and measured results from both real deployments.
+
+Release 0.7 is planned only: separate prompt-injection regression fixtures and honest evaluation evidence, without changing the shipped RAG behavior.
