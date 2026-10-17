@@ -28,6 +28,7 @@
 - [Release 0.5 stories](releases/release-0.5-clean-rag-backends/README.md)
 - [Release 0.6 stories](releases/release-0.6-rag-evaluation-and-ci/README.md)
 - [Release 0.7 safety checks](releases/release-0.7-rag-safety-checks/README.md)
+- [Release 0.8 planned LLM judge evaluation](releases/release-0.8-llm-judge-evaluation/README.md)
 
 Release 0.5 implements clean package boundaries and one deploy-selected native or LlamaIndex backend. Its release folder links the completed stories, design records, and verification proof.
 

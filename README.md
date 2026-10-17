@@ -32,7 +32,7 @@ CiteNook is developed through independently verifiable MRA stories. The [release
 - **Frontend:** React, TypeScript, Vite, and source-aware conversation and document views.
 - **Quality and runtime:** pytest, Vitest, React Testing Library, Playwright, Docker Compose, uv, and Turborepo.
 
-See the [technology stack](docs/technology-stack.md) for exact dependencies and the [small RAG fixture runner](docs/rag-evaluation.md) for API-based checks. Release 0.6 includes GitHub Actions CI and a [measured native/LlamaIndex comparison](docs/releases/release-0.6-rag-evaluation-and-ci/comparison.md): both passed 12/12 checks on the same small synthetic fixture set. [Release 0.7](docs/releases/release-0.7-rag-safety-checks/README.md) adds a separate eight-case prompt-injection test suite. In the [recorded evaluation](docs/releases/release-0.7-rag-safety-checks/comparison.md), native RAG passed 4/8 and LlamaIndex 3/8 cases. These results expose answer-quality and no-answer failures and **do not certify prompt-injection protection**. See the [roadmap](docs/roadmap.md) for future options.
+See the [technology stack](docs/technology-stack.md) for exact dependencies and the [small RAG fixture runner](docs/rag-evaluation.md) for API-based checks. Release 0.6 includes GitHub Actions CI and a [measured native/LlamaIndex comparison](docs/releases/release-0.6-rag-evaluation-and-ci/comparison.md): both passed 12/12 checks on the same small synthetic fixture set. [Release 0.7](docs/releases/release-0.7-rag-safety-checks/README.md) adds a separate eight-case prompt-injection test suite. In the [recorded evaluation](docs/releases/release-0.7-rag-safety-checks/comparison.md), native RAG passed 4/8 and LlamaIndex 3/8 cases. These results expose answer-quality and no-answer failures and **do not certify prompt-injection protection**. [Release 0.8](docs/releases/release-0.8-llm-judge-evaluation/README.md) is **planned only**: optional DeepEval judge scores on saved synthetic fixture results, separate from existing deterministic checks. No judge integration or measured results are claimed yet. See the [roadmap](docs/roadmap.md) for other future options.
 
 ## Screenshots
 
@@ -185,8 +185,9 @@ docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-
 | [Release 0.5 story map](docs/releases/release-0.5-clean-rag-backends/README.md) | Clean architecture and selectable RAG backends |
 | [Release 0.6 story map](docs/releases/release-0.6-rag-evaluation-and-ci/README.md) | Small RAG fixture runner, repository CI, and measured results |
 | [Release 0.7 story map](docs/releases/release-0.7-rag-safety-checks/README.md) | Separate prompt-injection fixtures, tests, and measured results |
+| [Release 0.8 story map (planned)](docs/releases/release-0.8-llm-judge-evaluation/README.md) | Optional DeepEval answer relevancy and cited-excerpt faithfulness; not implemented |
 
-## License and author
+## License
 
 Apache-2.0. Copyright © 2026 **Keresztes Zsolt** — [kereszteszsolt.hu](https://kereszteszsolt.hu).
 
