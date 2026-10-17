@@ -117,6 +117,12 @@ The API workspace lint, test, and build commands include the evaluation package.
 
 `MRA-032` adds a separate `--suite safety` selection with eight source- and question-level prompt-injection cases. The same mocked-HTTP test file covers both suites, marker leakage despite correct facts, invalid citations, expected refusals, readiness, isolation, and cleanup after errors. Keep real safety runs and their observed failures in [Release 0.7 verification](releases/release-0.7-rag-safety-checks/verification.md); fixture passes are not a full security audit.
 
+### Optional judge checks
+
+`tests/test_judge.py` uses mocked evaluators and covers both saved schema versions, both suites, missing citations, no-answer cases, malformed and incomplete results, judge failures, privacy settings, and immutable input/output handling. Normal CI runs these tests without installing DeepEval or making judge requests. From `apps/api`, use `uv run --locked pytest -q tests/test_judge.py tests/test_evaluation.py` and `uv run --locked python -m evaluation.judge --help`.
+
+To inspect the optional dependency locally, use `uv sync --locked --extra judge`. When running pytest in an environment that has DeepEval installed, set `DEEPEVAL_TELEMETRY_OPT_OUT=1 DEEPEVAL_DISABLE_DOTENV=1 DEEPEVAL_UPDATE_WARNING_OPT_IN=0 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1` before pytest so its third-party plugin cannot initialize before the CLI's privacy setup. Real local judge execution is a separate manual check described in the [judge guide](rag-judge.md); mock scores are never release measurements.
+
 ## Runtime smoke checks
 
 Native with external Ollama:

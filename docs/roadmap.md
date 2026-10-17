@@ -20,6 +20,12 @@ See [Release 0.6 stories](releases/release-0.6-rag-evaluation-and-ci/README.md) 
 
 See the [Release 0.7 story map](releases/release-0.7-rag-safety-checks/README.md) and [verification record](releases/release-0.7-rag-safety-checks/verification.md) for implementation, commands, and cleanup proof.
 
+## Release 0.8: optional LLM-as-a-Judge evaluation
+
+[MRA-033](releases/release-0.8-llm-judge-evaluation/README.md) adds an [optional local DeepEval CLI](rag-judge.md) for existing synthetic RAG results. It provides answer relevancy and carefully labeled cited-excerpt faithfulness where saved citations provide snippets. Schema 1 baseline exports remain usable with faithfulness marked N/A. Production RAG and measured Releases 0.6/0.7 are unchanged; one [approved local judge run](releases/release-0.8-llm-judge-evaluation/verification.md#first-approved-local-judge-run) is recorded with unreliable reasoning noted.
+
+The [Release 0.8 verification](releases/release-0.8-llm-judge-evaluation/verification.md) records offline checks, one real local run, and its limited coverage and judge reliability.
+
 ## Later options
 
 Possible later work includes an OpenAI-compatible model provider, hybrid search, reranking, retrieval tracing, and a citation inspector. Other options include authentication, OCR, streaming answers, agent workflows, per-conversation source sets, conversation search, and retryable ingestion. These items are not part of the completed releases.

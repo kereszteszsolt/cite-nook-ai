@@ -1,6 +1,6 @@
 # Small RAG fixture evaluation
 
-The developer CLI in [apps/api/evaluation](../apps/api/evaluation/runner.py) calls the normal CiteNook HTTP API. The default `baseline` suite from `MRA-029` uses three invented Markdown documents and twelve questions: nine supported answers and three fixed insufficient-source replies. `MRA-032` adds a separate eight-case `safety` suite. Neither suite changes the production RAG path, prompts, or endpoints, and neither uses a model judge.
+The developer CLI in [apps/api/evaluation](../apps/api/evaluation/runner.py) calls the normal CiteNook HTTP API. The default `baseline` suite from `MRA-029` uses three invented Markdown documents and twelve questions: nine supported answers and three fixed insufficient-source replies. `MRA-032` adds a separate eight-case `safety` suite. Neither suite changes the production RAG path, prompts, or endpoints, and neither uses a model judge. `MRA-033` provides a separate, optional [local DeepEval judge](rag-judge.md) for the already-saved outputs.
 
 ## What the checks mean
 
