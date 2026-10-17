@@ -186,9 +186,11 @@ docker compose -f docker-compose.yml -f docker-compose.llamaindex.yml -f docker-
 | [Release 0.6 story map](docs/releases/release-0.6-rag-evaluation-and-ci/README.md) | Small RAG fixture runner, repository CI, and measured results |
 | [Release 0.7 story map](docs/releases/release-0.7-rag-safety-checks/README.md) | Separate prompt-injection fixtures, tests, and measured results |
 
-## License
+## License and author
 
-Apache License 2.0. See [`LICENSE`](LICENSE).
+Apache-2.0. Copyright © 2026 **Keresztes Zsolt** — [kereszteszsolt.hu](https://kereszteszsolt.hu).
+
+New hand-written source files use the two-line SPDX header defined in [AGENTS.md](AGENTS.md).
 
 ## Contact
 
