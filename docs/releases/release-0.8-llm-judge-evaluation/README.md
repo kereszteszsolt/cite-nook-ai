@@ -2,17 +2,17 @@
 
 ## Status
 
-**Planned, not implemented.** One small story, `MRA-033`; existing native/LlamaIndex RAG and both evaluated fixture suites stay unchanged.
+**Implemented; offline and locally verified.** `MRA-033` provides an optional local judge CLI; one approved real run completed with no technical errors, but several judge explanations were wrong. Existing native/LlamaIndex RAG and both evaluated fixture suites stay unchanged.
 
 ## Goal
 
-Add an **optional, developer-only DeepEval quality assessment** on top of saved CiteNook fixture results. This introduces a popular evaluation framework without adding a third RAG backend, additional product features or expensive CI model calls.
+Use the [optional developer-only DeepEval CLI](../../rag-judge.md) to assess saved CiteNook synthetic fixture results with a local Ollama model. The CLI writes separate structured scores and a Markdown report. It adds no third RAG backend, product feature, or CI model calls.
 
 ## Story
 
 | Story | Scope | Status |
 | --- | --- | --- |
-| [MRA-033](stories/MRA-033-optional-deepeval-judge.md) | Evaluate saved baseline/safety responses with controlled judge metrics | Planned |
+| [MRA-033](stories/MRA-033-optional-deepeval-judge.md) | Evaluate saved baseline/safety responses with controlled judge metrics | Implemented |
 
 ## Guardrails for evaluation accuracy
 
@@ -22,12 +22,8 @@ Add an **optional, developer-only DeepEval quality assessment** on top of saved 
 - LLM-as-a-Judge scores are **model-dependent** and can vary between runs; do not claim deterministic reproducibility of scores, general factual accuracy or security certification.
 - Keep DeepEval an optional evaluation/dev dependency, not an application import or required Docker/CI service. Only synthetic fixture text is eligible for a configured judge; do not send personal uploads or conversation data to a remote endpoint.
 
-## Codex-friendly effort estimate
-
-**Estimated with Codex doing most implementation:** around **2–5 hours of Codex iterations/integration checks + 30–60 minutes of user review/commit work**. This is an estimate, not an observed duration. A suitable local judge and any approved runtime execution may add time. One story avoids an extra plan/commit cycle.
-
 ## Evidence and scope
 
-Use the [Release 0.8 verification](verification.md) to record actual results. The [RAG skill](../../../.agents/skills/rag-pipeline/SKILL.md) already covers evaluation work: **no new agent or skill is required**.
+The [Release 0.8 verification](verification.md) records offline tests, dependency isolation and unchanged historical evidence. The [recorded local run](verification.md#first-approved-local-judge-run) has limited coverage and observed judge reasoning errors. The [RAG skill](../../../.agents/skills/rag-pipeline/SKILL.md) covers evaluation work; no new agent or skill is required.
 
 Out of scope: production prompt changes, Langfuse, Ragas in parallel, new API/DB endpoints, model fine-tuning, hosted evaluation dashboards, paid/default judge calls in CI, changes to historical measurements, or claims that test-only metrics prove prompt-injection protection.

@@ -1,6 +1,6 @@
 # Technology stack
 
-This page lists the main tools used through Release 0.6. Package files and lock files remain the source of truth for exact versions.
+This page lists the main tools used through Release 0.8. Package files and lock files remain the source of truth for exact versions.
 
 ## Web application
 
@@ -60,5 +60,7 @@ This page lists the main tools used through Release 0.6. Package files and lock 
 The `llamaindex` Python extra pins both packages and `apps/api/uv.lock` locks their transitive set. The native runtime does not install them.
 
 ## Evaluation and CI
+
+The optional `judge` Python extra pins [DeepEval `4.3.1`](https://pypi.org/project/deepeval/4.3.1/); its transitive dependencies are locked in `apps/api/uv.lock`. The [judge CLI](rag-judge.md) uses an explicit local Ollama model, with no default cloud judge, telemetry, dashboard upload, or production imports. API/worker Docker targets and CI do not select this extra. The shared lock resolves Click `8.3.3` and Rich `14.3.4` to satisfy DeepEval's constraints; runtime dependency declarations remain unchanged.
 
 The small [HTTP fixture runner](rag-evaluation.md) uses the existing httpx and pytest dependencies. The [GitHub Actions workflow](../.github/workflows/checks.yml) has local check proof and a [successful hosted run](https://github.com/kereszteszsolt/cite-nook-ai/actions/runs/38624888748). The [measured comparison](releases/release-0.6-rag-evaluation-and-ci/comparison.md) records real native and LlamaIndex runs with installed Ollama models. Ragas, OpenRouter, Poe, direct cloud APIs, hybrid retrieval, and reranking are not part of Release 0.6.

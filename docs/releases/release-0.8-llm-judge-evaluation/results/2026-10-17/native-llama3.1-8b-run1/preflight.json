@@ -1,0 +1,14 @@
+{
+  "endpoint": "http://127.0.0.1:11434",
+  "model": "llama3.1:8b",
+  "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+  "capabilities": [
+    "completion",
+    "tools"
+  ],
+  "remote_model": null,
+  "remote_host": null,
+  "running_model_size_vram": 0,
+  "running_model_context_length": 4096,
+  "note": "Observed via local Ollama /api/tags, /api/show and /api/ps; no inference response was mocked."
+}
